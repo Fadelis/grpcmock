@@ -1,4 +1,4 @@
-package org.grpcmock.definitions;
+package org.grpcmock.definitions.response;
 
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;

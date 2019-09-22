@@ -1,7 +1,7 @@
-package org.grpcmock.definitions.steps;
+package org.grpcmock.definitions.stub.steps;
 
 import javax.annotation.Nonnull;
-import org.grpcmock.definitions.Response;
+import org.grpcmock.definitions.response.Response;
 
 public interface SingleResponseBuilderStep<ReqT, RespT> extends MappingStubBuilder {
 

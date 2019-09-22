@@ -1,4 +1,4 @@
-package org.grpcmock.definitions;
+package org.grpcmock.definitions.response;
 
 public interface Traceable {
 

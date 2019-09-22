@@ -1,4 +1,4 @@
-package org.grpcmock.definitions;
+package org.grpcmock.definitions.response;
 
 import io.grpc.stub.StreamObserver;
 import java.util.concurrent.atomic.AtomicInteger;

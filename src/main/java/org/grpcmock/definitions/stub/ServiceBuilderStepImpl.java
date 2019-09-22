@@ -1,10 +1,10 @@
-package org.grpcmock.definitions;
+package org.grpcmock.definitions.stub;
 
 import io.grpc.MethodDescriptor;
 import io.grpc.ServiceDescriptor;
 import java.util.Objects;
 import javax.annotation.Nonnull;
-import org.grpcmock.definitions.steps.ServiceBuilderStep;
+import org.grpcmock.definitions.stub.steps.ServiceBuilderStep;
 import org.grpcmock.exception.GrpcMockException;
 
 public class ServiceBuilderStepImpl implements ServiceBuilderStep {

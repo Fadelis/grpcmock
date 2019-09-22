@@ -1,4 +1,4 @@
-package org.grpcmock.definitions;
+package org.grpcmock.definitions.stub;
 
 import io.grpc.MethodDescriptor;
 import java.util.ArrayList;
@@ -6,9 +6,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import javax.annotation.Nonnull;
-import org.grpcmock.definitions.steps.MappingStubBuilder;
-import org.grpcmock.definitions.steps.NextSingleResponseBuilderStep;
-import org.grpcmock.definitions.steps.SingleResponseBuilderStep;
+import org.grpcmock.definitions.response.ObjectResponse;
+import org.grpcmock.definitions.response.Response;
+import org.grpcmock.definitions.stub.steps.MappingStubBuilder;
+import org.grpcmock.definitions.stub.steps.NextSingleResponseBuilderStep;
+import org.grpcmock.definitions.stub.steps.SingleResponseBuilderStep;
 
 public class SingleResponseBuilderStepImpl<ReqT, RespT> implements
     MappingStubBuilder,

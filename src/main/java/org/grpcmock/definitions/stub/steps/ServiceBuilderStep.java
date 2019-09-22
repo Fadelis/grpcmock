@@ -1,4 +1,4 @@
-package org.grpcmock.definitions.steps;
+package org.grpcmock.definitions.stub.steps;
 
 import io.grpc.MethodDescriptor;
 

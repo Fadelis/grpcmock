@@ -1,10 +1,11 @@
-package org.grpcmock.definitions;
+package org.grpcmock.definitions.stub;
 
 import io.grpc.MethodDescriptor;
 import io.grpc.ServerServiceDefinition;
 import io.grpc.stub.ServerCalls;
 import io.grpc.stub.StreamObserver;
 import java.util.List;
+import org.grpcmock.definitions.response.Response;
 
 public class MappingStub<ReqT, RespT> {
 
