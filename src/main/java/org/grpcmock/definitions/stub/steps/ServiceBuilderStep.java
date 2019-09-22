@@ -1,9 +1,10 @@
 package org.grpcmock.definitions.stub.steps;
 
 import io.grpc.MethodDescriptor;
+import javax.annotation.Nonnull;
 
-public interface ServiceBuilderStep {
+public interface ServiceBuilderStep extends BuilderStep {
 
-  public <ReqT, RespT> SingleResponseBuilderStep<ReqT, RespT> forMethod(
-      MethodDescriptor<ReqT, RespT> method);
+  <ReqT, RespT> SingleResponseBuilderStep<ReqT, RespT> forMethod(
+      @Nonnull MethodDescriptor<ReqT, RespT> method);
 }

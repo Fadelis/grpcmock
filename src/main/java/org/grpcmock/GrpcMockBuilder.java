@@ -8,7 +8,7 @@ import java.util.Objects;
 import java.util.concurrent.Executor;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import org.grpcmock.interceptors.MetadataServerInterceptor;
+import org.grpcmock.interceptors.HeadersInterceptor;
 
 public class GrpcMockBuilder {
 
@@ -32,7 +32,7 @@ public class GrpcMockBuilder {
   public GrpcMock build() {
     MutableHandlerRegistry handlerRegistry = new MutableHandlerRegistry();
     Server server = serverBuilder
-        .intercept(new MetadataServerInterceptor())
+        .intercept(new HeadersInterceptor())
         .fallbackHandlerRegistry(handlerRegistry)
         .build();
     return new GrpcMock(server, handlerRegistry);

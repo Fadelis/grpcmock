@@ -1,7 +1,6 @@
 package org.grpcmock.interceptors;
 
 import io.grpc.Context;
-import io.grpc.Context.Key;
 import io.grpc.Contexts;
 import io.grpc.Metadata;
 import io.grpc.ServerCall;
@@ -9,7 +8,7 @@ import io.grpc.ServerCall.Listener;
 import io.grpc.ServerCallHandler;
 import io.grpc.ServerInterceptor;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * <p>gRPC server interceptor, which forwards received headers from {@link Metadata}
@@ -17,25 +16,21 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @author Fadelis
  */
-public class MetadataServerInterceptor implements ServerInterceptor {
+public class HeadersInterceptor implements ServerInterceptor {
 
-  public static final Map<String, Key<String>> INTERCEPTED_HEADERS = new ConcurrentHashMap<>();
+  public static final Context.Key<Map<String, String>> INTERCEPTED_HEADERS = Context.key("headers");
 
   @Override
   public <ReqT, RespT> Listener<ReqT> interceptCall(
       ServerCall<ReqT, RespT> call,
-      Metadata headers,
+      Metadata metadata,
       ServerCallHandler<ReqT, RespT> next
   ) {
-    Context ctx = headers.keys().stream()
+    Map<String, String> headers = metadata.keys().stream()
         .map(key -> Metadata.Key.of(key, Metadata.ASCII_STRING_MARSHALLER))
-        .reduce(
-            Context.current(),
-            (context, key) -> context.withValue(
-                INTERCEPTED_HEADERS.computeIfAbsent(key.name(), Context::key),
-                headers.get(key)),
-            (a, b) -> a);
+        .collect(Collectors.toMap(Metadata.Key::name, metadata::get));
+    Context ctx = Context.current().withValue(INTERCEPTED_HEADERS, headers);
 
-    return Contexts.interceptCall(ctx, call, headers, next);
+    return Contexts.interceptCall(ctx, call, metadata, next);
   }
 }

@@ -11,12 +11,15 @@ import static org.grpcmock.GrpcMock.stubFor;
 
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import io.grpc.Metadata;
 import io.grpc.Status;
 import io.grpc.health.v1.HealthCheckRequest;
 import io.grpc.health.v1.HealthCheckResponse;
 import io.grpc.health.v1.HealthCheckResponse.ServingStatus;
 import io.grpc.health.v1.HealthGrpc;
 import io.grpc.health.v1.HealthGrpc.HealthBlockingStub;
+import io.grpc.stub.AbstractStub;
+import io.grpc.stub.MetadataUtils;
 import java.io.IOException;
 import java.net.ServerSocket;
 import org.junit.jupiter.api.BeforeAll;
@@ -24,6 +27,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class GrpcMockIT {
+
+  private static final String HEADER_1 = "header-1";
+  private static final String HEADER_2 = "header-2";
+  private static final String HEADER_UNKNOWN = "header-unknown";
 
   private final ManagedChannel serverChannel = ManagedChannelBuilder
       .forAddress("localhost", getGlobalPort())
@@ -109,6 +116,85 @@ class GrpcMockIT {
   }
 
   @Test
+  void should_return_a_response_when_request_satisfies_defined_matching_condition() {
+    HealthCheckRequest matchRequest = HealthCheckRequest.newBuilder()
+        .setService("service-1")
+        .build();
+    HealthCheckResponse expected = HealthCheckResponse.newBuilder()
+        .setStatus(ServingStatus.NOT_SERVING)
+        .build();
+
+    stubFor(service(HealthGrpc.SERVICE_NAME)
+        .forMethod(HealthGrpc.getCheckMethod())
+        .withRequest(matchRequest)
+        .willReturn(response(expected)));
+
+    HealthBlockingStub serviceStub = HealthGrpc.newBlockingStub(serverChannel);
+
+    assertThat(serviceStub.check(matchRequest)).isEqualTo(expected);
+  }
+
+  @Test
+  void should_not_return_a_response_when_request_does_not_satisfy_matching_condition() {
+    HealthCheckRequest matchRequest = HealthCheckRequest.newBuilder()
+        .setService("service-1")
+        .build();
+    HealthCheckResponse expected = HealthCheckResponse.newBuilder()
+        .setStatus(ServingStatus.NOT_SERVING)
+        .build();
+
+    stubFor(service(HealthGrpc.SERVICE_NAME)
+        .forMethod(HealthGrpc.getCheckMethod())
+        .withRequest(matchRequest)
+        .willReturn(response(expected)));
+
+    HealthBlockingStub serviceStub = HealthGrpc.newBlockingStub(serverChannel);
+
+    assertThatThrownBy(() -> serviceStub.check(request)).hasMessageStartingWith("UNIMPLEMENTED");
+  }
+
+  @Test
+  void should_return_a_response_when_headers_satisfies_defined_matching_condition() {
+    HealthCheckResponse expected = HealthCheckResponse.newBuilder()
+        .setStatus(ServingStatus.NOT_SERVING)
+        .build();
+
+    stubFor(service(HealthGrpc.SERVICE_NAME)
+        .forMethod(HealthGrpc.getCheckMethod())
+        .withHeader(HEADER_1, "value-1")
+        .withHeader(HEADER_2, value -> value.startsWith("value"))
+        .willReturn(response(expected)));
+
+    HealthBlockingStub serviceStub = stubWithHeaders(
+        HealthGrpc.newBlockingStub(serverChannel),
+        HEADER_1, "value-1",
+        HEADER_2, "value-2"
+    );
+
+    assertThat(serviceStub.check(request)).isEqualTo(expected);
+  }
+
+  @Test
+  void should_not_return_a_response_when_headers_does_not_satisfy_matching_condition() {
+    HealthCheckResponse expected = HealthCheckResponse.newBuilder()
+        .setStatus(ServingStatus.NOT_SERVING)
+        .build();
+
+    stubFor(service(HealthGrpc.SERVICE_NAME)
+        .forMethod(HealthGrpc.getCheckMethod())
+        .withoutHeader(HEADER_2)
+        .willReturn(response(expected)));
+
+    HealthBlockingStub serviceStub = stubWithHeaders(
+        HealthGrpc.newBlockingStub(serverChannel),
+        HEADER_1, "value-2",
+        HEADER_2, "value-2"
+    );
+
+    assertThatThrownBy(() -> serviceStub.check(request)).hasMessageStartingWith("UNIMPLEMENTED");
+  }
+
+  @Test
   void should_return_multiple_unary_responses_for_multiple_requests() {
     HealthCheckResponse expected1 = HealthCheckResponse.newBuilder()
         .setStatus(ServingStatus.NOT_SERVING)
@@ -159,5 +245,17 @@ class GrpcMockIT {
     } catch (IOException e) {
       throw new RuntimeException("Failed finding free port", e);
     }
+  }
+
+  protected <T extends AbstractStub<T>> T stubWithHeaders(
+      T baseStub,
+      String headerName1, String headerValue1,
+      String headerName2, String headerValue2
+  ) {
+    Metadata metadata = new Metadata();
+    metadata.put(Metadata.Key.of(headerName1, Metadata.ASCII_STRING_MARSHALLER), headerValue1);
+    metadata.put(Metadata.Key.of(headerName2, Metadata.ASCII_STRING_MARSHALLER), headerValue2);
+
+    return MetadataUtils.attachHeaders(baseStub, metadata);
   }
 }

@@ -3,7 +3,9 @@ package org.grpcmock.definitions.stub.steps;
 import javax.annotation.Nonnull;
 import org.grpcmock.definitions.response.Response;
 
-public interface NextSingleResponseBuilderStep<ReqT, RespT> extends MappingStubBuilder {
+public interface NextSingleResponseBuilderStep<ReqT, RespT> extends
+    BuilderStep,
+    MappingStubBuilder {
 
   /**
    * <p>Defines {@link Response} for subsequent request call for this stub.

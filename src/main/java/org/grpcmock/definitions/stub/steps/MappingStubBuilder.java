@@ -1,8 +1,8 @@
 package org.grpcmock.definitions.stub.steps;
 
-import org.grpcmock.definitions.stub.MappingStub;
+import org.grpcmock.definitions.stub.ServiceStub;
 
-public interface MappingStubBuilder {
+public interface MappingStubBuilder extends BuilderStep {
 
-  MappingStub build();
+  ServiceStub build();
 }
