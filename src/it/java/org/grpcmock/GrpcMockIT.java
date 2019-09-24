@@ -30,7 +30,6 @@ class GrpcMockIT {
 
   private static final String HEADER_1 = "header-1";
   private static final String HEADER_2 = "header-2";
-  private static final String HEADER_UNKNOWN = "header-unknown";
 
   private final ManagedChannel serverChannel = ManagedChannelBuilder
       .forAddress("localhost", getGlobalPort())
@@ -64,6 +63,24 @@ class GrpcMockIT {
   }
 
   @Test
+  void should_return_a_unary_response_with_a_delay() {
+    long start = System.currentTimeMillis();
+    HealthCheckResponse expected = HealthCheckResponse.newBuilder()
+        .setStatus(ServingStatus.NOT_SERVING)
+        .build();
+
+    stubFor(service(HealthGrpc.getServiceDescriptor())
+        .forMethod(HealthGrpc.getCheckMethod())
+        .willReturn(response(expected)
+            .withFixedDelay(200)));
+
+    HealthBlockingStub serviceStub = HealthGrpc.newBlockingStub(serverChannel);
+
+    assertThat(serviceStub.check(request)).isEqualTo(expected);
+    assertThat(System.currentTimeMillis() - start).isGreaterThan(200);
+  }
+
+  @Test
   void should_respond_with_error_status() {
     stubFor(service(HealthGrpc.getServiceDescriptor())
         .forMethod(HealthGrpc.getCheckMethod())
@@ -75,14 +92,17 @@ class GrpcMockIT {
   }
 
   @Test
-  void should_return_a_unimplemented_error_if_no_responses_defined() {
+  void should_respond_with_error_status_with_a_delay() {
+    long start = System.currentTimeMillis();
     stubFor(service(HealthGrpc.getServiceDescriptor())
-        .forMethod(HealthGrpc.getCheckMethod()));
+        .forMethod(HealthGrpc.getCheckMethod())
+        .willReturn(statusException(Status.ALREADY_EXISTS.withDescription("some error"))
+            .withFixedDelay(200)));
 
     HealthBlockingStub serviceStub = HealthGrpc.newBlockingStub(serverChannel);
 
-    assertThatThrownBy(() -> serviceStub.check(request))
-        .hasMessage("UNIMPLEMENTED: No response for the stub was found");
+    assertThatThrownBy(() -> serviceStub.check(request)).hasMessage("ALREADY_EXISTS: some error");
+    assertThat(System.currentTimeMillis() - start).isGreaterThan(200);
   }
 
   @Test
@@ -247,7 +267,7 @@ class GrpcMockIT {
     }
   }
 
-  protected <T extends AbstractStub<T>> T stubWithHeaders(
+  private <T extends AbstractStub<T>> T stubWithHeaders(
       T baseStub,
       String headerName1, String headerValue1,
       String headerName2, String headerValue2

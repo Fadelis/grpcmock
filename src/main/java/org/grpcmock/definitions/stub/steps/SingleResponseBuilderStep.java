@@ -1,7 +1,10 @@
 package org.grpcmock.definitions.stub.steps;
 
 import javax.annotation.Nonnull;
+import org.grpcmock.definitions.BuilderStep;
 import org.grpcmock.definitions.response.Response;
+import org.grpcmock.definitions.response.steps.ExceptionResponseActionBuilderStep;
+import org.grpcmock.definitions.response.steps.ObjectResponseActionBuilderStep;
 
 public interface SingleResponseBuilderStep<ReqT, RespT> extends
     BuilderStep,
@@ -12,5 +15,12 @@ public interface SingleResponseBuilderStep<ReqT, RespT> extends
   /**
    * Defines the single {@link Response} that will be returned for the request and complete it.
    */
-  NextSingleResponseBuilderStep<ReqT, RespT> willReturn(@Nonnull Response<ReqT, RespT> response);
+  NextSingleResponseBuilderStep<ReqT, RespT> willReturn(
+      @Nonnull ObjectResponseActionBuilderStep<RespT> response);
+
+  /**
+   * Defines the single {@link Response} that will be returned for the request and complete it.
+   */
+  NextSingleResponseBuilderStep<ReqT, RespT> willReturn(
+      @Nonnull ExceptionResponseActionBuilderStep response);
 }

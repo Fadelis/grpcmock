@@ -11,8 +11,10 @@ import java.util.function.Predicate;
 import javax.annotation.Nonnull;
 import org.grpcmock.definitions.matcher.PredicateHeadersMatcher;
 import org.grpcmock.definitions.matcher.PredicateRequestMatcher;
-import org.grpcmock.definitions.response.ObjectResponse;
 import org.grpcmock.definitions.response.Response;
+import org.grpcmock.definitions.response.SingleActionResponse;
+import org.grpcmock.definitions.response.steps.ExceptionResponseActionBuilderStep;
+import org.grpcmock.definitions.response.steps.ObjectResponseActionBuilderStep;
 import org.grpcmock.definitions.stub.steps.MappingStubBuilder;
 import org.grpcmock.definitions.stub.steps.NextSingleResponseBuilderStep;
 import org.grpcmock.definitions.stub.steps.SingleResponseBuilderStep;
@@ -58,27 +60,42 @@ public class SingleResponseBuilderStepImpl<ReqT, RespT> implements
 
   @Override
   public NextSingleResponseBuilderStep<ReqT, RespT> willReturn(
-      @Nonnull Response<ReqT, RespT> response
+      @Nonnull ObjectResponseActionBuilderStep<RespT> response
   ) {
     Objects.requireNonNull(response);
-    this.responses.add(response);
+    this.responses.add(new SingleActionResponse<>(response.build()));
+    return this;
+  }
+
+  @Override
+  public NextSingleResponseBuilderStep<ReqT, RespT> willReturn(
+      @Nonnull ExceptionResponseActionBuilderStep response
+  ) {
+    Objects.requireNonNull(response);
+    this.responses.add(new SingleActionResponse<>(response.build()));
     return this;
   }
 
   @Override
   public NextSingleResponseBuilderStep<ReqT, RespT> nextWillReturn(
-      @Nonnull Response<ReqT, RespT> response
+      @Nonnull ObjectResponseActionBuilderStep<RespT> response
   ) {
     Objects.requireNonNull(response);
-    this.responses.add(response);
+    this.responses.add(new SingleActionResponse<>(response.build()));
+    return this;
+  }
+
+  @Override
+  public NextSingleResponseBuilderStep<ReqT, RespT> nextWillReturn(
+      @Nonnull ExceptionResponseActionBuilderStep response
+  ) {
+    Objects.requireNonNull(response);
+    this.responses.add(new SingleActionResponse<>(response.build()));
     return this;
   }
 
   @Override
   public ServiceStub<ReqT, RespT> build() {
-    if (responses.isEmpty()) {
-      responses.add(new ObjectResponse<>(null));
-    }
     return new ServiceStub<>(
         serviceName,
         method,

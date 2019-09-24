@@ -3,6 +3,7 @@ package org.grpcmock.definitions.stub.steps;
 import java.util.Objects;
 import java.util.function.Predicate;
 import javax.annotation.Nonnull;
+import org.grpcmock.definitions.BuilderStep;
 
 public interface HeadersMatcherBuilderStep<BUILDER extends BuilderStep> extends BuilderStep {
 

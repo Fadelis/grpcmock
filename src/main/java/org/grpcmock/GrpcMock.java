@@ -8,8 +8,10 @@ import io.grpc.util.MutableHandlerRegistry;
 import java.io.IOException;
 import java.util.Objects;
 import javax.annotation.Nonnull;
-import org.grpcmock.definitions.response.ExceptionResponse;
-import org.grpcmock.definitions.response.ObjectResponse;
+import org.grpcmock.definitions.response.ExceptionResponseActionBuilder;
+import org.grpcmock.definitions.response.ObjectResponseActionBuilder;
+import org.grpcmock.definitions.response.steps.ExceptionResponseActionBuilderStep;
+import org.grpcmock.definitions.response.steps.ObjectResponseActionBuilderStep;
 import org.grpcmock.definitions.stub.ServiceBuilderStepImpl;
 import org.grpcmock.definitions.stub.steps.MappingStubBuilder;
 import org.grpcmock.definitions.stub.steps.ServiceBuilderStep;
@@ -114,22 +116,17 @@ public final class GrpcMock {
     return new ServiceBuilderStepImpl(serviceName);
   }
 
-  public static <ReqT, RespT> ObjectResponse<ReqT, RespT> response(@Nonnull RespT responseObject) {
-    Objects.requireNonNull(responseObject);
-    return new ObjectResponse<>(responseObject);
+  public static <RespT> ObjectResponseActionBuilderStep<RespT> response(
+      @Nonnull RespT responseObject) {
+    return new ObjectResponseActionBuilder<>(responseObject);
   }
 
-  public static <ReqT, RespT> ExceptionResponse<ReqT, RespT> exception(
-      @Nonnull Throwable exception
-  ) {
-    Objects.requireNonNull(exception);
-    return new ExceptionResponse<>(exception);
+  public static ExceptionResponseActionBuilderStep exception(@Nonnull Throwable exception) {
+    return new ExceptionResponseActionBuilder(exception);
   }
 
-  public static <ReqT, RespT> ExceptionResponse<ReqT, RespT> statusException(
-      @Nonnull Status status
-  ) {
+  public static ExceptionResponseActionBuilderStep statusException(@Nonnull Status status) {
     Objects.requireNonNull(status);
-    return new ExceptionResponse<>(status.asRuntimeException());
+    return new ExceptionResponseActionBuilder(status.asRuntimeException());
   }
 }

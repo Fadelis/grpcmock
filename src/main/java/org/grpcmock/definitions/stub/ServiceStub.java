@@ -2,13 +2,13 @@ package org.grpcmock.definitions.stub;
 
 import io.grpc.MethodDescriptor;
 import io.grpc.ServerServiceDefinition;
-import io.grpc.Status;
 import io.grpc.stub.ServerCalls;
 import io.grpc.stub.StreamObserver;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import javax.annotation.Nonnull;
+import org.grpcmock.exception.UnimplementedStatusException;
 import org.grpcmock.interceptors.HeadersInterceptor;
 
 public class ServiceStub<ReqT, RespT> {
@@ -41,10 +41,8 @@ public class ServiceStub<ReqT, RespT> {
     if (maybeScenario.isPresent()) {
       maybeScenario.get().call(request, streamObserver);
     } else {
-      streamObserver.onError(Status.UNIMPLEMENTED
-          .withDescription("No matching stub scenario was found for this method: " + method
-              .getFullMethodName())
-          .asRuntimeException());
+      streamObserver.onError(new UnimplementedStatusException(
+          "No matching stub scenario was found for this method: " + method.getFullMethodName()));
     }
   }
 }
