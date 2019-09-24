@@ -7,6 +7,9 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.grpcmock.exception.UnimplementedStatusException;
 
+/**
+ * @author Fadelis
+ */
 public class ResponseActionImpl<RespT> implements ResponseAction<RespT> {
 
   private final RespT responseObject;

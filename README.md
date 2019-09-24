@@ -24,6 +24,7 @@ stubFor(service(HealthGrpc.SERVICE_NAME)
         .withHeader("header-1", "value-1")
         .withHeader("header-2", value -> value.startsWith("value"))
         .withRequest(expectedRequest)
-        .willReturn(response(reponse1)) // first invocation will return this response
+        .willReturn(response(reponse1)
+            .withFixedDelay(200)) // first invocation will return this response after 200 ms
         .nextWillReturn(response(reponse2))); // subsequent invocations will return this response
 ```

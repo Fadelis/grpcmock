@@ -4,6 +4,11 @@ import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import javax.annotation.Nonnull;
 
+/**
+ * Exception wrapper for {@link StatusRuntimeException} with {@link Status#UNIMPLEMENTED}.
+ *
+ * @author Fadelis
+ */
 public class UnimplementedStatusException extends StatusRuntimeException {
 
   /**

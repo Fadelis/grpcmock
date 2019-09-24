@@ -6,6 +6,9 @@ import org.grpcmock.definitions.response.Response;
 import org.grpcmock.definitions.response.steps.ExceptionResponseActionBuilderStep;
 import org.grpcmock.definitions.response.steps.ObjectResponseActionBuilderStep;
 
+/**
+ * @author Fadelis
+ */
 public interface SingleResponseBuilderStep<ReqT, RespT> extends
     BuilderStep,
     MappingStubBuilder,

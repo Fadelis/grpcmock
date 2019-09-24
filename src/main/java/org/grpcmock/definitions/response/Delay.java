@@ -4,7 +4,9 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Delay interface for {@link ResponseAction} in milliseconds.
+ * Functional interface for a delay in milliseconds used for {@link ResponseAction}.
+ *
+ * @author Fadelis
  */
 public interface Delay {
 

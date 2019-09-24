@@ -12,9 +12,14 @@ import javax.annotation.Nullable;
 import org.grpcmock.definitions.matcher.HeadersMatcher;
 import org.grpcmock.definitions.matcher.RequestMatcher;
 import org.grpcmock.definitions.response.Response;
+import org.grpcmock.definitions.response.Traceable;
 import org.grpcmock.exception.GrpcMockValidationException;
 
+/**
+ * @author Fadelis
+ */
 public class StubScenario<ReqT, RespT> implements
+    Traceable,
     HeadersMatcher,
     RequestMatcher<ReqT> {
 
@@ -34,6 +39,11 @@ public class StubScenario<ReqT, RespT> implements
     this.headersMatcher = ofNullable(headersMatcher).orElseGet(HeadersMatcher::empty);
     this.requestMatcher = ofNullable(requestMatcher).orElseGet(RequestMatcher::empty);
     this.responses = Collections.unmodifiableList(responses);
+  }
+
+  @Override
+  public int timesCalled() {
+    return responses.stream().mapToInt(Response::timesCalled).sum();
   }
 
   @Override

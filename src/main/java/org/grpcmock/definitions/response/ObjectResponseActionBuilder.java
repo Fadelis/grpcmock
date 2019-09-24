@@ -4,6 +4,9 @@ import java.util.Objects;
 import javax.annotation.Nonnull;
 import org.grpcmock.definitions.response.steps.ObjectResponseActionBuilderStep;
 
+/**
+ * @author Fadelis
+ */
 public class ObjectResponseActionBuilder<RespT> implements ObjectResponseActionBuilderStep<RespT> {
 
   private final RespT responseObject;

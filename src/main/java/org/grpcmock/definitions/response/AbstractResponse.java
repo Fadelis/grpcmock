@@ -3,6 +3,9 @@ package org.grpcmock.definitions.response;
 import io.grpc.stub.StreamObserver;
 import java.util.concurrent.atomic.AtomicInteger;
 
+/**
+ * @author Fadelis
+ */
 public abstract class AbstractResponse<ReqT, RespT> implements Response<ReqT, RespT> {
 
   private final AtomicInteger counter = new AtomicInteger();

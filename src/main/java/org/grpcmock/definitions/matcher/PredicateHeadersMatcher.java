@@ -5,6 +5,9 @@ import java.util.Objects;
 import java.util.function.Predicate;
 import javax.annotation.Nonnull;
 
+/**
+ * @author Fadelis
+ */
 public class PredicateHeadersMatcher implements HeadersMatcher {
 
   private final Map<String, Predicate<String>> headerPredicates;

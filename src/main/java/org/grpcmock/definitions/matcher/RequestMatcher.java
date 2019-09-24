@@ -1,5 +1,8 @@
 package org.grpcmock.definitions.matcher;
 
+/**
+ * @author Fadelis
+ */
 public interface RequestMatcher<ReqT> {
 
   boolean matches(ReqT request);

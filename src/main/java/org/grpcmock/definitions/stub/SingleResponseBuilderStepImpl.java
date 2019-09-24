@@ -19,6 +19,9 @@ import org.grpcmock.definitions.stub.steps.MappingStubBuilder;
 import org.grpcmock.definitions.stub.steps.NextSingleResponseBuilderStep;
 import org.grpcmock.definitions.stub.steps.SingleResponseBuilderStep;
 
+/**
+ * @author Fadelis
+ */
 public class SingleResponseBuilderStepImpl<ReqT, RespT> implements
     MappingStubBuilder,
     SingleResponseBuilderStep<ReqT, RespT>,

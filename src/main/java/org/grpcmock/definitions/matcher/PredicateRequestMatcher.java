@@ -4,6 +4,9 @@ import java.util.Objects;
 import java.util.function.Predicate;
 import javax.annotation.Nonnull;
 
+/**
+ * @author Fadelis
+ */
 public class PredicateRequestMatcher<ReqT> implements RequestMatcher<ReqT> {
 
   private final Predicate<ReqT> requestPredicate;

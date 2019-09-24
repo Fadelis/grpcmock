@@ -26,6 +26,9 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+/**
+ * @author Fadelis
+ */
 class GrpcMockIT {
 
   private static final String HEADER_1 = "header-1";

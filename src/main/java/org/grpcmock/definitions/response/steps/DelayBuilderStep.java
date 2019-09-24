@@ -4,8 +4,14 @@ import javax.annotation.Nonnull;
 import org.grpcmock.definitions.BuilderStep;
 import org.grpcmock.definitions.response.Delay;
 
+/**
+ * @author Fadelis
+ */
 public interface DelayBuilderStep<BUILDER extends BuilderStep> extends BuilderStep {
 
+  /**
+   * Configure a {@link Delay} for the response action.
+   */
   BUILDER withDelay(@Nonnull Delay delay);
 
   /**

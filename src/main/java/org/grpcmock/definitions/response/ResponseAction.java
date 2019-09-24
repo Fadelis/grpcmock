@@ -5,6 +5,8 @@ import javax.annotation.Nonnull;
 
 /**
  * Interface defining a single action, which can interact with the {@link StreamObserver}.
+ *
+ * @author Fadelis
  */
 public interface ResponseAction<RespT> {
 

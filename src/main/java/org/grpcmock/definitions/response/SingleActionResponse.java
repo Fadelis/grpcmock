@@ -4,6 +4,9 @@ import io.grpc.stub.StreamObserver;
 import java.util.Objects;
 import javax.annotation.Nonnull;
 
+/**
+ * @author Fadelis
+ */
 public class SingleActionResponse<ReqT, RespT> extends AbstractResponse<ReqT, RespT> {
 
   private final ResponseAction<RespT> responseAction;

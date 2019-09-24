@@ -11,6 +11,9 @@ import javax.annotation.Nonnull;
 import org.grpcmock.exception.UnimplementedStatusException;
 import org.grpcmock.interceptors.HeadersInterceptor;
 
+/**
+ * @author Fadelis
+ */
 public class ServiceStub<ReqT, RespT> {
 
   private final String serviceName;

@@ -7,17 +7,20 @@ import javax.annotation.Nonnull;
 import org.grpcmock.definitions.stub.steps.ServiceBuilderStep;
 import org.grpcmock.exception.GrpcMockException;
 
+/**
+ * @author Fadelis
+ */
 public class ServiceBuilderStepImpl implements ServiceBuilderStep {
 
   private final String serviceName;
-  private ServiceDescriptor serviceDescriptor;
 
   public ServiceBuilderStepImpl(@Nonnull ServiceDescriptor serviceDescriptor) {
+    Objects.requireNonNull(serviceDescriptor);
     this.serviceName = serviceDescriptor.getName();
-    this.serviceDescriptor = serviceDescriptor;
   }
 
   public ServiceBuilderStepImpl(@Nonnull String serviceName) {
+    Objects.requireNonNull(serviceName);
     this.serviceName = serviceName;
   }
 
@@ -26,7 +29,7 @@ public class ServiceBuilderStepImpl implements ServiceBuilderStep {
       @Nonnull MethodDescriptor<ReqT, RespT> method
   ) {
     Objects.requireNonNull(method);
-    if (Objects.nonNull(serviceDescriptor) && !serviceDescriptor.getMethods().contains(method)) {
+    if (!serviceName.equals(method.getServiceName())) {
       throw new GrpcMockException("Method is not part of the actual service descriptor");
     }
     if (!method.getType().clientSendsOneMessage()) {

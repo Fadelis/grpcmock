@@ -1,9 +1,13 @@
 package org.grpcmock;
 
+import io.grpc.MethodDescriptor;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
+import io.grpc.ServerInterceptor;
 import io.grpc.ServiceDescriptor;
 import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
+import io.grpc.stub.StreamObserver;
 import io.grpc.util.MutableHandlerRegistry;
 import java.io.IOException;
 import java.util.Objects;
@@ -20,14 +24,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Main gRPCMock class that start the mock server.
+ * Main gRPC Mock class for managing the gRPC server.
  *
  * @author Fadelis
  */
 public final class GrpcMock {
 
   private static final Logger log = LoggerFactory.getLogger(GrpcMock.class);
-  public static final int DEFAULT_PORT = 8888;
+  private static final int DEFAULT_PORT = 8888;
   private static final ThreadLocal<GrpcMock> INSTANCE = ThreadLocal
       .withInitial(() -> grpcMock().build());
 
@@ -35,14 +39,24 @@ public final class GrpcMock {
   private final MutableHandlerRegistry handlerRegistry;
 
   GrpcMock(@Nonnull Server server, @Nonnull MutableHandlerRegistry handlerRegistry) {
+    Objects.requireNonNull(server);
+    Objects.requireNonNull(handlerRegistry);
     this.server = server;
     this.handlerRegistry = handlerRegistry;
   }
 
+  /**
+   * Retrieve current port of the server.
+   */
   public int getPort() {
     return server.getPort();
   }
 
+  /**
+   * Starts the gRPC mock server. Does not throw any exception if the server is already running.
+   *
+   * @throws GrpcMockException if the server is unable to start.
+   */
   public GrpcMock start() {
     try {
       server.start();
@@ -54,22 +68,27 @@ public final class GrpcMock {
     return this;
   }
 
+  /**
+   * Stops the gRPC mock server via {@link Server#shutdownNow}.
+   */
   public GrpcMock stop() {
     server.shutdownNow();
     return this;
   }
 
+  /**
+   * Register a mock gRPC service sto to the server.
+   */
   public void register(@Nonnull MappingStubBuilder mappingStubBuilder) {
     Objects.requireNonNull(mappingStubBuilder);
     handlerRegistry.addService(mappingStubBuilder.build().serverServiceDefinition());
   }
 
+  /**
+   * Removes all stubs defined from the mock server.
+   */
   public void resetAll() {
     handlerRegistry.getServices().forEach(handlerRegistry::removeService);
-  }
-
-  public MutableHandlerRegistry handlerRegistry() {
-    return handlerRegistry;
   }
 
   public static GrpcMockBuilder grpcMock() {
@@ -81,7 +100,6 @@ public final class GrpcMock {
   }
 
   public static GrpcMockBuilder grpcMock(@Nonnull ServerBuilder serverBuilder) {
-    Objects.requireNonNull(serverBuilder);
     return new GrpcMockBuilder(serverBuilder);
   }
 
@@ -98,35 +116,64 @@ public final class GrpcMock {
     return INSTANCE.get().getPort();
   }
 
+  /**
+   * Removes all stubs defined from the global mock server.
+   */
   public static void resetMappings() {
     INSTANCE.get().resetAll();
   }
 
+  /**
+   * Register a gRPC service stub to the global gRPC mock server.
+   */
   public static void stubFor(MappingStubBuilder mappingStubBuilder) {
     INSTANCE.get().register(mappingStubBuilder);
   }
 
+  /**
+   * <p>Returns a service stub builder step using a gRPC {@link ServiceDescriptor}.
+   * <p>A valid {@link MethodDescriptor} for the given service has to be defined next
+   * in order to register a valid stub.
+   */
   public static ServiceBuilderStep service(@Nonnull ServiceDescriptor serviceDescriptor) {
-    Objects.requireNonNull(serviceDescriptor);
     return new ServiceBuilderStepImpl(serviceDescriptor);
   }
 
+  /**
+   * <p>Returns a service stub builder step using a gRPC service name.
+   * <p>A valid {@link MethodDescriptor} for the given service has to be defined next
+   * in order to register a valid stub.
+   */
   public static ServiceBuilderStep service(@Nonnull String serviceName) {
-    Objects.requireNonNull(serviceName);
     return new ServiceBuilderStepImpl(serviceName);
   }
 
+  /**
+   * Returns a response action, which will send out the given response object via {@link
+   * StreamObserver#onNext}.
+   */
   public static <RespT> ObjectResponseActionBuilderStep<RespT> response(
       @Nonnull RespT responseObject) {
     return new ObjectResponseActionBuilder<>(responseObject);
   }
 
+  /**
+   * <p>Returns a response action, which will send out
+   * the given exception via {@link StreamObserver#onError}.
+   * <p>It not recommended to use this methods, because without
+   * a proper {@link ServerInterceptor} translating non-gRPC exceptions to gRPC ones It will be
+   * translated to {@link Status#UNKNOWN} type of exception without any message. The {@link
+   * #statusException(Status)} should be used to define concrete gRPC errors.
+   */
   public static ExceptionResponseActionBuilderStep exception(@Nonnull Throwable exception) {
     return new ExceptionResponseActionBuilder(exception);
   }
 
+  /**
+   * <p>Returns a response action, which will send out a {@link StatusRuntimeException}
+   * with given {@link Status} via {@link StreamObserver#onError}.
+   */
   public static ExceptionResponseActionBuilderStep statusException(@Nonnull Status status) {
-    Objects.requireNonNull(status);
-    return new ExceptionResponseActionBuilder(status.asRuntimeException());
+    return new ExceptionResponseActionBuilder(status);
   }
 }

@@ -10,11 +10,15 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.grpcmock.interceptors.HeadersInterceptor;
 
+/**
+ * @author Fadelis
+ */
 public class GrpcMockBuilder {
 
   private ServerBuilder serverBuilder;
 
-  GrpcMockBuilder(ServerBuilder serverBuilder) {
+  GrpcMockBuilder(@Nonnull ServerBuilder serverBuilder) {
+    Objects.requireNonNull(serverBuilder);
     this.serverBuilder = serverBuilder;
   }
 
