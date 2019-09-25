@@ -7,6 +7,11 @@
   <groupId>org.grpcmock</groupId>
   <artifactId>grpcmock</artifactId>
   <version>1.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
+
+  <modules>
+    <module>grpcmock-core</module>
+  </modules>
 
   <name>gRPC Mock</name>
   <description>Mock gRPC service for testing purposes</description>
@@ -30,21 +35,6 @@
   </properties>
 
   <dependencies>
-    <dependency>
-      <groupId>io.grpc</groupId>
-      <artifactId>grpc-core</artifactId>
-      <version>${grpc.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.grpc</groupId>
-      <artifactId>grpc-stub</artifactId>
-      <version>${grpc.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>io.grpc</groupId>
-      <artifactId>grpc-netty</artifactId>
-      <version>${grpc.version}</version>
-    </dependency>
     <!-- logging -->
     <dependency>
       <groupId>org.slf4j</groupId>
@@ -52,18 +42,6 @@
       <version>${slf4j.version}</version>
     </dependency>
 
-    <dependency>
-      <groupId>io.grpc</groupId>
-      <artifactId>grpc-services</artifactId>
-      <version>${grpc.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>io.grpc</groupId>
-      <artifactId>grpc-testing</artifactId>
-      <version>${grpc.version}</version>
-      <scope>test</scope>
-    </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter-api</artifactId>
@@ -171,7 +149,7 @@
             </goals>
             <configuration>
               <sources>
-                <source>src/it/java</source>
+                <source>${basedir}/src/it/java</source>
               </sources>
             </configuration>
           </execution>
