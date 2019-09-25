@@ -1,0 +1,6 @@
+# Application Listeners
+org.springframework.context.ApplicationListener=\
+org.grpcmock.springboot.GrpcMockApplicationListener
+# Test Execution Listeners
+org.springframework.test.context.TestExecutionListener=\
+org.grpcmock.springboot.GrpcMockTestExecutionListener

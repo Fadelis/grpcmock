@@ -1,9 +1,9 @@
 package org.grpcmock;
 
-import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.ServerInterceptor;
 import io.grpc.util.MutableHandlerRegistry;
+import java.io.File;
 import java.util.Objects;
 import java.util.concurrent.Executor;
 import javax.annotation.Nonnull;
@@ -15,11 +15,14 @@ import org.grpcmock.interceptors.HeadersInterceptor;
  */
 public class GrpcMockBuilder {
 
+  private final MutableHandlerRegistry handlerRegistry = new MutableHandlerRegistry();
   private ServerBuilder serverBuilder;
 
   GrpcMockBuilder(@Nonnull ServerBuilder serverBuilder) {
     Objects.requireNonNull(serverBuilder);
-    this.serverBuilder = serverBuilder;
+    this.serverBuilder = serverBuilder
+        .intercept(new HeadersInterceptor())
+        .fallbackHandlerRegistry(handlerRegistry);
   }
 
   public GrpcMockBuilder interceptor(@Nonnull ServerInterceptor interceptor) {
@@ -33,12 +36,14 @@ public class GrpcMockBuilder {
     return this;
   }
 
+  public GrpcMockBuilder transportSecurity(@Nonnull File certChain, @Nonnull File privateKey) {
+    Objects.requireNonNull(certChain);
+    Objects.requireNonNull(privateKey);
+    serverBuilder = serverBuilder.useTransportSecurity(certChain, privateKey);
+    return this;
+  }
+
   public GrpcMock build() {
-    MutableHandlerRegistry handlerRegistry = new MutableHandlerRegistry();
-    Server server = serverBuilder
-        .intercept(new HeadersInterceptor())
-        .fallbackHandlerRegistry(handlerRegistry)
-        .build();
-    return new GrpcMock(server, handlerRegistry);
+    return new GrpcMock(serverBuilder.build(), handlerRegistry);
   }
 }

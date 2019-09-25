@@ -31,9 +31,9 @@ import org.slf4j.LoggerFactory;
 public final class GrpcMock {
 
   private static final Logger log = LoggerFactory.getLogger(GrpcMock.class);
-  private static final int DEFAULT_PORT = 8888;
   private static final ThreadLocal<GrpcMock> INSTANCE = ThreadLocal
       .withInitial(() -> grpcMock().build());
+  public static final int DEFAULT_PORT = 8888;
 
   private final Server server;
   private final MutableHandlerRegistry handlerRegistry;

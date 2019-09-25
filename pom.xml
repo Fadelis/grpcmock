@@ -11,6 +11,7 @@
 
   <modules>
     <module>grpcmock-core</module>
+    <module>grpcmock-spring-boot</module>
   </modules>
 
   <name>gRPC Mock</name>
@@ -22,6 +23,7 @@
     <java.version>1.8</java.version>
 
     <grpc.version>1.21.0</grpc.version>
+    <spring-boot.version>2.1.6.RELEASE</spring-boot.version>
     <slf4j.version>1.7.26</slf4j.version>
     <junit-jupiter.version>5.5.2</junit-jupiter.version>
     <assertj.version>3.13.2</assertj.version>
@@ -70,13 +72,6 @@
       <groupId>org.mockito</groupId>
       <artifactId>mockito-inline</artifactId>
       <version>${mockito.version}</version>
-      <scope>test</scope>
-    </dependency>
-    <!-- logging -->
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-simple</artifactId>
-      <version>${slf4j.version}</version>
       <scope>test</scope>
     </dependency>
   </dependencies>

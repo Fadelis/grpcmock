@@ -28,3 +28,22 @@ stubFor(service(HealthGrpc.SERVICE_NAME)
             .withFixedDelay(200)) // first invocation will return this response after 200 ms
         .nextWillReturn(response(reponse2))); // subsequent invocations will return this response
 ```
+
+## Integrations
+
+### Spring-Boot
+
+gRPC Mock integrates with Spring-Boot via `grpcmock-spring-boot` module. You have to declare the `@AutoConfigureGrpcMock` for the test class to enable gRPC Mock.
+Spring-Boot test class should look something like this:
+```
+@SpringJUnitConfig
+@SpringBootTest(classes = Application.class, webEnvironment = WebEnvironment.NONE)
+@AutoConfigureGrpcMock(port = 0)
+class TestClass {
+    ...
+}
+```
+
+If the gRPC Mock port is set to 0, then a random port will be selected for the server. It is the recommended approach to improve test run times. Once a random port is selected it can be access via `${grpcmock.server.port}` property and used in gRPC `Channel` creation.
+
+Mapping stubs will be cleared after each test run and after each test class run. If test class was run with a fixed port, the test context will be marked as dirty to reinitialise a new one.
