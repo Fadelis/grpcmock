@@ -33,7 +33,18 @@ stubFor(service(HealthGrpc.SERVICE_NAME)
 
 ### Spring-Boot
 
-gRPC Mock integrates with Spring-Boot via `grpcmock-spring-boot` module. You have to declare the `@AutoConfigureGrpcMock` for the test class to enable gRPC Mock.
+gRPC Mock integrates with Spring-Boot via `grpcmock-spring-boot` module. 
+
+```
+<dependency>
+  <groupId>org.grpcmock</groupId>
+  <artifactId>grpcmock-spring-boot</artifactId>
+  <version>1.0.0</version>
+</dependency>
+```
+
+You have to declare the `@AutoConfigureGrpcMock` for the test class to enable gRPC Mock.
+
 Spring-Boot test class should look something like this:
 ```
 @SpringJUnitConfig
@@ -47,3 +58,42 @@ class TestClass {
 If the gRPC Mock port is set to 0, then a random port will be selected for the server. It is the recommended approach to improve test run times. Once a random port is selected it can be access via `${grpcmock.server.port}` property and used in gRPC `Channel` creation.
 
 Mapping stubs will be cleared after each test run and after each test class run. If test class was run with a fixed port, the test context will be marked as dirty to reinitialise a new one.
+
+### JUnit5
+
+gRPC Mock integrates with JUnit5 via `grpcmock-junit5` module.
+
+```
+<dependency>
+  <groupId>org.grpcmock</groupId>
+  <artifactId>grpcmock-junit5</artifactId>
+  <version>1.0.0</version>
+</dependency>
+```
+
+You can integrate gRPC Mock with default configuration for a JUnit5 test via `@ExtendWith` annotation:
+
+```
+@ExtendWith(GrpcMockExtension.class)
+class TestClass {
+
+}
+```
+
+Or alternatively, you can configure gRPC Mock programmatically using `@RegisterExtension` annotation:
+
+```
+class TestClass {
+
+  @RegisterExtension
+  static GrpcMockExtension grpcMockExtension = GrpcMockExtension.builder()
+      .withPort(0)
+      .withInterceptor(new MyServerInterceptor())
+      .build();
+
+}
+```
+
+In both variants the port for the gRPC Mock server can be retrieved via `GrpcMock.getGlobalPort()`. 
+Mapping stubs will be cleared after each test run and 
+after all tests in the test class are done the server will be shutdown.

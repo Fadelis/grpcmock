@@ -12,6 +12,7 @@
   <modules>
     <module>grpcmock-core</module>
     <module>grpcmock-spring-boot</module>
+    <module>grpcmock-junit5</module>
   </modules>
 
   <name>gRPC Mock</name>
