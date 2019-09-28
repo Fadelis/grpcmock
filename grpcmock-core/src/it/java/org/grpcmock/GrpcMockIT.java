@@ -20,8 +20,6 @@ import io.grpc.health.v1.HealthGrpc;
 import io.grpc.health.v1.HealthGrpc.HealthBlockingStub;
 import io.grpc.stub.AbstractStub;
 import io.grpc.stub.MetadataUtils;
-import java.io.IOException;
-import java.net.ServerSocket;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -42,7 +40,7 @@ class GrpcMockIT {
 
   @BeforeAll
   static void createServer() {
-    GrpcMock.configureFor(grpcMock(findFreePort()).build().start());
+    GrpcMock.configureFor(grpcMock(0).build().start());
   }
 
   @BeforeEach
@@ -259,15 +257,6 @@ class GrpcMockIT {
     assertThatThrownBy(() -> serviceStub.check(request)).hasMessage("INTERNAL");
     assertThat(serviceStub.check(request)).isEqualTo(expected1);
     assertThat(serviceStub.check(request)).isEqualTo(expected1);
-  }
-
-  private static int findFreePort() {
-    try (ServerSocket socket = new ServerSocket(0)) {
-      socket.setReuseAddress(true);
-      return socket.getLocalPort();
-    } catch (IOException e) {
-      throw new RuntimeException("Failed finding free port", e);
-    }
   }
 
   private <T extends AbstractStub<T>> T stubWithHeaders(

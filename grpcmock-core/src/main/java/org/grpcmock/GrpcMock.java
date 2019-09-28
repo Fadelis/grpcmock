@@ -96,7 +96,7 @@ public final class GrpcMock {
   }
 
   public static GrpcMockBuilder grpcMock(int port) {
-    return new GrpcMockBuilder(ServerBuilder.forPort(port));
+    return new GrpcMockBuilder(port);
   }
 
   public static GrpcMockBuilder grpcMock(@Nonnull ServerBuilder serverBuilder) {
