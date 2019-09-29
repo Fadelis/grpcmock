@@ -15,5 +15,13 @@ public interface ResponseAction<RespT> {
    * <p>It can be either sending a response via {@link StreamObserver#onNext}
    * or returning an error via {@link StreamObserver#onError}.
    */
-  void execute(@Nonnull StreamObserver<RespT> streamObserver);
+  void execute(@Nonnull StreamObserver<RespT> responseObserver);
+
+  /**
+   * Determines if the {@link ResponseAction} is a terminating action. By default it is
+   * <code>false</code> and will be true for exception actions, which terminate the gRPC call.
+   */
+  default boolean isTerminating() {
+    return false;
+  }
 }

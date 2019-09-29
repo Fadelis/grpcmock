@@ -16,7 +16,7 @@
   </modules>
 
   <name>gRPC Mock</name>
-  <description>Mock gRPC service for testing purposes</description>
+  <description>Tool for testing gRPC clients.</description>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

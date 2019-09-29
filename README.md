@@ -29,6 +29,19 @@ stubFor(service(HealthGrpc.SERVICE_NAME)
         .nextWillReturn(response(reponse2))); // subsequent invocations will return this response
 ```
 
+### Server streaming methods
+
+```
+stubFor(service(SimpleServiceGrpc.SERVICE_NAME)
+        .forServerStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
+        .withHeader("header-1", "value-1")
+        .withRequest(req -> req.getRequestMessage().endsWith("1"))
+        .willReturn(stream(response(responses1).withFixedDelay(200))
+            .and(response(responses2).withFixedDelay(100))
+            .and(response(responses3).withFixedDelay(200)))
+        .nextWillReturn(statusException(Status.NOT_FOUND)));
+```
+
 ## Integrations
 
 ### Spring-Boot

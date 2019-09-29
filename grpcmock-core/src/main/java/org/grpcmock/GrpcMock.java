@@ -12,10 +12,14 @@ import io.grpc.util.MutableHandlerRegistry;
 import java.io.IOException;
 import java.util.Objects;
 import javax.annotation.Nonnull;
-import org.grpcmock.definitions.response.ExceptionResponseActionBuilder;
-import org.grpcmock.definitions.response.ObjectResponseActionBuilder;
-import org.grpcmock.definitions.response.steps.ExceptionResponseActionBuilderStep;
-import org.grpcmock.definitions.response.steps.ObjectResponseActionBuilderStep;
+import org.grpcmock.definitions.response.ExceptionResponseActionBuilderImpl;
+import org.grpcmock.definitions.response.ObjectResponseActionBuilderImpl;
+import org.grpcmock.definitions.response.ResponseAction;
+import org.grpcmock.definitions.response.StreamResponseBuilderImpl;
+import org.grpcmock.definitions.response.steps.ExceptionResponseActionBuilder;
+import org.grpcmock.definitions.response.steps.ExceptionStreamResponseBuildersStep;
+import org.grpcmock.definitions.response.steps.ObjectResponseActionBuilder;
+import org.grpcmock.definitions.response.steps.ObjectStreamResponseBuilderStep;
 import org.grpcmock.definitions.stub.ServiceBuilderStepImpl;
 import org.grpcmock.definitions.stub.steps.MappingStubBuilder;
 import org.grpcmock.definitions.stub.steps.ServiceBuilderStep;
@@ -152,9 +156,9 @@ public final class GrpcMock {
    * Returns a response action, which will send out the given response object via {@link
    * StreamObserver#onNext}.
    */
-  public static <RespT> ObjectResponseActionBuilderStep<RespT> response(
+  public static <RespT> ObjectResponseActionBuilder<RespT> response(
       @Nonnull RespT responseObject) {
-    return new ObjectResponseActionBuilder<>(responseObject);
+    return new ObjectResponseActionBuilderImpl<>(responseObject);
   }
 
   /**
@@ -165,15 +169,34 @@ public final class GrpcMock {
    * translated to {@link Status#UNKNOWN} type of exception without any message. The {@link
    * #statusException(Status)} should be used to define concrete gRPC errors.
    */
-  public static ExceptionResponseActionBuilderStep exception(@Nonnull Throwable exception) {
-    return new ExceptionResponseActionBuilder(exception);
+  public static ExceptionResponseActionBuilder exception(@Nonnull Throwable exception) {
+    return new ExceptionResponseActionBuilderImpl(exception);
   }
 
   /**
    * <p>Returns a response action, which will send out a {@link StatusRuntimeException}
    * with given {@link Status} via {@link StreamObserver#onError}.
    */
-  public static ExceptionResponseActionBuilderStep statusException(@Nonnull Status status) {
-    return new ExceptionResponseActionBuilder(status);
+  public static ExceptionResponseActionBuilder statusException(@Nonnull Status status) {
+    return new ExceptionResponseActionBuilderImpl(status);
+  }
+
+  /**
+   * <p>Returns a stream response, which can respond with multiple {@link ResponseAction}.
+   */
+  public static <RespT> ObjectStreamResponseBuilderStep<RespT> stream(
+      @Nonnull ObjectResponseActionBuilder<RespT> responseAction) {
+    Objects.requireNonNull(responseAction);
+    return new StreamResponseBuilderImpl<>(responseAction.build());
+  }
+
+  /**
+   * <p>Returns a terminating stream response, which will respond with {@link ResponseAction} and
+   * terminate the call, since it will be {@link StreamObserver#onError} response.
+   */
+  public static <RespT> ExceptionStreamResponseBuildersStep<RespT> stream(
+      @Nonnull ExceptionResponseActionBuilder responseAction) {
+    Objects.requireNonNull(responseAction);
+    return new StreamResponseBuilderImpl<>(responseAction.build());
   }
 }

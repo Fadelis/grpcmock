@@ -6,9 +6,9 @@ import org.grpcmock.definitions.response.ResponseAction;
 /**
  * @author Fadelis
  */
-public interface ObjectResponseActionBuilderStep<RespT> extends
+public interface ObjectResponseActionBuilder<RespT> extends
     BuilderStep,
-    DelayBuilderStep<ObjectResponseActionBuilderStep<RespT>> {
+    DelayBuilderStep<ObjectResponseActionBuilder<RespT>> {
 
   ResponseAction<RespT> build();
 }

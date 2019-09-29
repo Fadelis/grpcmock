@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import javax.annotation.Nonnull;
+import org.grpcmock.exception.GrpcMockException;
 import org.grpcmock.exception.UnimplementedStatusException;
 import org.grpcmock.interceptors.HeadersInterceptor;
 
@@ -31,12 +32,32 @@ public class ServiceStub<ReqT, RespT> {
   }
 
   public ServerServiceDefinition serverServiceDefinition() {
-    return ServerServiceDefinition.builder(serviceName)
-        .addMethod(method, ServerCalls.asyncUnaryCall(this::unaryCall))
-        .build();
+    switch (method.getType()) {
+      case UNARY:
+        return ServerServiceDefinition.builder(serviceName)
+            .addMethod(method, ServerCalls.asyncUnaryCall(this::singleRequestCall))
+            .build();
+      case SERVER_STREAMING:
+        return ServerServiceDefinition.builder(serviceName)
+            .addMethod(method, ServerCalls.asyncServerStreamingCall(this::singleRequestCall))
+            .build();
+      case CLIENT_STREAMING:
+        return ServerServiceDefinition.builder(serviceName)
+            .addMethod(method, ServerCalls.asyncClientStreamingCall(responseObserver -> ServerCalls
+                .asyncUnimplementedStreamingCall(method, responseObserver)))
+            .build();
+      case BIDI_STREAMING:
+        return ServerServiceDefinition.builder(serviceName)
+            .addMethod(method, ServerCalls.asyncBidiStreamingCall(responseObserver -> ServerCalls
+                .asyncUnimplementedStreamingCall(method, responseObserver)))
+            .build();
+      default:
+        throw new GrpcMockException("Unsupported method type: " + method.getType());
+    }
+
   }
 
-  private void unaryCall(ReqT request, StreamObserver<RespT> streamObserver) {
+  private void singleRequestCall(ReqT request, StreamObserver<RespT> streamObserver) {
     Optional<StubScenario<ReqT, RespT>> maybeScenario = stubScenarios.stream()
         .filter(scenario -> scenario.matches(HeadersInterceptor.INTERCEPTED_HEADERS.get()))
         .filter(scenario -> scenario.matches(request))

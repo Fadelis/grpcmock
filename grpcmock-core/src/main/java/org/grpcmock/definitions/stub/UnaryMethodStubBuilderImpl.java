@@ -12,19 +12,17 @@ import javax.annotation.Nonnull;
 import org.grpcmock.definitions.matcher.PredicateHeadersMatcher;
 import org.grpcmock.definitions.matcher.PredicateRequestMatcher;
 import org.grpcmock.definitions.response.Response;
-import org.grpcmock.definitions.response.SingleActionResponse;
-import org.grpcmock.definitions.response.steps.ExceptionResponseActionBuilderStep;
-import org.grpcmock.definitions.response.steps.ObjectResponseActionBuilderStep;
-import org.grpcmock.definitions.stub.steps.MappingStubBuilder;
+import org.grpcmock.definitions.response.ResponseImpl;
+import org.grpcmock.definitions.response.steps.ExceptionResponseActionBuilder;
+import org.grpcmock.definitions.response.steps.ObjectResponseActionBuilder;
 import org.grpcmock.definitions.stub.steps.NextSingleResponseBuilderStep;
-import org.grpcmock.definitions.stub.steps.SingleResponseBuilderStep;
+import org.grpcmock.definitions.stub.steps.UnaryMethodStubBuilderStep;
 
 /**
  * @author Fadelis
  */
-public class SingleResponseBuilderStepImpl<ReqT, RespT> implements
-    MappingStubBuilder,
-    SingleResponseBuilderStep<ReqT, RespT>,
+public class UnaryMethodStubBuilderImpl<ReqT, RespT> implements
+    UnaryMethodStubBuilderStep<ReqT, RespT>,
     NextSingleResponseBuilderStep<ReqT, RespT> {
 
   private final String serviceName;
@@ -33,16 +31,18 @@ public class SingleResponseBuilderStepImpl<ReqT, RespT> implements
   private final Map<String, Predicate<String>> headerPredicates = new HashMap<>();
   private Predicate<ReqT> requestPredicate = request -> true;
 
-  SingleResponseBuilderStepImpl(
+  UnaryMethodStubBuilderImpl(
       @Nonnull String serviceName,
       @Nonnull MethodDescriptor<ReqT, RespT> method
   ) {
+    Objects.requireNonNull(serviceName);
+    Objects.requireNonNull(method);
     this.serviceName = serviceName;
     this.method = method;
   }
 
   @Override
-  public SingleResponseBuilderStep<ReqT, RespT> withHeader(
+  public UnaryMethodStubBuilderStep<ReqT, RespT> withHeader(
       @Nonnull String headerName,
       @Nonnull Predicate<String> valuePredicate
   ) {
@@ -53,7 +53,7 @@ public class SingleResponseBuilderStepImpl<ReqT, RespT> implements
   }
 
   @Override
-  public SingleResponseBuilderStep<ReqT, RespT> withRequest(
+  public UnaryMethodStubBuilderStep<ReqT, RespT> withRequest(
       @Nonnull Predicate<ReqT> requestPredicate
   ) {
     Objects.requireNonNull(requestPredicate);
@@ -63,38 +63,34 @@ public class SingleResponseBuilderStepImpl<ReqT, RespT> implements
 
   @Override
   public NextSingleResponseBuilderStep<ReqT, RespT> willReturn(
-      @Nonnull ObjectResponseActionBuilderStep<RespT> response
+      @Nonnull ObjectResponseActionBuilder<RespT> response
   ) {
     Objects.requireNonNull(response);
-    this.responses.add(new SingleActionResponse<>(response.build()));
+    this.responses.add(new ResponseImpl<>(response.build()));
     return this;
   }
 
   @Override
   public NextSingleResponseBuilderStep<ReqT, RespT> willReturn(
-      @Nonnull ExceptionResponseActionBuilderStep response
+      @Nonnull ExceptionResponseActionBuilder response
   ) {
     Objects.requireNonNull(response);
-    this.responses.add(new SingleActionResponse<>(response.build()));
+    this.responses.add(new ResponseImpl<>(response.build()));
     return this;
   }
 
   @Override
   public NextSingleResponseBuilderStep<ReqT, RespT> nextWillReturn(
-      @Nonnull ObjectResponseActionBuilderStep<RespT> response
+      @Nonnull ObjectResponseActionBuilder<RespT> response
   ) {
-    Objects.requireNonNull(response);
-    this.responses.add(new SingleActionResponse<>(response.build()));
-    return this;
+    return willReturn(response);
   }
 
   @Override
   public NextSingleResponseBuilderStep<ReqT, RespT> nextWillReturn(
-      @Nonnull ExceptionResponseActionBuilderStep response
+      @Nonnull ExceptionResponseActionBuilder response
   ) {
-    Objects.requireNonNull(response);
-    this.responses.add(new SingleActionResponse<>(response.build()));
-    return this;
+    return willReturn(response);
   }
 
   @Override

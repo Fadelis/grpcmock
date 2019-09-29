@@ -3,27 +3,21 @@ package org.grpcmock.definitions.stub.steps;
 import javax.annotation.Nonnull;
 import org.grpcmock.definitions.BuilderStep;
 import org.grpcmock.definitions.response.Response;
-import org.grpcmock.definitions.response.steps.ExceptionResponseActionBuilderStep;
-import org.grpcmock.definitions.response.steps.ObjectResponseActionBuilderStep;
+import org.grpcmock.definitions.response.steps.ExceptionResponseActionBuilder;
+import org.grpcmock.definitions.response.steps.ObjectResponseActionBuilder;
 
 /**
  * @author Fadelis
  */
-public interface SingleResponseBuilderStep<ReqT, RespT> extends
-    BuilderStep,
-    MappingStubBuilder,
-    HeadersMatcherBuilderStep<SingleResponseBuilderStep<ReqT, RespT>>,
-    RequestMatcherBuilderStep<SingleResponseBuilderStep<ReqT, RespT>, ReqT> {
+public interface SingleResponseBuilderStep<BUILDER extends BuilderStep, RespT> extends BuilderStep {
 
   /**
-   * Defines the single {@link Response} that will be returned for the request and complete it.
+   * Defines a single {@link Response} that will be returned for the request and complete it.
    */
-  NextSingleResponseBuilderStep<ReqT, RespT> willReturn(
-      @Nonnull ObjectResponseActionBuilderStep<RespT> response);
+  BUILDER willReturn(@Nonnull ObjectResponseActionBuilder<RespT> response);
 
   /**
-   * Defines the single {@link Response} that will be returned for the request and complete it.
+   * Defines a exception {@link Response} that will terminate the request.
    */
-  NextSingleResponseBuilderStep<ReqT, RespT> willReturn(
-      @Nonnull ExceptionResponseActionBuilderStep response);
+  BUILDER willReturn(@Nonnull ExceptionResponseActionBuilder response);
 }

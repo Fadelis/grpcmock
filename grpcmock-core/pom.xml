@@ -42,6 +42,12 @@
       <version>${grpc.version}</version>
       <scope>test</scope>
     </dependency>
+    <dependency>
+      <groupId>io.grpc</groupId>
+      <artifactId>grpc-testing-proto</artifactId>
+      <version>${grpc.version}</version>
+      <scope>test</scope>
+    </dependency>
     <!-- logging -->
     <dependency>
       <groupId>org.slf4j</groupId>
