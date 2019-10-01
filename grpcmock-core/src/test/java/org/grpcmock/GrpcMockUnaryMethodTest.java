@@ -19,9 +19,9 @@ import io.grpc.testing.protobuf.SimpleRequest;
 import io.grpc.testing.protobuf.SimpleResponse;
 import io.grpc.testing.protobuf.SimpleServiceGrpc;
 import io.grpc.testing.protobuf.SimpleServiceGrpc.SimpleServiceBlockingStub;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -32,11 +32,8 @@ class GrpcMockUnaryMethodTest {
   private static final String HEADER_1 = "header-1";
   private static final String HEADER_2 = "header-2";
 
-  private final ManagedChannel serverChannel = ManagedChannelBuilder
-      .forAddress("localhost", getGlobalPort())
-      .usePlaintext()
-      .build();
   private final SimpleRequest request = SimpleRequest.getDefaultInstance();
+  private ManagedChannel serverChannel;
 
   @BeforeAll
   static void createServer() {
@@ -46,6 +43,15 @@ class GrpcMockUnaryMethodTest {
   @BeforeEach
   void setup() {
     GrpcMock.resetMappings();
+    serverChannel = ManagedChannelBuilder
+        .forAddress("localhost", getGlobalPort())
+        .usePlaintext()
+        .build();
+  }
+
+  @AfterEach
+  void cleanup() {
+    serverChannel.shutdownNow();
   }
 
   @Test
@@ -139,7 +145,6 @@ class GrpcMockUnaryMethodTest {
   }
 
   @Test
-  @Disabled("no implemented yet")
   void should_register_multiple_method_stub_for_the_same_service() {
     SimpleResponse expected1 = SimpleResponse.newBuilder()
         .setResponseMessage("message-1")
@@ -158,7 +163,7 @@ class GrpcMockUnaryMethodTest {
     SimpleServiceBlockingStub serviceStub = SimpleServiceGrpc.newBlockingStub(serverChannel);
 
     assertThat(serviceStub.unaryRpc(request)).isEqualTo(expected1);
-    assertThat(serviceStub.serverStreamingRpc(request)).toIterable().containsExactly(expected1);
+    assertThat(serviceStub.serverStreamingRpc(request)).toIterable().containsExactly(expected2);
   }
 
   @Test
@@ -282,6 +287,59 @@ class GrpcMockUnaryMethodTest {
     assertThatThrownBy(() -> serviceStub.unaryRpc(request)).hasMessage("INTERNAL");
     assertThat(serviceStub.unaryRpc(request)).isEqualTo(expected1);
     assertThat(serviceStub.unaryRpc(request)).isEqualTo(expected1);
+  }
+
+  @Test
+  void should_register_multiple_same_method_scenarios_with_different_matching_conditions() {
+    SimpleRequest request1 = SimpleRequest.newBuilder()
+        .setRequestMessage("message-1")
+        .build();
+    SimpleRequest request2 = SimpleRequest.newBuilder()
+        .setRequestMessage("message-2")
+        .build();
+    SimpleResponse expected1 = SimpleResponse.newBuilder()
+        .setResponseMessage("message-1")
+        .build();
+    SimpleResponse expected2 = SimpleResponse.newBuilder()
+        .setResponseMessage("message-2")
+        .build();
+
+    stubFor(service(SimpleServiceGrpc.SERVICE_NAME)
+        .forMethod(SimpleServiceGrpc.getUnaryRpcMethod())
+        .withRequest(request1)
+        .willReturn(response(expected1)));
+    stubFor(service(SimpleServiceGrpc.SERVICE_NAME)
+        .forMethod(SimpleServiceGrpc.getUnaryRpcMethod())
+        .withRequest(request2)
+        .willReturn(response(expected2)));
+
+    SimpleServiceBlockingStub serviceStub = SimpleServiceGrpc.newBlockingStub(serverChannel);
+
+    assertThat(serviceStub.unaryRpc(request1)).isEqualTo(expected1);
+    assertThat(serviceStub.unaryRpc(request2)).isEqualTo(expected2);
+  }
+
+  @Test
+  void should_last_register_method_scenario_should_be_triggered_when_multiple_matches_available() {
+    SimpleResponse expected1 = SimpleResponse.newBuilder()
+        .setResponseMessage("message-1")
+        .build();
+    SimpleResponse expected2 = SimpleResponse.newBuilder()
+        .setResponseMessage("message-2")
+        .build();
+
+    stubFor(service(SimpleServiceGrpc.SERVICE_NAME)
+        .forMethod(SimpleServiceGrpc.getUnaryRpcMethod())
+        .willReturn(response(expected1)));
+    stubFor(service(SimpleServiceGrpc.SERVICE_NAME)
+        .forMethod(SimpleServiceGrpc.getUnaryRpcMethod())
+        .willReturn(response(expected2)));
+
+    SimpleServiceBlockingStub serviceStub = SimpleServiceGrpc.newBlockingStub(serverChannel);
+
+    // check multiple times
+    assertThat(serviceStub.unaryRpc(request)).isEqualTo(expected2);
+    assertThat(serviceStub.unaryRpc(request)).isEqualTo(expected2);
   }
 
   private <T extends AbstractStub<T>> T stubWithHeaders(

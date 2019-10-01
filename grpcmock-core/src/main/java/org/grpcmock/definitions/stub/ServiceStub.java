@@ -1,72 +1,62 @@
 package org.grpcmock.definitions.stub;
 
-import io.grpc.MethodDescriptor;
+import static java.util.Optional.ofNullable;
+
 import io.grpc.ServerServiceDefinition;
-import io.grpc.stub.ServerCalls;
-import io.grpc.stub.StreamObserver;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.Nonnull;
 import org.grpcmock.exception.GrpcMockException;
-import org.grpcmock.exception.UnimplementedStatusException;
-import org.grpcmock.interceptors.HeadersInterceptor;
 
 /**
  * @author Fadelis
  */
-public class ServiceStub<ReqT, RespT> {
+public class ServiceStub {
 
   private final String serviceName;
-  private final MethodDescriptor<ReqT, RespT> method;
-  private final List<StubScenario<ReqT, RespT>> stubScenarios;
+  private final Map<String, MethodStub> methodStubs = new ConcurrentHashMap<>();
 
   ServiceStub(
       @Nonnull String serviceName,
-      @Nonnull MethodDescriptor<ReqT, RespT> method,
-      @Nonnull List<StubScenario<ReqT, RespT>> stubScenarios
+      @Nonnull MethodStub<?, ?> methodStub
   ) {
+    Objects.requireNonNull(serviceName);
+    Objects.requireNonNull(methodStub);
     this.serviceName = serviceName;
-    this.method = method;
-    this.stubScenarios = new ArrayList<>(stubScenarios);
+    this.methodStubs.put(methodStub.method().getFullMethodName(), methodStub);
+  }
+
+  public String serviceName() {
+    return this.serviceName;
+  }
+
+  public ServiceStub mergeServiceStub(@Nonnull ServiceStub serviceStub) {
+    Objects.requireNonNull(serviceStub);
+    serviceStub.methodStubs.values().forEach(this::registerMethod);
+    return this;
+  }
+
+  public <ReqT, RespT> ServiceStub registerMethod(@Nonnull MethodStub<ReqT, RespT> methodStub) {
+    Objects.requireNonNull(methodStub);
+    if (!serviceName.equals(methodStub.method().getServiceName())) {
+      throw new GrpcMockException("Method is not part of the actual service descriptor");
+    }
+    this.methodStubs.compute(
+        methodStub.method().getFullMethodName(),
+        (key, oldValue) -> ofNullable(oldValue)
+            .map(methodStub::registerScenarios)
+            .orElse(methodStub));
+
+    return this;
   }
 
   public ServerServiceDefinition serverServiceDefinition() {
-    switch (method.getType()) {
-      case UNARY:
-        return ServerServiceDefinition.builder(serviceName)
-            .addMethod(method, ServerCalls.asyncUnaryCall(this::singleRequestCall))
-            .build();
-      case SERVER_STREAMING:
-        return ServerServiceDefinition.builder(serviceName)
-            .addMethod(method, ServerCalls.asyncServerStreamingCall(this::singleRequestCall))
-            .build();
-      case CLIENT_STREAMING:
-        return ServerServiceDefinition.builder(serviceName)
-            .addMethod(method, ServerCalls.asyncClientStreamingCall(responseObserver -> ServerCalls
-                .asyncUnimplementedStreamingCall(method, responseObserver)))
-            .build();
-      case BIDI_STREAMING:
-        return ServerServiceDefinition.builder(serviceName)
-            .addMethod(method, ServerCalls.asyncBidiStreamingCall(responseObserver -> ServerCalls
-                .asyncUnimplementedStreamingCall(method, responseObserver)))
-            .build();
-      default:
-        throw new GrpcMockException("Unsupported method type: " + method.getType());
-    }
+    ServerServiceDefinition.Builder builder = ServerServiceDefinition.builder(serviceName);
+    this.methodStubs.values().stream()
+        .map(MethodStub::serverMethodDefinition)
+        .forEach(builder::addMethod);
 
-  }
-
-  private void singleRequestCall(ReqT request, StreamObserver<RespT> streamObserver) {
-    Optional<StubScenario<ReqT, RespT>> maybeScenario = stubScenarios.stream()
-        .filter(scenario -> scenario.matches(HeadersInterceptor.INTERCEPTED_HEADERS.get()))
-        .filter(scenario -> scenario.matches(request))
-        .findFirst();
-    if (maybeScenario.isPresent()) {
-      maybeScenario.get().call(request, streamObserver);
-    } else {
-      streamObserver.onError(new UnimplementedStatusException(
-          "No matching stub scenario was found for this method: " + method.getFullMethodName()));
-    }
+    return builder.build();
   }
 }

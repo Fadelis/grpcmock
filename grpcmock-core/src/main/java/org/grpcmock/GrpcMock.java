@@ -1,5 +1,7 @@
 package org.grpcmock;
 
+import static java.util.Optional.ofNullable;
+
 import io.grpc.MethodDescriptor;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
@@ -10,7 +12,9 @@ import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 import io.grpc.util.MutableHandlerRegistry;
 import java.io.IOException;
+import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.Nonnull;
 import org.grpcmock.definitions.response.ExceptionResponseActionBuilderImpl;
 import org.grpcmock.definitions.response.ObjectResponseActionBuilderImpl;
@@ -21,6 +25,7 @@ import org.grpcmock.definitions.response.steps.ExceptionStreamResponseBuildersSt
 import org.grpcmock.definitions.response.steps.ObjectResponseActionBuilder;
 import org.grpcmock.definitions.response.steps.ObjectStreamResponseBuilderStep;
 import org.grpcmock.definitions.stub.ServiceBuilderStepImpl;
+import org.grpcmock.definitions.stub.ServiceStub;
 import org.grpcmock.definitions.stub.steps.MappingStubBuilder;
 import org.grpcmock.definitions.stub.steps.ServiceBuilderStep;
 import org.grpcmock.exception.GrpcMockException;
@@ -41,6 +46,7 @@ public final class GrpcMock {
 
   private final Server server;
   private final MutableHandlerRegistry handlerRegistry;
+  private final Map<String, ServiceStub> serviceStubs = new ConcurrentHashMap<>();
 
   GrpcMock(@Nonnull Server server, @Nonnull MutableHandlerRegistry handlerRegistry) {
     Objects.requireNonNull(server);
@@ -51,6 +57,8 @@ public final class GrpcMock {
 
   /**
    * Retrieve current port of the server.
+   *
+   * @throws IllegalStateException if the server has not yet been started.
    */
   public int getPort() {
     return server.getPort();
@@ -81,41 +89,74 @@ public final class GrpcMock {
   }
 
   /**
-   * Register a mock gRPC service sto to the server.
+   * <p>Register a mock gRPC service stub to the server.
+   * <p>If given service is already present, then all methods from the new stub will be added to
+   * the old definition.
+   * <p>If given service and configured method are present, then new scenarios will be appended to
+   * that service's method stub definition.
    */
   public void register(@Nonnull MappingStubBuilder mappingStubBuilder) {
     Objects.requireNonNull(mappingStubBuilder);
-    handlerRegistry.addService(mappingStubBuilder.build().serverServiceDefinition());
+    ServiceStub newServiceStub = mappingStubBuilder.build();
+    ServiceStub serviceStub = serviceStubs.compute(
+        newServiceStub.serviceName(),
+        (key, oldValue) -> ofNullable(oldValue)
+            .map(previous -> previous.mergeServiceStub(newServiceStub))
+            .orElse(newServiceStub));
+    handlerRegistry.addService(serviceStub.serverServiceDefinition());
   }
 
   /**
    * Removes all stubs defined from the mock server.
    */
   public void resetAll() {
+    serviceStubs.clear();
     handlerRegistry.getServices().forEach(handlerRegistry::removeService);
   }
 
+  /**
+   * Returns gRPC Mock builder with the {@link #DEFAULT_PORT}.
+   */
   public static GrpcMockBuilder grpcMock() {
     return grpcMock(DEFAULT_PORT);
   }
 
+  /**
+   * Returns gRPC Mock builder with the given port. If given port is <code>0</code>, then a random
+   * free port will be selected.
+   */
   public static GrpcMockBuilder grpcMock(int port) {
     return new GrpcMockBuilder(port);
   }
 
+  /**
+   * Returns gRPC Mock builder using the provided gRPC {@link ServerBuilder} configuration. The user
+   * is responsible that the port used in the builder is available and free.
+   */
   public static GrpcMockBuilder grpcMock(@Nonnull ServerBuilder serverBuilder) {
     return new GrpcMockBuilder(serverBuilder);
   }
 
+  /**
+   * Configure the global static gRPC Mock instance to use a new one with the provided port.
+   */
   public static void configureFor(int port) {
     INSTANCE.set(grpcMock(port).build());
   }
 
+  /**
+   * Configure the global static gRPC Mock instance to use the provided one.
+   */
   public static void configureFor(@Nonnull GrpcMock client) {
     Objects.requireNonNull(client);
     INSTANCE.set(client);
   }
 
+  /**
+   * Returns the port for the global static gRPC Mock instance.
+   *
+   * @throws IllegalStateException if the server has not yet been started.
+   */
   public static int getGlobalPort() {
     return INSTANCE.get().getPort();
   }
@@ -128,7 +169,9 @@ public final class GrpcMock {
   }
 
   /**
-   * Register a gRPC service stub to the global gRPC mock server.
+   * <p>Register a gRPC service stub to the global gRPC mock server.
+   * <p>When multiple stubs, satisfying the same request condition matching, are registered, the
+   * last one registered will be triggered.
    */
   public static void stubFor(MappingStubBuilder mappingStubBuilder) {
     INSTANCE.get().register(mappingStubBuilder);

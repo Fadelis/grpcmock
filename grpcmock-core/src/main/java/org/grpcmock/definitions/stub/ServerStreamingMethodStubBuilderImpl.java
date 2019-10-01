@@ -109,15 +109,15 @@ public class ServerStreamingMethodStubBuilderImpl<ReqT, RespT> implements
   }
 
   @Override
-  public ServiceStub<ReqT, RespT> build() {
-    return new ServiceStub<>(
+  public ServiceStub build() {
+    return new ServiceStub(
         serviceName,
-        method,
-        Collections.singletonList(new StubScenario<>(
-            new PredicateHeadersMatcher(headerPredicates),
-            new PredicateRequestMatcher<>(requestPredicate),
-            responses
-        ))
+        new MethodStub<>(method,
+            Collections.singletonList(new StubScenario<>(
+                new PredicateHeadersMatcher(headerPredicates),
+                new PredicateRequestMatcher<>(requestPredicate),
+                responses
+            )))
     );
   }
 }
