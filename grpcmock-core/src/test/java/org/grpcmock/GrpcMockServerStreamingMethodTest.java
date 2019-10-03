@@ -3,21 +3,16 @@ package org.grpcmock;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.fail;
-import static org.grpcmock.GrpcMock.getGlobalPort;
-import static org.grpcmock.GrpcMock.grpcMock;
 import static org.grpcmock.GrpcMock.response;
 import static org.grpcmock.GrpcMock.service;
 import static org.grpcmock.GrpcMock.statusException;
 import static org.grpcmock.GrpcMock.stream;
 import static org.grpcmock.GrpcMock.stubFor;
+import static org.grpcmock.GrpcMock.times;
+import static org.grpcmock.GrpcMock.verifyThat;
 
-import io.grpc.ManagedChannel;
-import io.grpc.ManagedChannelBuilder;
-import io.grpc.Metadata;
 import io.grpc.Status;
 import io.grpc.internal.testing.StreamRecorder;
-import io.grpc.stub.AbstractStub;
-import io.grpc.stub.MetadataUtils;
 import io.grpc.stub.StreamObserver;
 import io.grpc.testing.protobuf.SimpleRequest;
 import io.grpc.testing.protobuf.SimpleResponse;
@@ -29,40 +24,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
  * @author Fadelis
  */
-class GrpcMockServerStreamingMethodTest {
-
-  private static final String HEADER_1 = "header-1";
-  private static final String HEADER_2 = "header-2";
-
-  private final SimpleRequest request = SimpleRequest.getDefaultInstance();
-  private ManagedChannel serverChannel;
-
-  @BeforeAll
-  static void createServer() {
-    GrpcMock.configureFor(grpcMock(0).build().start());
-  }
-
-  @BeforeEach
-  void setup() {
-    GrpcMock.resetMappings();
-    serverChannel = ManagedChannelBuilder
-        .forAddress("localhost", getGlobalPort())
-        .usePlaintext()
-        .build();
-  }
-
-  @AfterEach
-  void cleanup() {
-    serverChannel.shutdownNow();
-  }
+class GrpcMockServerStreamingMethodTest extends TestBase {
 
   @Test
   void should_return_a_unary_response() {
@@ -445,6 +412,7 @@ class GrpcMockServerStreamingMethodTest {
 
     assertThat(asyncStubCall(request1, serviceStub::serverStreamingRpc)).containsExactly(expected1);
     assertThat(asyncStubCall(request2, serviceStub::serverStreamingRpc)).containsExactly(expected2);
+    verifyThat(SimpleServiceGrpc.getServerStreamingRpcMethod(), times(2));
   }
 
   @Test
@@ -487,17 +455,5 @@ class GrpcMockServerStreamingMethodTest {
       throw Status.fromThrowable(streamRecorder.getError()).asRuntimeException();
     }
     return streamRecorder.getValues();
-  }
-
-  private <T extends AbstractStub<T>> T stubWithHeaders(
-      T baseStub,
-      String headerName1, String headerValue1,
-      String headerName2, String headerValue2
-  ) {
-    Metadata metadata = new Metadata();
-    metadata.put(Metadata.Key.of(headerName1, Metadata.ASCII_STRING_MARSHALLER), headerValue1);
-    metadata.put(Metadata.Key.of(headerName2, Metadata.ASCII_STRING_MARSHALLER), headerValue2);
-
-    return MetadataUtils.attachHeaders(baseStub, metadata);
   }
 }

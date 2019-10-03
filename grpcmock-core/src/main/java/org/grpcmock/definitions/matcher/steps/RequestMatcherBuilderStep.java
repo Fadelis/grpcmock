@@ -1,4 +1,4 @@
-package org.grpcmock.definitions.stub.steps;
+package org.grpcmock.definitions.matcher.steps;
 
 import java.util.Objects;
 import java.util.function.Predicate;

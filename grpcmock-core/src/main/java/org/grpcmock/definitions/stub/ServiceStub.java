@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.Nonnull;
+import org.grpcmock.definitions.verification.RequestPattern;
 import org.grpcmock.exception.GrpcMockException;
 
 /**
@@ -24,31 +25,11 @@ public class ServiceStub {
     Objects.requireNonNull(serviceName);
     Objects.requireNonNull(methodStub);
     this.serviceName = serviceName;
-    this.methodStubs.put(methodStub.method().getFullMethodName(), methodStub);
+    this.methodStubs.put(methodStub.fullMethodName(), methodStub);
   }
 
   public String serviceName() {
     return this.serviceName;
-  }
-
-  public ServiceStub mergeServiceStub(@Nonnull ServiceStub serviceStub) {
-    Objects.requireNonNull(serviceStub);
-    serviceStub.methodStubs.values().forEach(this::registerMethod);
-    return this;
-  }
-
-  public <ReqT, RespT> ServiceStub registerMethod(@Nonnull MethodStub<ReqT, RespT> methodStub) {
-    Objects.requireNonNull(methodStub);
-    if (!serviceName.equals(methodStub.method().getServiceName())) {
-      throw new GrpcMockException("Method is not part of the actual service descriptor");
-    }
-    this.methodStubs.compute(
-        methodStub.method().getFullMethodName(),
-        (key, oldValue) -> ofNullable(oldValue)
-            .map(methodStub::registerScenarios)
-            .orElse(methodStub));
-
-    return this;
   }
 
   public ServerServiceDefinition serverServiceDefinition() {
@@ -58,5 +39,37 @@ public class ServiceStub {
         .forEach(builder::addMethod);
 
     return builder.build();
+  }
+
+  public <ReqT> int callCountFor(@Nonnull RequestPattern<ReqT> requestPattern) {
+    Objects.requireNonNull(requestPattern);
+    if (!serviceName.equals(requestPattern.serviceName())) {
+      throw new GrpcMockException("Request method is not part of this service");
+    }
+    return ofNullable(methodStubs.get(requestPattern.fullMethodName()))
+        .map(methodStub -> methodStub.callCountFor(requestPattern))
+        .orElseThrow(() -> new GrpcMockException(
+            "No stub found for the method: " + requestPattern.fullMethodName()));
+  }
+
+  public ServiceStub mergeServiceStub(@Nonnull ServiceStub serviceStub) {
+    Objects.requireNonNull(serviceStub);
+    if (!serviceName.equals(serviceStub.serviceName())) {
+      throw new GrpcMockException("Method is not part of the actual service descriptor");
+    }
+    serviceStub.methodStubs.values().forEach(this::registerMethod);
+    return this;
+  }
+
+  private <ReqT, RespT> ServiceStub registerMethod(@Nonnull MethodStub<ReqT, RespT> methodStub) {
+    Objects.requireNonNull(methodStub);
+
+    this.methodStubs.compute(
+        methodStub.fullMethodName(),
+        (key, oldValue) -> ofNullable(oldValue)
+            .map(previous -> previous.registerScenarios(methodStub))
+            .orElse(methodStub));
+
+    return this;
   }
 }

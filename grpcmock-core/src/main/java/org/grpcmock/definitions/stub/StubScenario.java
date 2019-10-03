@@ -3,7 +3,7 @@ package org.grpcmock.definitions.stub;
 import static java.util.Optional.ofNullable;
 
 import io.grpc.stub.StreamObserver;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -38,7 +38,7 @@ public class StubScenario<ReqT, RespT> implements
     }
     this.headersMatcher = ofNullable(headersMatcher).orElseGet(HeadersMatcher::empty);
     this.requestMatcher = ofNullable(requestMatcher).orElseGet(RequestMatcher::empty);
-    this.responses = Collections.unmodifiableList(responses);
+    this.responses = new ArrayList<>(responses);
   }
 
   @Override

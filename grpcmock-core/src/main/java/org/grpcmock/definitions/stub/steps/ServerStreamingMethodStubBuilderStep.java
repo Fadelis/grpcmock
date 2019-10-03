@@ -1,5 +1,8 @@
 package org.grpcmock.definitions.stub.steps;
 
+import org.grpcmock.definitions.matcher.steps.HeadersMatcherBuilderStep;
+import org.grpcmock.definitions.matcher.steps.RequestMatcherBuilderStep;
+
 /**
  * @author Fadelis
  */

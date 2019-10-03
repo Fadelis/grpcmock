@@ -7,7 +7,7 @@ The tool follows a similar DSL type of structure to HTTP mocking service [WireMo
  - gRPC method stub configurable through a fluent Java API
  - Headers and request body matchers to determine the correct stub
  - Configurable delay for individual responses
- - [SOON] Verifiable method invocations for specific method
+ - Verifiable method invocations for specific method
  - Supported gRPC method types:
     - Unary methods
     - Server streaming methods
@@ -40,6 +40,17 @@ stubFor(service(SimpleServiceGrpc.SERVICE_NAME)
             .and(response(responses2).withFixedDelay(100))
             .and(response(responses3).withFixedDelay(200)))
         .nextWillReturn(statusException(Status.NOT_FOUND)));
+```
+
+### Verifying invocation count
+
+```
+verifyThat(
+    calledMethod(getUnaryRpcMethod())
+        .withHeader("header-1", "value-1")
+        .withRequest(request),
+    times(3));
+verifyThat(getUnaryRpcMethod(), never());
 ```
 
 ## Integrations

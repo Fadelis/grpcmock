@@ -2,57 +2,22 @@ package org.grpcmock;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.grpcmock.GrpcMock.getGlobalPort;
-import static org.grpcmock.GrpcMock.grpcMock;
 import static org.grpcmock.GrpcMock.response;
 import static org.grpcmock.GrpcMock.service;
 import static org.grpcmock.GrpcMock.statusException;
 import static org.grpcmock.GrpcMock.stubFor;
 
-import io.grpc.ManagedChannel;
-import io.grpc.ManagedChannelBuilder;
-import io.grpc.Metadata;
 import io.grpc.Status;
-import io.grpc.stub.AbstractStub;
-import io.grpc.stub.MetadataUtils;
 import io.grpc.testing.protobuf.SimpleRequest;
 import io.grpc.testing.protobuf.SimpleResponse;
 import io.grpc.testing.protobuf.SimpleServiceGrpc;
 import io.grpc.testing.protobuf.SimpleServiceGrpc.SimpleServiceBlockingStub;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
  * @author Fadelis
  */
-class GrpcMockUnaryMethodTest {
-
-  private static final String HEADER_1 = "header-1";
-  private static final String HEADER_2 = "header-2";
-
-  private final SimpleRequest request = SimpleRequest.getDefaultInstance();
-  private ManagedChannel serverChannel;
-
-  @BeforeAll
-  static void createServer() {
-    GrpcMock.configureFor(grpcMock(0).build().start());
-  }
-
-  @BeforeEach
-  void setup() {
-    GrpcMock.resetMappings();
-    serverChannel = ManagedChannelBuilder
-        .forAddress("localhost", getGlobalPort())
-        .usePlaintext()
-        .build();
-  }
-
-  @AfterEach
-  void cleanup() {
-    serverChannel.shutdownNow();
-  }
+class GrpcMockUnaryMethodTest extends TestBase {
 
   @Test
   void should_return_a_unary_response() {
@@ -340,17 +305,5 @@ class GrpcMockUnaryMethodTest {
     // check multiple times
     assertThat(serviceStub.unaryRpc(request)).isEqualTo(expected2);
     assertThat(serviceStub.unaryRpc(request)).isEqualTo(expected2);
-  }
-
-  private <T extends AbstractStub<T>> T stubWithHeaders(
-      T baseStub,
-      String headerName1, String headerValue1,
-      String headerName2, String headerValue2
-  ) {
-    Metadata metadata = new Metadata();
-    metadata.put(Metadata.Key.of(headerName1, Metadata.ASCII_STRING_MARSHALLER), headerValue1);
-    metadata.put(Metadata.Key.of(headerName2, Metadata.ASCII_STRING_MARSHALLER), headerValue2);
-
-    return MetadataUtils.attachHeaders(baseStub, metadata);
   }
 }

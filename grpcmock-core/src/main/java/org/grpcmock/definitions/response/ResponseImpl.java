@@ -1,6 +1,7 @@
 package org.grpcmock.definitions.response;
 
 import io.grpc.stub.StreamObserver;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -32,7 +33,7 @@ public class ResponseImpl<ReqT, RespT> implements Response<ReqT, RespT> {
         .anyMatch(ResponseAction::isTerminating)) {
       throw new GrpcMockValidationException("Terminating action should be the last one");
     }
-    this.responseActions = Collections.unmodifiableList(responseActions);
+    this.responseActions = new ArrayList<>(responseActions);
   }
 
   public ResponseImpl(@Nonnull ResponseAction<RespT> responseAction) {

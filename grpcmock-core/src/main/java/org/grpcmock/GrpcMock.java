@@ -28,7 +28,12 @@ import org.grpcmock.definitions.stub.ServiceBuilderStepImpl;
 import org.grpcmock.definitions.stub.ServiceStub;
 import org.grpcmock.definitions.stub.steps.MappingStubBuilder;
 import org.grpcmock.definitions.stub.steps.ServiceBuilderStep;
+import org.grpcmock.definitions.verification.CountMatcher;
+import org.grpcmock.definitions.verification.RequestPattern;
+import org.grpcmock.definitions.verification.RequestPatternBuilderImpl;
+import org.grpcmock.definitions.verification.steps.RequestPatternBuilderStep;
 import org.grpcmock.exception.GrpcMockException;
+import org.grpcmock.exception.GrpcMockVerificationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -104,6 +109,31 @@ public final class GrpcMock {
             .map(previous -> previous.mergeServiceStub(newServiceStub))
             .orElse(newServiceStub));
     handlerRegistry.addService(serviceStub.serverServiceDefinition());
+  }
+
+  /**
+   * Verify that given {@link RequestPattern} is called a number of times satisfying the provided
+   * {@link CountMatcher}.
+   *
+   * @throws GrpcMockVerificationException if the verify step fails.
+   */
+  public <ReqT> void verifyThat(
+      @Nonnull RequestPattern<ReqT> requestPattern,
+      @Nonnull CountMatcher countMatcher
+  ) {
+    Objects.requireNonNull(requestPattern);
+    Objects.requireNonNull(countMatcher);
+
+    int callCount = ofNullable(serviceStubs.get(requestPattern.serviceName()))
+        .map(serviceStub -> serviceStub.callCountFor(requestPattern))
+        .orElseThrow(() ->
+            new GrpcMockException("No stub found for service: " + requestPattern.serviceName()));
+
+    if (!countMatcher.test(callCount)) {
+      throw new GrpcMockVerificationException(String.format(
+          "Expected %s method to be called %s, but actual call count was %d",
+          requestPattern.fullMethodName(), countMatcher, callCount));
+    }
   }
 
   /**
@@ -228,7 +258,8 @@ public final class GrpcMock {
    * <p>Returns a stream response, which can respond with multiple {@link ResponseAction}.
    */
   public static <RespT> ObjectStreamResponseBuilderStep<RespT> stream(
-      @Nonnull ObjectResponseActionBuilder<RespT> responseAction) {
+      @Nonnull ObjectResponseActionBuilder<RespT> responseAction
+  ) {
     Objects.requireNonNull(responseAction);
     return new StreamResponseBuilderImpl<>(responseAction.build());
   }
@@ -238,8 +269,74 @@ public final class GrpcMock {
    * terminate the call, since it will be {@link StreamObserver#onError} response.
    */
   public static <RespT> ExceptionStreamResponseBuildersStep<RespT> stream(
-      @Nonnull ExceptionResponseActionBuilder responseAction) {
+      @Nonnull ExceptionResponseActionBuilder responseAction
+  ) {
     Objects.requireNonNull(responseAction);
     return new StreamResponseBuilderImpl<>(responseAction.build());
+  }
+
+  /**
+   * <p>Verify that given method was called number of times satisfying provided {@link
+   * CountMatcher}.
+   *
+   * @throws GrpcMockVerificationException if the verify step fails.
+   */
+  public static <ReqT> void verifyThat(
+      @Nonnull MethodDescriptor<ReqT, ?> method,
+      @Nonnull CountMatcher countMatcher
+  ) {
+    verifyThat(calledMethod(method), countMatcher);
+  }
+
+  /**
+   * <p>Verify that given {@link RequestPattern} was called number of times satisfying provided
+   * {@link CountMatcher}.
+   *
+   * @throws GrpcMockVerificationException if the verify step fails.
+   */
+  public static <ReqT> void verifyThat(
+      @Nonnull RequestPatternBuilderStep<ReqT> requestPattern,
+      @Nonnull CountMatcher countMatcher
+  ) {
+    Objects.requireNonNull(requestPattern);
+    INSTANCE.get().verifyThat(requestPattern.build(), countMatcher);
+  }
+
+  /**
+   * Returns request pattern builder instance, used for verifying call count using {@link
+   * #verifyThat(RequestPatternBuilderStep, CountMatcher)}.
+   */
+  public static <ReqT> RequestPatternBuilderStep<ReqT> calledMethod(
+      @Nonnull MethodDescriptor<ReqT, ?> method
+  ) {
+    return new RequestPatternBuilderImpl<>(method);
+  }
+
+  /**
+   * Called exactly the specified number of times.
+   */
+  public static CountMatcher times(int count) {
+    return CountMatcher.times(count);
+  }
+
+  /**
+   * Never called.
+   */
+  public static CountMatcher never() {
+    return CountMatcher.never();
+  }
+
+  /**
+   * Called the specified number of times or more.
+   */
+  public static CountMatcher atLeast(int count) {
+    return CountMatcher.atLeast(count);
+  }
+
+  /**
+   * Called the specified number of times or less.
+   */
+  public static CountMatcher atMost(int count) {
+    return CountMatcher.atMost(count);
   }
 }
