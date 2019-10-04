@@ -2,8 +2,8 @@ package org.grpcmock.junit5.test;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.grpcmock.GrpcMock.response;
-import static org.grpcmock.GrpcMock.service;
 import static org.grpcmock.GrpcMock.stubFor;
+import static org.grpcmock.GrpcMock.unaryMethod;
 
 import io.grpc.Metadata;
 import io.grpc.ServerCall;
@@ -39,8 +39,7 @@ class ConfiguredExtensionTest extends TestBase {
         .build();
     HealthCheckRequest request = HealthCheckRequest.getDefaultInstance();
 
-    stubFor(service(HealthGrpc.SERVICE_NAME)
-        .forMethod(HealthGrpc.getCheckMethod())
+    stubFor(unaryMethod(HealthGrpc.getCheckMethod())
         .withHeader(MY_HEADER, HEADER_VALUE)
         .willReturn(response(response)));
 

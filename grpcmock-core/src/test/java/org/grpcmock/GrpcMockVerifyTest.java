@@ -7,9 +7,9 @@ import static org.grpcmock.GrpcMock.atMost;
 import static org.grpcmock.GrpcMock.calledMethod;
 import static org.grpcmock.GrpcMock.never;
 import static org.grpcmock.GrpcMock.response;
-import static org.grpcmock.GrpcMock.service;
 import static org.grpcmock.GrpcMock.stubFor;
 import static org.grpcmock.GrpcMock.times;
+import static org.grpcmock.GrpcMock.unaryMethod;
 import static org.grpcmock.GrpcMock.verifyThat;
 
 import io.grpc.testing.protobuf.SimpleRequest;
@@ -125,12 +125,10 @@ public class GrpcMockVerifyTest extends TestBase {
   }
 
   private void performUnaryMultipleUnaryCalls() {
-    stubFor(service(SimpleServiceGrpc.SERVICE_NAME)
-        .forMethod(getUnaryRpcMethod())
+    stubFor(unaryMethod(getUnaryRpcMethod())
         .withRequest(request1)
         .willReturn(response(response)));
-    stubFor(service(SimpleServiceGrpc.SERVICE_NAME)
-        .forMethod(getUnaryRpcMethod())
+    stubFor(unaryMethod(getUnaryRpcMethod())
         .withRequest(request2)
         .willReturn(response(response)));
 

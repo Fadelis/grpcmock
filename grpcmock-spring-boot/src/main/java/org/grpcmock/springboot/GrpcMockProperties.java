@@ -2,7 +2,6 @@ package org.grpcmock.springboot;
 
 import io.grpc.ServerInterceptor;
 import java.util.Arrays;
-import org.grpcmock.GrpcMock;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
@@ -23,7 +22,7 @@ public class GrpcMockProperties {
 
   public static class Server {
 
-    private int port = GrpcMock.DEFAULT_PORT;
+    private int port = 0;
     private Class<? extends ServerInterceptor>[] interceptors = new Class[0];
     private int executorThreadCount = 1;
     private String executorBeanName;

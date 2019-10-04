@@ -3,10 +3,10 @@ package org.grpcmock;
 import static java.util.Optional.ofNullable;
 
 import io.grpc.MethodDescriptor;
+import io.grpc.MethodDescriptor.MethodType;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.ServerInterceptor;
-import io.grpc.ServiceDescriptor;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
@@ -24,10 +24,14 @@ import org.grpcmock.definitions.response.steps.ExceptionResponseActionBuilder;
 import org.grpcmock.definitions.response.steps.ExceptionStreamResponseBuildersStep;
 import org.grpcmock.definitions.response.steps.ObjectResponseActionBuilder;
 import org.grpcmock.definitions.response.steps.ObjectStreamResponseBuilderStep;
-import org.grpcmock.definitions.stub.ServiceBuilderStepImpl;
+import org.grpcmock.definitions.stub.ServerStreamingMethodStubBuilderImpl;
 import org.grpcmock.definitions.stub.ServiceStub;
+import org.grpcmock.definitions.stub.UnaryMethodStubBuilderImpl;
+import org.grpcmock.definitions.stub.steps.BidiStreamingMethodStubBuilderStep;
+import org.grpcmock.definitions.stub.steps.ClientStreamingMethodStubBuilderStep;
 import org.grpcmock.definitions.stub.steps.MappingStubBuilder;
-import org.grpcmock.definitions.stub.steps.ServiceBuilderStep;
+import org.grpcmock.definitions.stub.steps.ServerStreamingMethodStubBuilderStep;
+import org.grpcmock.definitions.stub.steps.UnaryMethodStubBuilderStep;
 import org.grpcmock.definitions.verification.CountMatcher;
 import org.grpcmock.definitions.verification.RequestPattern;
 import org.grpcmock.definitions.verification.RequestPatternBuilderImpl;
@@ -47,7 +51,6 @@ public final class GrpcMock {
   private static final Logger log = LoggerFactory.getLogger(GrpcMock.class);
   private static final ThreadLocal<GrpcMock> INSTANCE = ThreadLocal
       .withInitial(() -> grpcMock().build());
-  public static final int DEFAULT_PORT = 8888;
 
   private final Server server;
   private final MutableHandlerRegistry handlerRegistry;
@@ -145,10 +148,10 @@ public final class GrpcMock {
   }
 
   /**
-   * Returns gRPC Mock builder with the {@link #DEFAULT_PORT}.
+   * Returns gRPC Mock builder initiated with a random port.
    */
   public static GrpcMockBuilder grpcMock() {
-    return grpcMock(DEFAULT_PORT);
+    return grpcMock(0);
   }
 
   /**
@@ -208,21 +211,43 @@ public final class GrpcMock {
   }
 
   /**
-   * <p>Returns a service stub builder step using a gRPC {@link ServiceDescriptor}.
-   * <p>A valid {@link MethodDescriptor} for the given service has to be defined next
-   * in order to register a valid stub.
+   * Returns a stub builder for {@link MethodType#UNARY} method or {@link
+   * MethodType#SERVER_STREAMING} method with a single response.
    */
-  public static ServiceBuilderStep service(@Nonnull ServiceDescriptor serviceDescriptor) {
-    return new ServiceBuilderStepImpl(serviceDescriptor);
+  public static <ReqT, RespT> UnaryMethodStubBuilderStep<ReqT, RespT> unaryMethod(
+      @Nonnull MethodDescriptor<ReqT, RespT> method) {
+    return new UnaryMethodStubBuilderImpl<>(method);
   }
 
   /**
-   * <p>Returns a service stub builder step using a gRPC service name.
-   * <p>A valid {@link MethodDescriptor} for the given service has to be defined next
-   * in order to register a valid stub.
+   * Returns a stub builder for {@link MethodType#SERVER_STREAMING} method.
    */
-  public static ServiceBuilderStep service(@Nonnull String serviceName) {
-    return new ServiceBuilderStepImpl(serviceName);
+  public static <ReqT, RespT> ServerStreamingMethodStubBuilderStep<ReqT, RespT> serverStreamingMethod(
+      @Nonnull MethodDescriptor<ReqT, RespT> method) {
+    return new ServerStreamingMethodStubBuilderImpl<>(method);
+  }
+
+  /**
+   * <p>Returns a stub builder for {@link MethodType#CLIENT_STREAMING} method or {@link
+   * MethodType#BIDI_STREAMING} method with a single response at request stream completion.
+   *
+   * @deprecated Not yet implemented
+   */
+  @Deprecated
+  public static <ReqT, RespT> ClientStreamingMethodStubBuilderStep<ReqT, RespT> forClientStreamingMethod(
+      @Nonnull MethodDescriptor<ReqT, RespT> method) {
+    throw new GrpcMockException("Not yet implemented");
+  }
+
+  /**
+   * <p>Returns a stub builder for {@link MethodType#BIDI_STREAMING} method.
+   *
+   * @deprecated Not yet implemented
+   */
+  @Deprecated
+  public static <ReqT, RespT> BidiStreamingMethodStubBuilderStep<ReqT, RespT> forBidiStreamingMethod(
+      @Nonnull MethodDescriptor<ReqT, RespT> method) {
+    throw new GrpcMockException("Not yet implemented");
   }
 
   /**

@@ -3,9 +3,9 @@ package org.grpcmock;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.grpcmock.GrpcMock.response;
-import static org.grpcmock.GrpcMock.service;
 import static org.grpcmock.GrpcMock.statusException;
 import static org.grpcmock.GrpcMock.stubFor;
+import static org.grpcmock.GrpcMock.unaryMethod;
 
 import io.grpc.Status;
 import io.grpc.testing.protobuf.SimpleRequest;
@@ -25,8 +25,7 @@ class GrpcMockUnaryMethodTest extends TestBase {
         .setResponseMessage("message-1")
         .build();
 
-    stubFor(service(SimpleServiceGrpc.getServiceDescriptor())
-        .forMethod(SimpleServiceGrpc.getUnaryRpcMethod())
+    stubFor(unaryMethod(SimpleServiceGrpc.getUnaryRpcMethod())
         .willReturn(response(expected)));
 
     SimpleServiceBlockingStub serviceStub = SimpleServiceGrpc.newBlockingStub(serverChannel);
@@ -41,8 +40,7 @@ class GrpcMockUnaryMethodTest extends TestBase {
         .setResponseMessage("message-1")
         .build();
 
-    stubFor(service(SimpleServiceGrpc.getServiceDescriptor())
-        .forMethod(SimpleServiceGrpc.getUnaryRpcMethod())
+    stubFor(unaryMethod(SimpleServiceGrpc.getUnaryRpcMethod())
         .willReturn(response(expected)
             .withFixedDelay(200)));
 
@@ -54,8 +52,7 @@ class GrpcMockUnaryMethodTest extends TestBase {
 
   @Test
   void should_respond_with_error_status() {
-    stubFor(service(SimpleServiceGrpc.getServiceDescriptor())
-        .forMethod(SimpleServiceGrpc.getUnaryRpcMethod())
+    stubFor(unaryMethod(SimpleServiceGrpc.getUnaryRpcMethod())
         .willReturn(statusException(Status.ALREADY_EXISTS.withDescription("some error"))));
 
     SimpleServiceBlockingStub serviceStub = SimpleServiceGrpc.newBlockingStub(serverChannel);
@@ -67,8 +64,7 @@ class GrpcMockUnaryMethodTest extends TestBase {
   @Test
   void should_respond_with_error_status_with_a_delay() {
     long start = System.currentTimeMillis();
-    stubFor(service(SimpleServiceGrpc.getServiceDescriptor())
-        .forMethod(SimpleServiceGrpc.getUnaryRpcMethod())
+    stubFor(unaryMethod(SimpleServiceGrpc.getUnaryRpcMethod())
         .willReturn(statusException(Status.ALREADY_EXISTS.withDescription("some error"))
             .withFixedDelay(200)));
 
@@ -80,28 +76,12 @@ class GrpcMockUnaryMethodTest extends TestBase {
   }
 
   @Test
-  void should_return_a_unary_response_when_creating_service_via_name() {
-    SimpleResponse expected = SimpleResponse.newBuilder()
-        .setResponseMessage("message-1")
-        .build();
-
-    stubFor(service(SimpleServiceGrpc.SERVICE_NAME)
-        .forMethod(SimpleServiceGrpc.getUnaryRpcMethod())
-        .willReturn(response(expected)));
-
-    SimpleServiceBlockingStub serviceStub = SimpleServiceGrpc.newBlockingStub(serverChannel);
-
-    assertThat(serviceStub.unaryRpc(request)).isEqualTo(expected);
-  }
-
-  @Test
   void should_return_a_unary_response_for_server_streaming_request() {
     SimpleResponse expected = SimpleResponse.newBuilder()
         .setResponseMessage("message-1")
         .build();
 
-    stubFor(service(SimpleServiceGrpc.SERVICE_NAME)
-        .forMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
+    stubFor(unaryMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
         .willReturn(response(expected)));
 
     SimpleServiceBlockingStub serviceStub = SimpleServiceGrpc.newBlockingStub(serverChannel);
@@ -118,11 +98,9 @@ class GrpcMockUnaryMethodTest extends TestBase {
         .setResponseMessage("message-2")
         .build();
 
-    stubFor(service(SimpleServiceGrpc.SERVICE_NAME)
-        .forMethod(SimpleServiceGrpc.getUnaryRpcMethod())
+    stubFor(unaryMethod(SimpleServiceGrpc.getUnaryRpcMethod())
         .willReturn(response(expected1)));
-    stubFor(service(SimpleServiceGrpc.SERVICE_NAME)
-        .forMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
+    stubFor(unaryMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
         .willReturn(response(expected2)));
 
     SimpleServiceBlockingStub serviceStub = SimpleServiceGrpc.newBlockingStub(serverChannel);
@@ -140,8 +118,7 @@ class GrpcMockUnaryMethodTest extends TestBase {
         .setResponseMessage("message-1")
         .build();
 
-    stubFor(service(SimpleServiceGrpc.SERVICE_NAME)
-        .forMethod(SimpleServiceGrpc.getUnaryRpcMethod())
+    stubFor(unaryMethod(SimpleServiceGrpc.getUnaryRpcMethod())
         .withRequest(matchRequest)
         .willReturn(response(expected)));
 
@@ -159,8 +136,7 @@ class GrpcMockUnaryMethodTest extends TestBase {
         .setResponseMessage("message-1")
         .build();
 
-    stubFor(service(SimpleServiceGrpc.SERVICE_NAME)
-        .forMethod(SimpleServiceGrpc.getUnaryRpcMethod())
+    stubFor(unaryMethod(SimpleServiceGrpc.getUnaryRpcMethod())
         .withRequest(matchRequest)
         .willReturn(response(expected)));
 
@@ -175,8 +151,7 @@ class GrpcMockUnaryMethodTest extends TestBase {
         .setResponseMessage("message-1")
         .build();
 
-    stubFor(service(SimpleServiceGrpc.SERVICE_NAME)
-        .forMethod(SimpleServiceGrpc.getUnaryRpcMethod())
+    stubFor(unaryMethod(SimpleServiceGrpc.getUnaryRpcMethod())
         .withHeader(HEADER_1, "value-1")
         .withHeader(HEADER_2, value -> value.startsWith("value"))
         .willReturn(response(expected)));
@@ -196,8 +171,7 @@ class GrpcMockUnaryMethodTest extends TestBase {
         .setResponseMessage("message-1")
         .build();
 
-    stubFor(service(SimpleServiceGrpc.SERVICE_NAME)
-        .forMethod(SimpleServiceGrpc.getUnaryRpcMethod())
+    stubFor(unaryMethod(SimpleServiceGrpc.getUnaryRpcMethod())
         .withoutHeader(HEADER_2)
         .willReturn(response(expected)));
 
@@ -219,8 +193,7 @@ class GrpcMockUnaryMethodTest extends TestBase {
         .setResponseMessage("message-1")
         .build();
 
-    stubFor(service(SimpleServiceGrpc.SERVICE_NAME)
-        .forMethod(SimpleServiceGrpc.getUnaryRpcMethod())
+    stubFor(unaryMethod(SimpleServiceGrpc.getUnaryRpcMethod())
         .willReturn(response(expected1))
         .nextWillReturn(response(expected2)));
 
@@ -240,8 +213,7 @@ class GrpcMockUnaryMethodTest extends TestBase {
         .setResponseMessage("message-1")
         .build();
 
-    stubFor(service(SimpleServiceGrpc.SERVICE_NAME)
-        .forMethod(SimpleServiceGrpc.getUnaryRpcMethod())
+    stubFor(unaryMethod(SimpleServiceGrpc.getUnaryRpcMethod())
         .willReturn(response(expected1))
         .nextWillReturn(statusException(Status.INTERNAL))
         .nextWillReturn(response(expected2)));
@@ -269,12 +241,10 @@ class GrpcMockUnaryMethodTest extends TestBase {
         .setResponseMessage("message-2")
         .build();
 
-    stubFor(service(SimpleServiceGrpc.SERVICE_NAME)
-        .forMethod(SimpleServiceGrpc.getUnaryRpcMethod())
+    stubFor(unaryMethod(SimpleServiceGrpc.getUnaryRpcMethod())
         .withRequest(request1)
         .willReturn(response(expected1)));
-    stubFor(service(SimpleServiceGrpc.SERVICE_NAME)
-        .forMethod(SimpleServiceGrpc.getUnaryRpcMethod())
+    stubFor(unaryMethod(SimpleServiceGrpc.getUnaryRpcMethod())
         .withRequest(request2)
         .willReturn(response(expected2)));
 
@@ -293,11 +263,9 @@ class GrpcMockUnaryMethodTest extends TestBase {
         .setResponseMessage("message-2")
         .build();
 
-    stubFor(service(SimpleServiceGrpc.SERVICE_NAME)
-        .forMethod(SimpleServiceGrpc.getUnaryRpcMethod())
+    stubFor(unaryMethod(SimpleServiceGrpc.getUnaryRpcMethod())
         .willReturn(response(expected1)));
-    stubFor(service(SimpleServiceGrpc.SERVICE_NAME)
-        .forMethod(SimpleServiceGrpc.getUnaryRpcMethod())
+    stubFor(unaryMethod(SimpleServiceGrpc.getUnaryRpcMethod())
         .willReturn(response(expected2)));
 
     SimpleServiceBlockingStub serviceStub = SimpleServiceGrpc.newBlockingStub(serverChannel);

@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.fail;
 import static org.grpcmock.GrpcMock.response;
-import static org.grpcmock.GrpcMock.service;
+import static org.grpcmock.GrpcMock.serverStreamingMethod;
 import static org.grpcmock.GrpcMock.statusException;
 import static org.grpcmock.GrpcMock.stream;
 import static org.grpcmock.GrpcMock.stubFor;
@@ -37,8 +37,7 @@ class GrpcMockServerStreamingMethodTest extends TestBase {
         .setResponseMessage("message-1")
         .build();
 
-    stubFor(service(SimpleServiceGrpc.SERVICE_NAME)
-        .forServerStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
+    stubFor(serverStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
         .willReturn(response(expected)));
 
     SimpleServiceStub serviceStub = SimpleServiceGrpc.newStub(serverChannel);
@@ -53,8 +52,7 @@ class GrpcMockServerStreamingMethodTest extends TestBase {
         .setResponseMessage("message-1")
         .build();
 
-    stubFor(service(SimpleServiceGrpc.SERVICE_NAME)
-        .forServerStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
+    stubFor(serverStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
         .willReturn(response(expected)
             .withFixedDelay(200)));
 
@@ -72,8 +70,7 @@ class GrpcMockServerStreamingMethodTest extends TestBase {
             .build())
         .collect(Collectors.toList());
 
-    stubFor(service(SimpleServiceGrpc.SERVICE_NAME)
-        .forServerStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
+    stubFor(serverStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
         .willReturn(stream(response(responses.get(0)))
             .and(response(responses.get(1)))
             .and(response(responses.get(2)))));
@@ -92,8 +89,7 @@ class GrpcMockServerStreamingMethodTest extends TestBase {
             .build())
         .collect(Collectors.toList());
 
-    stubFor(service(SimpleServiceGrpc.SERVICE_NAME)
-        .forServerStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
+    stubFor(serverStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
         .willReturn(stream(response(responses.get(0)).withFixedDelay(200))
             .and(response(responses.get(1)).withFixedDelay(100))
             .and(response(responses.get(2)).withFixedDelay(200))));
@@ -106,8 +102,7 @@ class GrpcMockServerStreamingMethodTest extends TestBase {
 
   @Test
   void should_respond_with_error_status() {
-    stubFor(service(SimpleServiceGrpc.SERVICE_NAME)
-        .forServerStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
+    stubFor(serverStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
         .willReturn(statusException(Status.ALREADY_EXISTS.withDescription("some error"))));
 
     SimpleServiceStub serviceStub = SimpleServiceGrpc.newStub(serverChannel);
@@ -119,8 +114,7 @@ class GrpcMockServerStreamingMethodTest extends TestBase {
   @Test
   void should_respond_with_error_status_with_a_delay() {
     long start = System.currentTimeMillis();
-    stubFor(service(SimpleServiceGrpc.SERVICE_NAME)
-        .forServerStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
+    stubFor(serverStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
         .willReturn(statusException(Status.ALREADY_EXISTS.withDescription("some error"))
             .withFixedDelay(200)));
 
@@ -139,8 +133,7 @@ class GrpcMockServerStreamingMethodTest extends TestBase {
             .build())
         .collect(Collectors.toList());
 
-    stubFor(service(SimpleServiceGrpc.SERVICE_NAME)
-        .forServerStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
+    stubFor(serverStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
         .willReturn(stream(response(responses.get(0)))
             .and(response(responses.get(1)))
             .and(statusException(Status.ALREADY_EXISTS.withDescription("some error")))));
@@ -163,8 +156,7 @@ class GrpcMockServerStreamingMethodTest extends TestBase {
             .build())
         .collect(Collectors.toList());
 
-    stubFor(service(SimpleServiceGrpc.SERVICE_NAME)
-        .forServerStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
+    stubFor(serverStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
         .willReturn(stream(response(responses.get(0)).withFixedDelay(200))
             .and(response(responses.get(1)).withFixedDelay(100))
             .and(statusException(Status.ALREADY_EXISTS.withDescription("some error"))
@@ -189,8 +181,7 @@ class GrpcMockServerStreamingMethodTest extends TestBase {
         .setResponseMessage("message-1")
         .build();
 
-    stubFor(service(SimpleServiceGrpc.SERVICE_NAME)
-        .forServerStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
+    stubFor(serverStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
         .withRequest(matchRequest)
         .willReturn(response(expected)));
 
@@ -209,8 +200,7 @@ class GrpcMockServerStreamingMethodTest extends TestBase {
         .setResponseMessage("message-1")
         .build();
 
-    stubFor(service(SimpleServiceGrpc.SERVICE_NAME)
-        .forServerStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
+    stubFor(serverStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
         .withRequest(req -> req.getRequestMessage().endsWith("1"))
         .willReturn(response(expected)));
 
@@ -229,8 +219,7 @@ class GrpcMockServerStreamingMethodTest extends TestBase {
         .setResponseMessage("message-1")
         .build();
 
-    stubFor(service(SimpleServiceGrpc.SERVICE_NAME)
-        .forServerStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
+    stubFor(serverStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
         .withRequest(matchRequest)
         .willReturn(response(expected)));
 
@@ -246,8 +235,7 @@ class GrpcMockServerStreamingMethodTest extends TestBase {
         .setResponseMessage("message-1")
         .build();
 
-    stubFor(service(SimpleServiceGrpc.SERVICE_NAME)
-        .forServerStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
+    stubFor(serverStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
         .withHeader(HEADER_1, "value-1")
         .withHeader(HEADER_2, value -> value.startsWith("value"))
         .willReturn(response(expected)));
@@ -267,8 +255,7 @@ class GrpcMockServerStreamingMethodTest extends TestBase {
         .setResponseMessage("message-1")
         .build();
 
-    stubFor(service(SimpleServiceGrpc.SERVICE_NAME)
-        .forServerStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
+    stubFor(serverStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
         .withoutHeader(HEADER_2)
         .willReturn(response(expected)));
 
@@ -291,8 +278,7 @@ class GrpcMockServerStreamingMethodTest extends TestBase {
         .setResponseMessage("message-2")
         .build();
 
-    stubFor(service(SimpleServiceGrpc.SERVICE_NAME)
-        .forServerStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
+    stubFor(serverStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
         .willReturn(response(expected1))
         .nextWillReturn(response(expected2)));
 
@@ -316,8 +302,7 @@ class GrpcMockServerStreamingMethodTest extends TestBase {
             .build())
         .collect(Collectors.toList());
 
-    stubFor(service(SimpleServiceGrpc.SERVICE_NAME)
-        .forServerStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
+    stubFor(serverStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
         .willReturn(stream(response(responses1.get(0)))
             .and(response(responses1.get(1))))
         .nextWillReturn(stream(response(responses2.get(0)))
@@ -339,8 +324,7 @@ class GrpcMockServerStreamingMethodTest extends TestBase {
         .setResponseMessage("message-2")
         .build();
 
-    stubFor(service(SimpleServiceGrpc.SERVICE_NAME)
-        .forServerStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
+    stubFor(serverStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
         .willReturn(response(expected1))
         .nextWillReturn(statusException(Status.INTERNAL))
         .nextWillReturn(response(expected2)));
@@ -367,8 +351,7 @@ class GrpcMockServerStreamingMethodTest extends TestBase {
             .build())
         .collect(Collectors.toList());
 
-    stubFor(service(SimpleServiceGrpc.SERVICE_NAME)
-        .forServerStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
+    stubFor(serverStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
         .willReturn(stream(response(responses1.get(0)))
             .and(response(responses1.get(1))))
         .nextWillReturn(stream(response(responses1.get(0)))
@@ -399,12 +382,10 @@ class GrpcMockServerStreamingMethodTest extends TestBase {
         .setResponseMessage("message-2")
         .build();
 
-    stubFor(service(SimpleServiceGrpc.SERVICE_NAME)
-        .forServerStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
+    stubFor(serverStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
         .withRequest(request1)
         .willReturn(response(expected1)));
-    stubFor(service(SimpleServiceGrpc.SERVICE_NAME)
-        .forServerStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
+    stubFor(serverStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
         .withRequest(request2)
         .willReturn(response(expected2)));
 
@@ -424,11 +405,9 @@ class GrpcMockServerStreamingMethodTest extends TestBase {
         .setResponseMessage("message-2")
         .build();
 
-    stubFor(service(SimpleServiceGrpc.SERVICE_NAME)
-        .forServerStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
+    stubFor(serverStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
         .willReturn(response(expected1)));
-    stubFor(service(SimpleServiceGrpc.SERVICE_NAME)
-        .forServerStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
+    stubFor(serverStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
         .willReturn(response(expected2)));
 
     SimpleServiceStub serviceStub = SimpleServiceGrpc.newStub(serverChannel);

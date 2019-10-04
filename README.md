@@ -19,8 +19,7 @@ The tool follows a similar DSL type of structure to HTTP mocking service [WireMo
 ### Unary methods
 
 ```
-stubFor(service(HealthGrpc.SERVICE_NAME)
-        .forMethod(HealthGrpc.getCheckMethod())
+stubFor(unaryMethod(SimpleServiceGrpc.getUnaryRpcMethod())
         .withHeader("header-1", "value-1")
         .withHeader("header-2", value -> value.startsWith("value"))
         .withRequest(expectedRequest)
@@ -32,8 +31,7 @@ stubFor(service(HealthGrpc.SERVICE_NAME)
 ### Server streaming methods
 
 ```
-stubFor(service(SimpleServiceGrpc.SERVICE_NAME)
-        .forServerStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
+stubFor(serverStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
         .withHeader("header-1", "value-1")
         .withRequest(req -> req.getRequestMessage().endsWith("1"))
         .willReturn(stream(response(responses1).withFixedDelay(200))
@@ -67,21 +65,33 @@ gRPC Mock integrates with Spring-Boot via `grpcmock-spring-boot` module.
 </dependency>
 ```
 
-You have to declare the `@AutoConfigureGrpcMock` for the test class to enable gRPC Mock.
-
-Spring-Boot test class should look something like this:
+You have to declare the `@AutoConfigureGrpcMock` for the test class to enable gRPC Mock:
 ```
 @SpringJUnitConfig
 @SpringBootTest(classes = Application.class, webEnvironment = WebEnvironment.NONE)
 @AutoConfigureGrpcMock(port = 0)
 class TestClass {
-    ...
+
+  @Value("${grpcmock.server.port}")
+  private int grpcMockPort;
+    
+  private ManagedChannel serverChannel;
+
+  @BeforeEach
+  void setupChannel() {
+    serverChannel = ManagedChannelBuilder.forAddress("localhost", grpcMockPort)
+        .usePlaintext()
+        .build();
+  }
 }
 ```
 
-If the gRPC Mock port is set to 0, then a random port will be selected for the server. It is the recommended approach to improve test run times. Once a random port is selected it can be access via `${grpcmock.server.port}` property and used in gRPC `Channel` creation.
+If the gRPC Mock port is set to 0, then a random port will be selected for the server. 
+It is the recommended approach to improve test run times. 
+Once a random port is selected it can be access via `${grpcmock.server.port}` property and used in gRPC `Channel` creation.
 
-Mapping stubs will be cleared after each test run and after each test class run. If test class was run with a fixed port, the test context will be marked as dirty to reinitialise a new one.
+Mapping stubs will be cleared after each test run and after each test class run. 
+If test class was run with a fixed port, the test context will be marked as dirty to reinitialise a new one.
 
 ### JUnit5
 
@@ -101,6 +111,14 @@ You can integrate gRPC Mock with default configuration for a JUnit5 test via `@E
 @ExtendWith(GrpcMockExtension.class)
 class TestClass {
 
+  private ManagedChannel serverChannel;
+
+  @BeforeEach
+  void setupChannel() {
+    serverChannel = ManagedChannelBuilder.forAddress("localhost", GrpcMock.getGlobalPort())
+        .usePlaintext()
+        .build();
+  }
 }
 ```
 
@@ -114,7 +132,14 @@ class TestClass {
       .withPort(0)
       .withInterceptor(new MyServerInterceptor())
       .build();
+  private ManagedChannel serverChannel;
 
+  @BeforeEach
+  void setupChannel() {
+    serverChannel = ManagedChannelBuilder.forAddress("localhost", GrpcMock.getGlobalPort())
+        .usePlaintext()
+        .build();
+  }
 }
 ```
 

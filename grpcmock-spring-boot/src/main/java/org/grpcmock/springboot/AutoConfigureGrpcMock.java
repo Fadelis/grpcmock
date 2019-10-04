@@ -1,5 +1,6 @@
 package org.grpcmock.springboot;
 
+import io.grpc.Channel;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.ServerInterceptor;
@@ -10,13 +11,18 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
-import org.grpcmock.GrpcMock;
 import org.springframework.boot.test.autoconfigure.properties.PropertyMapping;
 import org.springframework.context.annotation.Import;
 
 /**
- * Annotation for test classes that want to start a gRPC Mock server as part of the Spring
+ * <p>Annotation for test classes that want to start a gRPC Mock server as part of the Spring
  * Application Context.
+ * <p>It is recommended to use <code>0</code> for gRPC Mock port, as a random free port will be
+ * selected and used. Once a random port is selected it can be access via
+ * <code>${grpcmock.server.port}</code> property and used in gRPC {@link Channel} creation.
+ * <p>Mapping stubs will be cleared after each test run and after each test class run.
+ * If test class was run with a fixed port, the test context will be marked as dirty to reinitialise
+ * a new one.
  *
  * @author Fadelis
  */
@@ -31,7 +37,7 @@ public @interface AutoConfigureGrpcMock {
    * Defines the port value for the gRPC Mock server. If set to <code>0</code> a random free port
    * will be picked.
    */
-  int port() default GrpcMock.DEFAULT_PORT;
+  int port() default 0;
 
   /**
    * Defines {@link ServerInterceptor} for the gRPC Mock server. Interceptors defined here must have

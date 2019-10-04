@@ -2,8 +2,8 @@ package org.grpcmock.springboot;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.grpcmock.GrpcMock.response;
-import static org.grpcmock.GrpcMock.service;
 import static org.grpcmock.GrpcMock.stubFor;
+import static org.grpcmock.GrpcMock.unaryMethod;
 
 import io.grpc.health.v1.HealthCheckRequest;
 import io.grpc.health.v1.HealthCheckResponse;
@@ -29,8 +29,7 @@ class GrpcMockTestResetAfterTestMethod extends TestBase {
         .build();
     HealthCheckRequest request = HealthCheckRequest.getDefaultInstance();
 
-    stubFor(service(HealthGrpc.SERVICE_NAME)
-        .forMethod(HealthGrpc.getCheckMethod())
+    stubFor(unaryMethod(HealthGrpc.getCheckMethod())
         .willReturn(response(response)));
 
     runAndAssertHealthCheckRequest(request, response);

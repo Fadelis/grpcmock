@@ -17,6 +17,7 @@ import org.grpcmock.definitions.response.steps.ExceptionResponseActionBuilder;
 import org.grpcmock.definitions.response.steps.ObjectResponseActionBuilder;
 import org.grpcmock.definitions.stub.steps.NextSingleResponseBuilderStep;
 import org.grpcmock.definitions.stub.steps.UnaryMethodStubBuilderStep;
+import org.grpcmock.exception.GrpcMockException;
 
 /**
  * @author Fadelis
@@ -31,13 +32,13 @@ public class UnaryMethodStubBuilderImpl<ReqT, RespT> implements
   private final Map<String, Predicate<String>> headerPredicates = new HashMap<>();
   private Predicate<ReqT> requestPredicate = request -> true;
 
-  UnaryMethodStubBuilderImpl(
-      @Nonnull String serviceName,
-      @Nonnull MethodDescriptor<ReqT, RespT> method
-  ) {
-    Objects.requireNonNull(serviceName);
+  public UnaryMethodStubBuilderImpl(@Nonnull MethodDescriptor<ReqT, RespT> method) {
     Objects.requireNonNull(method);
-    this.serviceName = serviceName;
+    Objects.requireNonNull(method.getServiceName());
+    if (!method.getType().clientSendsOneMessage()) {
+      throw new GrpcMockException("This builder accepts only unary and server streaming methods");
+    }
+    this.serviceName = method.getServiceName();
     this.method = method;
   }
 

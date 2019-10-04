@@ -1,6 +1,7 @@
 package org.grpcmock.definitions.stub;
 
 import io.grpc.MethodDescriptor;
+import io.grpc.MethodDescriptor.MethodType;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -18,6 +19,7 @@ import org.grpcmock.definitions.response.steps.ObjectResponseActionBuilder;
 import org.grpcmock.definitions.response.steps.StreamResponseBuilder;
 import org.grpcmock.definitions.stub.steps.NextStreamResponseBuilderStep;
 import org.grpcmock.definitions.stub.steps.ServerStreamingMethodStubBuilderStep;
+import org.grpcmock.exception.GrpcMockException;
 
 /**
  * @author Fadelis
@@ -32,13 +34,13 @@ public class ServerStreamingMethodStubBuilderImpl<ReqT, RespT> implements
   private final Map<String, Predicate<String>> headerPredicates = new HashMap<>();
   private Predicate<ReqT> requestPredicate = request -> true;
 
-  ServerStreamingMethodStubBuilderImpl(
-      @Nonnull String serviceName,
-      @Nonnull MethodDescriptor<ReqT, RespT> method
-  ) {
-    Objects.requireNonNull(serviceName);
+  public ServerStreamingMethodStubBuilderImpl(@Nonnull MethodDescriptor<ReqT, RespT> method) {
     Objects.requireNonNull(method);
-    this.serviceName = serviceName;
+    Objects.requireNonNull(method.getServiceName());
+    if (method.getType() != MethodType.SERVER_STREAMING) {
+      throw new GrpcMockException("This builder accepts only server streaming methods");
+    }
+    this.serviceName = method.getServiceName();
     this.method = method;
   }
 
