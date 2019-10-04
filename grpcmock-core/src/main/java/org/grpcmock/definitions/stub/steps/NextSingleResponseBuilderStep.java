@@ -11,7 +11,7 @@ import org.grpcmock.definitions.response.steps.ObjectResponseActionBuilder;
  */
 public interface NextSingleResponseBuilderStep<ReqT, RespT> extends
     BuilderStep,
-    MappingStubBuilder {
+    MethodStubBuilder {
 
   /**
    * <p>Defines {@link Response} for subsequent request call to this stub.

@@ -18,13 +18,10 @@ public class ServiceStub {
   private final String serviceName;
   private final Map<String, MethodStub> methodStubs = new ConcurrentHashMap<>();
 
-  ServiceStub(
-      @Nonnull String serviceName,
-      @Nonnull MethodStub<?, ?> methodStub
-  ) {
-    Objects.requireNonNull(serviceName);
+  public ServiceStub(@Nonnull MethodStub<?, ?> methodStub) {
     Objects.requireNonNull(methodStub);
-    this.serviceName = serviceName;
+    Objects.requireNonNull(methodStub.serviceName());
+    this.serviceName = methodStub.serviceName();
     this.methodStubs.put(methodStub.fullMethodName(), methodStub);
   }
 
@@ -52,17 +49,11 @@ public class ServiceStub {
             "No stub found for the method: " + requestPattern.fullMethodName()));
   }
 
-  public ServiceStub mergeServiceStub(@Nonnull ServiceStub serviceStub) {
-    Objects.requireNonNull(serviceStub);
-    if (!serviceName.equals(serviceStub.serviceName())) {
+  public <ReqT, RespT> ServiceStub registerMethod(@Nonnull MethodStub<ReqT, RespT> methodStub) {
+    Objects.requireNonNull(methodStub);
+    if (!serviceName.equals(methodStub.serviceName())) {
       throw new GrpcMockException("Method is not part of the actual service descriptor");
     }
-    serviceStub.methodStubs.values().forEach(this::registerMethod);
-    return this;
-  }
-
-  private <ReqT, RespT> ServiceStub registerMethod(@Nonnull MethodStub<ReqT, RespT> methodStub) {
-    Objects.requireNonNull(methodStub);
 
     this.methodStubs.compute(
         methodStub.fullMethodName(),

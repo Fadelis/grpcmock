@@ -7,7 +7,7 @@ import org.grpcmock.definitions.matcher.steps.RequestMatcherBuilderStep;
  * @author Fadelis
  */
 public interface UnaryMethodStubBuilderStep<ReqT, RespT> extends
-    MappingStubBuilder,
+    MethodStubBuilder,
     HeadersMatcherBuilderStep<UnaryMethodStubBuilderStep<ReqT, RespT>>,
     RequestMatcherBuilderStep<UnaryMethodStubBuilderStep<ReqT, RespT>, ReqT>,
     SingleResponseBuilderStep<NextSingleResponseBuilderStep<ReqT, RespT>, RespT> {

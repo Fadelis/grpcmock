@@ -26,7 +26,6 @@ public class UnaryMethodStubBuilderImpl<ReqT, RespT> implements
     UnaryMethodStubBuilderStep<ReqT, RespT>,
     NextSingleResponseBuilderStep<ReqT, RespT> {
 
-  private final String serviceName;
   private final MethodDescriptor<ReqT, RespT> method;
   private final List<Response<ReqT, RespT>> responses = new ArrayList<>();
   private final Map<String, Predicate<String>> headerPredicates = new HashMap<>();
@@ -34,11 +33,9 @@ public class UnaryMethodStubBuilderImpl<ReqT, RespT> implements
 
   public UnaryMethodStubBuilderImpl(@Nonnull MethodDescriptor<ReqT, RespT> method) {
     Objects.requireNonNull(method);
-    Objects.requireNonNull(method.getServiceName());
     if (!method.getType().clientSendsOneMessage()) {
       throw new GrpcMockException("This builder accepts only unary and server streaming methods");
     }
-    this.serviceName = method.getServiceName();
     this.method = method;
   }
 
@@ -95,16 +92,14 @@ public class UnaryMethodStubBuilderImpl<ReqT, RespT> implements
   }
 
   @Override
-  public ServiceStub build() {
-    return new ServiceStub(
-        serviceName,
-        new MethodStub<>(
-            method,
-            Collections.singletonList(new StubScenario<>(
-                new PredicateHeadersMatcher(headerPredicates),
-                new PredicateRequestMatcher<>(requestPredicate),
-                responses
-            )))
+  public MethodStub<ReqT, RespT> build() {
+    return new MethodStub<>(
+        method,
+        Collections.singletonList(new StubScenario<>(
+            new PredicateHeadersMatcher(headerPredicates),
+            new PredicateRequestMatcher<>(requestPredicate),
+            responses
+        ))
     );
   }
 }

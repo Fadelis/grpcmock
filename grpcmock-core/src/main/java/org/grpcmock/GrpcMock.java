@@ -24,12 +24,13 @@ import org.grpcmock.definitions.response.steps.ExceptionResponseActionBuilder;
 import org.grpcmock.definitions.response.steps.ExceptionStreamResponseBuildersStep;
 import org.grpcmock.definitions.response.steps.ObjectResponseActionBuilder;
 import org.grpcmock.definitions.response.steps.ObjectStreamResponseBuilderStep;
+import org.grpcmock.definitions.stub.MethodStub;
 import org.grpcmock.definitions.stub.ServerStreamingMethodStubBuilderImpl;
 import org.grpcmock.definitions.stub.ServiceStub;
 import org.grpcmock.definitions.stub.UnaryMethodStubBuilderImpl;
 import org.grpcmock.definitions.stub.steps.BidiStreamingMethodStubBuilderStep;
 import org.grpcmock.definitions.stub.steps.ClientStreamingMethodStubBuilderStep;
-import org.grpcmock.definitions.stub.steps.MappingStubBuilder;
+import org.grpcmock.definitions.stub.steps.MethodStubBuilder;
 import org.grpcmock.definitions.stub.steps.ServerStreamingMethodStubBuilderStep;
 import org.grpcmock.definitions.stub.steps.UnaryMethodStubBuilderStep;
 import org.grpcmock.definitions.verification.CountMatcher;
@@ -97,20 +98,21 @@ public final class GrpcMock {
   }
 
   /**
-   * <p>Register a mock gRPC service stub to the server.
-   * <p>If given service is already present, then all methods from the new stub will be added to
-   * the old definition.
-   * <p>If given service and configured method are present, then new scenarios will be appended to
-   * that service's method stub definition.
+   * <p>Register a gRPC method stub to the server.
+   * <p>If given method is already registered, then configured scenarios will be appended to
+   * that method's stub.
    */
-  public void register(@Nonnull MappingStubBuilder mappingStubBuilder) {
-    Objects.requireNonNull(mappingStubBuilder);
-    ServiceStub newServiceStub = mappingStubBuilder.build();
+  public <ReqT, RespT> void register(@Nonnull MethodStubBuilder<ReqT, RespT> methodStubBuilder) {
+    Objects.requireNonNull(methodStubBuilder);
+
+    MethodStub<ReqT, RespT> methodStub = methodStubBuilder.build();
+    // register method stub to existing service stub or create a new one with the single method stub
     ServiceStub serviceStub = serviceStubs.compute(
-        newServiceStub.serviceName(),
-        (key, oldValue) -> ofNullable(oldValue)
-            .map(previous -> previous.mergeServiceStub(newServiceStub))
-            .orElse(newServiceStub));
+        methodStub.serviceName(),
+        (key, registeredStub) -> ofNullable(registeredStub)
+            .map(previous -> previous.registerMethod(methodStub))
+            .orElseGet(() -> new ServiceStub(methodStub)));
+    // create or overwrite the service definition for this service stub in the grpc server
     handlerRegistry.addService(serviceStub.serverServiceDefinition());
   }
 
@@ -202,12 +204,14 @@ public final class GrpcMock {
   }
 
   /**
-   * <p>Register a gRPC service stub to the global gRPC mock server.
+   * <p>Register a gRPC method stub to the global gRPC mock server.
+   * <p>If given method is already registered, then configured scenarios will be appended to
+   * that method's stub.
    * <p>When multiple stubs, satisfying the same request condition matching, are registered, the
    * last one registered will be triggered.
    */
-  public static void stubFor(MappingStubBuilder mappingStubBuilder) {
-    INSTANCE.get().register(mappingStubBuilder);
+  public static void stubFor(MethodStubBuilder methodStubBuilder) {
+    INSTANCE.get().register(methodStubBuilder);
   }
 
   /**

@@ -42,6 +42,7 @@ public class MethodStub<ReqT, RespT> {
   ) {
     Objects.requireNonNull(method);
     Objects.requireNonNull(stubScenarios);
+    Objects.requireNonNull(method.getServiceName());
     this.method = method;
     this.stubScenarios = new ArrayList<>(stubScenarios);
   }
