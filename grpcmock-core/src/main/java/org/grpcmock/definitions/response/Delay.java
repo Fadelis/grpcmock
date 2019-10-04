@@ -23,14 +23,14 @@ public interface Delay {
   }
 
   /**
-   * Random delay between given {@param minMilliseconds} and {@param maxMilliseconds} bounds.
+   * Random delay between given minMilliseconds and maxMilliseconds bounds.
    */
   static Delay randomDelay(long minMilliseconds, long maxMilliseconds) {
     return () -> ThreadLocalRandom.current().nextLong(minMilliseconds, maxMilliseconds);
   }
 
   /**
-   * Random delay between 0 and {@param maxMilliseconds}.
+   * Random delay between 0 and maxMilliseconds.
    */
   static Delay randomDelay(long maxMilliseconds) {
     return randomDelay(0, maxMilliseconds);

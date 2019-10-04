@@ -18,7 +18,7 @@ The tool follows a similar DSL type of structure to HTTP mocking service [WireMo
 
 ### Unary methods
 
-```
+```java
 stubFor(unaryMethod(SimpleServiceGrpc.getUnaryRpcMethod())
         .withHeader("header-1", "value-1")
         .withHeader("header-2", value -> value.startsWith("value"))
@@ -30,7 +30,7 @@ stubFor(unaryMethod(SimpleServiceGrpc.getUnaryRpcMethod())
 
 ### Server streaming methods
 
-```
+```java
 stubFor(serverStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
         .withHeader("header-1", "value-1")
         .withRequest(req -> req.getRequestMessage().endsWith("1"))
@@ -42,12 +42,13 @@ stubFor(serverStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
 
 ### Verifying invocation count
 
-```
+```java
 verifyThat(
     calledMethod(getUnaryRpcMethod())
         .withHeader("header-1", "value-1")
         .withRequest(request),
     times(3));
+
 verifyThat(getUnaryRpcMethod(), never());
 ```
 
@@ -57,16 +58,17 @@ verifyThat(getUnaryRpcMethod(), never());
 
 gRPC Mock integrates with Spring-Boot via `grpcmock-spring-boot` module. 
 
-```
+```xml
 <dependency>
   <groupId>org.grpcmock</groupId>
   <artifactId>grpcmock-spring-boot</artifactId>
-  <version>1.0.0</version>
+  <version>0.1.0</version>
 </dependency>
 ```
 
 You have to declare the `@AutoConfigureGrpcMock` for the test class to enable gRPC Mock:
-```
+
+```java
 @SpringJUnitConfig
 @SpringBootTest(classes = Application.class, webEnvironment = WebEnvironment.NONE)
 @AutoConfigureGrpcMock(port = 0)
@@ -97,17 +99,17 @@ If test class was run with a fixed port, the test context will be marked as dirt
 
 gRPC Mock integrates with JUnit5 via `grpcmock-junit5` module.
 
-```
+```xml
 <dependency>
   <groupId>org.grpcmock</groupId>
   <artifactId>grpcmock-junit5</artifactId>
-  <version>1.0.0</version>
+  <version>0.1.0</version>
 </dependency>
 ```
 
 You can integrate gRPC Mock with default configuration for a JUnit5 test via `@ExtendWith` annotation:
 
-```
+```java
 @ExtendWith(GrpcMockExtension.class)
 class TestClass {
 
@@ -124,7 +126,7 @@ class TestClass {
 
 Or alternatively, you can configure gRPC Mock programmatically using `@RegisterExtension` annotation:
 
-```
+```java
 class TestClass {
 
   @RegisterExtension

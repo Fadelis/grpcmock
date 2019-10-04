@@ -27,8 +27,8 @@ public interface DelayBuilderStep<BUILDER extends BuilderStep> extends BuilderSt
   }
 
   /**
-   * Configures a random {@link Delay} between given {@param minMilliseconds} and {@param
-   * maxMilliseconds} bounds in milliseconds for the response action.
+   * Configures a random {@link Delay} between given minMilliseconds and maxMilliseconds bounds in
+   * milliseconds for the response action.
    * <p>Delay for {@link ResponseAction} is additive, meaning that it will trigger after previous
    * {@link ResponseAction} has finished.
    */
@@ -37,8 +37,8 @@ public interface DelayBuilderStep<BUILDER extends BuilderStep> extends BuilderSt
   }
 
   /**
-   * Configures a random {@link Delay} between given 0 and {@param maxMilliseconds} in milliseconds
-   * for the response action.
+   * Configures a random {@link Delay} between given 0 and maxMilliseconds in milliseconds for the
+   * response action.
    * <p>Delay for {@link ResponseAction} is additive, meaning that it will trigger after previous
    * {@link ResponseAction} has finished.
    */
