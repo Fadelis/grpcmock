@@ -18,6 +18,11 @@ public class StreamResponseBuilderImpl<RespT> implements
 
   private final List<ResponseAction<RespT>> responseActions = new ArrayList<>();
 
+  public StreamResponseBuilderImpl(@Nonnull List<ResponseAction<RespT>> responseAction) {
+    Objects.requireNonNull(responseAction);
+    this.responseActions.addAll(responseAction);
+  }
+
   public StreamResponseBuilderImpl(@Nonnull ResponseAction<RespT> responseAction) {
     Objects.requireNonNull(responseAction);
     this.responseActions.add(responseAction);

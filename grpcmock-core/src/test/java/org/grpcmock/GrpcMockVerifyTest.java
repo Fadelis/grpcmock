@@ -21,7 +21,7 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Fadelis
  */
-public class GrpcMockVerifyTest extends TestBase {
+class GrpcMockVerifyTest extends TestBase {
 
   private final SimpleRequest request1 = SimpleRequest.newBuilder()
       .setRequestMessage("message-1")
@@ -122,6 +122,25 @@ public class GrpcMockVerifyTest extends TestBase {
             .withHeader(HEADER_2, "value-2")
             .withRequest(request),
         never());
+  }
+
+  @Test
+  void should_correctly_verify_once_called_methods() {
+    stubFor(unaryMethod(getUnaryRpcMethod()).willReturn(response(response)));
+
+    SimpleServiceBlockingStub serviceStub = SimpleServiceGrpc.newBlockingStub(serverChannel);
+    serviceStub.unaryRpc(request1);
+
+    // whole method
+    verifyThat(getUnaryRpcMethod());
+
+    performUnaryMultipleUnaryCalls();
+
+    // specific invocation conditions
+    verifyThat(calledMethod(getUnaryRpcMethod())
+        .withHeader(HEADER_1, "value-3")
+        .withHeader(HEADER_2, "value-4")
+        .withRequest(request2));
   }
 
   private void performUnaryMultipleUnaryCalls() {

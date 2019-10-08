@@ -1,7 +1,10 @@
 package org.grpcmock.definitions.stub.steps;
 
+import java.util.List;
 import javax.annotation.Nonnull;
+import org.grpcmock.GrpcMock;
 import org.grpcmock.definitions.BuilderStep;
+import org.grpcmock.definitions.response.Delay;
 import org.grpcmock.definitions.response.Response;
 import org.grpcmock.definitions.response.ResponseAction;
 import org.grpcmock.definitions.response.steps.StreamResponseBuilder;
@@ -16,4 +19,26 @@ public interface StreamResponseBuilderStep<ReqT, RespT> extends BuilderStep {
    */
   NextStreamResponseBuilderStep<ReqT, RespT> willReturn(
       @Nonnull StreamResponseBuilder<RespT> response);
+
+  /**
+   * <p>Defines a stream {@link Response}, which can respond with multiple {@link ResponseAction}.
+   * <p>In order to configure a {@link Delay} for the actions see {@link GrpcMock#response} method.
+   *
+   * @param responses single response objects for the stream response. Will be returned in provided
+   * array order.
+   */
+  default NextStreamResponseBuilderStep<ReqT, RespT> willReturn(@Nonnull List<RespT> responses) {
+    return willReturn(GrpcMock.stream(responses));
+  }
+
+  /**
+   * <p>Defines a stream {@link Response}, which can respond with multiple {@link ResponseAction}.
+   * <p>In order to configure a {@link Delay} for the actions see {@link GrpcMock#response} method.
+   *
+   * @param responses single response objects for the stream response. Will be returned in provided
+   * array order.
+   */
+  default NextStreamResponseBuilderStep<ReqT, RespT> willReturn(@Nonnull RespT... responses) {
+    return willReturn(GrpcMock.stream(responses));
+  }
 }

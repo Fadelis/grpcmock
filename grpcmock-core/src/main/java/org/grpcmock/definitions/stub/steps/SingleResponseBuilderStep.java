@@ -1,7 +1,10 @@
 package org.grpcmock.definitions.stub.steps;
 
+import io.grpc.Status;
 import javax.annotation.Nonnull;
+import org.grpcmock.GrpcMock;
 import org.grpcmock.definitions.BuilderStep;
+import org.grpcmock.definitions.response.Delay;
 import org.grpcmock.definitions.response.Response;
 import org.grpcmock.definitions.response.steps.ExceptionResponseActionBuilder;
 import org.grpcmock.definitions.response.steps.ObjectResponseActionBuilder;
@@ -20,4 +23,22 @@ public interface SingleResponseBuilderStep<BUILDER extends BuilderStep, RespT> e
    * Defines a exception {@link Response} that will terminate the request.
    */
   BUILDER willReturn(@Nonnull ExceptionResponseActionBuilder response);
+
+  /**
+   * <p>Defines a single {@link Response} that will be returned for the request and complete it.
+   * <p>In order to configure a {@link Delay} for the response see {@link GrpcMock#response}
+   * method.
+   */
+  default BUILDER willReturn(@Nonnull RespT response) {
+    return willReturn(GrpcMock.response(response));
+  }
+
+  /**
+   * <p>Defines a exception {@link Response} that will terminate the request.
+   * <p>In order to configure a {@link Delay} for the response see {@link GrpcMock#statusException}
+   * method.
+   */
+  default BUILDER willReturn(@Nonnull Status status) {
+    return willReturn(GrpcMock.statusException(status));
+  }
 }

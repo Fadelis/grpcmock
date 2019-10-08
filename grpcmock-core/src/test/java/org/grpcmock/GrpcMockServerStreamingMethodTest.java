@@ -38,7 +38,7 @@ class GrpcMockServerStreamingMethodTest extends TestBase {
         .build();
 
     stubFor(serverStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
-        .willReturn(response(expected)));
+        .willReturn(expected));
 
     SimpleServiceStub serviceStub = SimpleServiceGrpc.newStub(serverChannel);
 
@@ -71,9 +71,9 @@ class GrpcMockServerStreamingMethodTest extends TestBase {
         .collect(Collectors.toList());
 
     stubFor(serverStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
-        .willReturn(stream(response(responses.get(0)))
-            .and(response(responses.get(1)))
-            .and(response(responses.get(2)))));
+        .willReturn(stream(responses.get(0))
+            .and(responses.get(1))
+            .and(responses.get(2))));
 
     SimpleServiceStub serviceStub = SimpleServiceGrpc.newStub(serverChannel);
 
@@ -103,7 +103,7 @@ class GrpcMockServerStreamingMethodTest extends TestBase {
   @Test
   void should_respond_with_error_status() {
     stubFor(serverStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
-        .willReturn(statusException(Status.ALREADY_EXISTS.withDescription("some error"))));
+        .willReturn(Status.ALREADY_EXISTS.withDescription("some error")));
 
     SimpleServiceStub serviceStub = SimpleServiceGrpc.newStub(serverChannel);
 
@@ -134,9 +134,9 @@ class GrpcMockServerStreamingMethodTest extends TestBase {
         .collect(Collectors.toList());
 
     stubFor(serverStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
-        .willReturn(stream(response(responses.get(0)))
-            .and(response(responses.get(1)))
-            .and(statusException(Status.ALREADY_EXISTS.withDescription("some error")))));
+        .willReturn(stream(responses.get(0))
+            .and(responses.get(1))
+            .and(Status.ALREADY_EXISTS.withDescription("some error"))));
 
     StreamRecorder<SimpleResponse> streamRecorder = StreamRecorder.create();
     SimpleServiceStub serviceStub = SimpleServiceGrpc.newStub(serverChannel);
@@ -159,8 +159,7 @@ class GrpcMockServerStreamingMethodTest extends TestBase {
     stubFor(serverStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
         .willReturn(stream(response(responses.get(0)).withFixedDelay(200))
             .and(response(responses.get(1)).withFixedDelay(100))
-            .and(statusException(Status.ALREADY_EXISTS.withDescription("some error"))
-                .withFixedDelay(200))));
+            .and(statusException(Status.ALREADY_EXISTS).withFixedDelay(200))));
 
     StreamRecorder<SimpleResponse> streamRecorder = StreamRecorder.create();
     SimpleServiceStub serviceStub = SimpleServiceGrpc.newStub(serverChannel);
@@ -168,7 +167,7 @@ class GrpcMockServerStreamingMethodTest extends TestBase {
 
     streamRecorder.awaitCompletion(10, TimeUnit.SECONDS);
     assertThat(streamRecorder.getValues()).isEqualTo(responses);
-    assertThat(streamRecorder.getError()).hasMessage("ALREADY_EXISTS: some error");
+    assertThat(streamRecorder.getError()).hasMessage("ALREADY_EXISTS");
     assertThat(System.currentTimeMillis() - start).isGreaterThan(500);
   }
 
@@ -279,8 +278,8 @@ class GrpcMockServerStreamingMethodTest extends TestBase {
         .build();
 
     stubFor(serverStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
-        .willReturn(response(expected1))
-        .nextWillReturn(response(expected2)));
+        .willReturn(expected1)
+        .nextWillReturn(expected2));
 
     SimpleServiceStub serviceStub = SimpleServiceGrpc.newStub(serverChannel);
 
@@ -316,26 +315,74 @@ class GrpcMockServerStreamingMethodTest extends TestBase {
   }
 
   @Test
+  void should_return_multiple_stream_responses_for_multiple_requests_by_passing_varags_responses() {
+    List<SimpleResponse> responses1 = IntStream.rangeClosed(1, 2)
+        .mapToObj(id -> SimpleResponse.newBuilder()
+            .setResponseMessage("message-" + id)
+            .build())
+        .collect(Collectors.toList());
+    List<SimpleResponse> responses2 = IntStream.rangeClosed(3, 4)
+        .mapToObj(id -> SimpleResponse.newBuilder()
+            .setResponseMessage("message-" + id)
+            .build())
+        .collect(Collectors.toList());
+
+    stubFor(serverStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
+        .willReturn(responses1.get(0), responses1.get(1))
+        .nextWillReturn(responses2.get(0), responses2.get(1)));
+
+    SimpleServiceStub serviceStub = SimpleServiceGrpc.newStub(serverChannel);
+
+    assertThat(asyncStubCall(request, serviceStub::serverStreamingRpc)).isEqualTo(responses1);
+    assertThat(asyncStubCall(request, serviceStub::serverStreamingRpc)).isEqualTo(responses2);
+    assertThat(asyncStubCall(request, serviceStub::serverStreamingRpc)).isEqualTo(responses2);
+  }
+
+  @Test
+  void should_return_multiple_stream_responses_for_multiple_requests_by_passing_list_of_responses() {
+    List<SimpleResponse> responses1 = IntStream.rangeClosed(1, 2)
+        .mapToObj(id -> SimpleResponse.newBuilder()
+            .setResponseMessage("message-" + id)
+            .build())
+        .collect(Collectors.toList());
+    List<SimpleResponse> responses2 = IntStream.rangeClosed(3, 4)
+        .mapToObj(id -> SimpleResponse.newBuilder()
+            .setResponseMessage("message-" + id)
+            .build())
+        .collect(Collectors.toList());
+
+    stubFor(serverStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
+        .willReturn(responses1)
+        .nextWillReturn(responses2));
+
+    SimpleServiceStub serviceStub = SimpleServiceGrpc.newStub(serverChannel);
+
+    assertThat(asyncStubCall(request, serviceStub::serverStreamingRpc)).isEqualTo(responses1);
+    assertThat(asyncStubCall(request, serviceStub::serverStreamingRpc)).isEqualTo(responses2);
+    assertThat(asyncStubCall(request, serviceStub::serverStreamingRpc)).isEqualTo(responses2);
+  }
+
+  @Test
   void should_return_multiple_unary_object_or_error_responses_for_multiple_requests() {
-    SimpleResponse expected1 = SimpleResponse.newBuilder()
+    SimpleResponse response1 = SimpleResponse.newBuilder()
         .setResponseMessage("message-1")
         .build();
-    SimpleResponse expected2 = SimpleResponse.newBuilder()
+    SimpleResponse response2 = SimpleResponse.newBuilder()
         .setResponseMessage("message-2")
         .build();
 
     stubFor(serverStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
-        .willReturn(response(expected1))
-        .nextWillReturn(statusException(Status.INTERNAL))
-        .nextWillReturn(response(expected2)));
+        .willReturn(response1)
+        .nextWillReturn(Status.INTERNAL)
+        .nextWillReturn(response2));
 
     SimpleServiceStub serviceStub = SimpleServiceGrpc.newStub(serverChannel);
 
-    assertThat(asyncStubCall(request, serviceStub::serverStreamingRpc)).containsExactly(expected1);
+    assertThat(asyncStubCall(request, serviceStub::serverStreamingRpc)).containsExactly(response1);
     assertThatThrownBy(() -> asyncStubCall(request, serviceStub::serverStreamingRpc))
         .hasMessage("INTERNAL");
-    assertThat(asyncStubCall(request, serviceStub::serverStreamingRpc)).containsExactly(expected2);
-    assertThat(asyncStubCall(request, serviceStub::serverStreamingRpc)).containsExactly(expected2);
+    assertThat(asyncStubCall(request, serviceStub::serverStreamingRpc)).containsExactly(response2);
+    assertThat(asyncStubCall(request, serviceStub::serverStreamingRpc)).containsExactly(response2);
   }
 
   @Test
@@ -352,12 +399,12 @@ class GrpcMockServerStreamingMethodTest extends TestBase {
         .collect(Collectors.toList());
 
     stubFor(serverStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
-        .willReturn(stream(response(responses1.get(0)))
-            .and(response(responses1.get(1))))
-        .nextWillReturn(stream(response(responses1.get(0)))
-            .and(statusException(Status.INTERNAL)))
-        .nextWillReturn(stream(response(responses2.get(0)))
-            .and(response(responses2.get(1)))));
+        .willReturn(stream(responses1.get(0))
+            .and(responses1.get(1)))
+        .nextWillReturn(stream(responses1.get(0))
+            .and(Status.INTERNAL))
+        .nextWillReturn(stream(responses2.get(0))
+            .and(responses2.get(1))));
 
     SimpleServiceStub serviceStub = SimpleServiceGrpc.newStub(serverChannel);
 
@@ -365,6 +412,37 @@ class GrpcMockServerStreamingMethodTest extends TestBase {
     assertThatThrownBy(() -> asyncStubCall(request, serviceStub::serverStreamingRpc))
         .hasMessage("INTERNAL");
     assertThat(asyncStubCall(request, serviceStub::serverStreamingRpc)).isEqualTo(responses2);
+  }
+
+  @Test
+  void should_return_multiple_stream_responses_or_error_responses_for_multiple_requests_with_delay() {
+    long start = System.currentTimeMillis();
+    List<SimpleResponse> responses1 = IntStream.rangeClosed(1, 2)
+        .mapToObj(id -> SimpleResponse.newBuilder()
+            .setResponseMessage("message-" + id)
+            .build())
+        .collect(Collectors.toList());
+    List<SimpleResponse> responses2 = IntStream.rangeClosed(3, 4)
+        .mapToObj(id -> SimpleResponse.newBuilder()
+            .setResponseMessage("message-" + id)
+            .build())
+        .collect(Collectors.toList());
+
+    stubFor(serverStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
+        .willReturn(stream(response(responses1.get(0)).withFixedDelay(100))
+            .and(response(responses1.get(1)).withFixedDelay(100)))
+        .nextWillReturn(stream(responses1.get(0))
+            .and(statusException(Status.INTERNAL).withFixedDelay(150)))
+        .nextWillReturn(stream(responses2.get(0))
+            .and(response(responses2.get(1)).withFixedDelay(200))));
+
+    SimpleServiceStub serviceStub = SimpleServiceGrpc.newStub(serverChannel);
+
+    assertThat(asyncStubCall(request, serviceStub::serverStreamingRpc)).isEqualTo(responses1);
+    assertThatThrownBy(() -> asyncStubCall(request, serviceStub::serverStreamingRpc))
+        .hasMessage("INTERNAL");
+    assertThat(asyncStubCall(request, serviceStub::serverStreamingRpc)).isEqualTo(responses2);
+    assertThat(System.currentTimeMillis() - start).isGreaterThan(550);
   }
 
   @Test
@@ -384,10 +462,10 @@ class GrpcMockServerStreamingMethodTest extends TestBase {
 
     stubFor(serverStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
         .withRequest(request1)
-        .willReturn(response(expected1)));
+        .willReturn(expected1));
     stubFor(serverStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
         .withRequest(request2)
-        .willReturn(response(expected2)));
+        .willReturn(expected2));
 
     SimpleServiceStub serviceStub = SimpleServiceGrpc.newStub(serverChannel);
 
@@ -406,9 +484,9 @@ class GrpcMockServerStreamingMethodTest extends TestBase {
         .build();
 
     stubFor(serverStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
-        .willReturn(response(expected1)));
+        .willReturn(expected1));
     stubFor(serverStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
-        .willReturn(response(expected2)));
+        .willReturn(expected2));
 
     SimpleServiceStub serviceStub = SimpleServiceGrpc.newStub(serverChannel);
 

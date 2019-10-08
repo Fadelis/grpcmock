@@ -5,6 +5,7 @@ import java.util.Objects;
 import java.util.Optional;
 import javax.annotation.Nonnull;
 import org.grpcmock.definitions.response.steps.ExceptionResponseActionBuilder;
+import org.grpcmock.exception.GrpcMockValidationException;
 
 /**
  * @author Fadelis
@@ -21,6 +22,9 @@ public class ExceptionResponseActionBuilderImpl implements ExceptionResponseActi
 
   public ExceptionResponseActionBuilderImpl(@Nonnull Status status) {
     Objects.requireNonNull(status);
+    if (status.isOk()) {
+      throw new GrpcMockValidationException("OK is not a valid exception status");
+    }
     this.exception = status.asRuntimeException();
   }
 

@@ -12,10 +12,14 @@ import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 import io.grpc.util.MutableHandlerRegistry;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
+import org.grpcmock.definitions.response.Delay;
 import org.grpcmock.definitions.response.ExceptionResponseActionBuilderImpl;
 import org.grpcmock.definitions.response.ObjectResponseActionBuilderImpl;
 import org.grpcmock.definitions.response.ResponseAction;
@@ -38,7 +42,7 @@ import org.grpcmock.definitions.verification.RequestPattern;
 import org.grpcmock.definitions.verification.RequestPatternBuilderImpl;
 import org.grpcmock.definitions.verification.steps.RequestPatternBuilderStep;
 import org.grpcmock.exception.GrpcMockException;
-import org.grpcmock.exception.GrpcMockVerificationException;
+import org.grpcmock.exception.GrpcMockVerificationError;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -120,7 +124,7 @@ public final class GrpcMock {
    * Verify that given {@link RequestPattern} is called a number of times satisfying the provided
    * {@link CountMatcher}.
    *
-   * @throws GrpcMockVerificationException if the verify step fails.
+   * @throws GrpcMockVerificationError if the verify step fails.
    */
   public <ReqT> void verifyThat(
       @Nonnull RequestPattern<ReqT> requestPattern,
@@ -135,7 +139,7 @@ public final class GrpcMock {
             new GrpcMockException("No stub found for service: " + requestPattern.serviceName()));
 
     if (!countMatcher.test(callCount)) {
-      throw new GrpcMockVerificationException(String.format(
+      throw new GrpcMockVerificationError(String.format(
           "Expected %s method to be called %s, but actual call count was %d",
           requestPattern.fullMethodName(), countMatcher, callCount));
     }
@@ -209,8 +213,12 @@ public final class GrpcMock {
    * that method's stub.
    * <p>When multiple stubs, satisfying the same request condition matching, are registered, the
    * last one registered will be triggered.
+   *
+   * @param methodStubBuilder a method stub builder created through one of {@link #unaryMethod},
+   * {@link #serverStreamingMethod}, {@link #clientStreamingMethod} or {@link
+   * #bidiStreamingMethod}.
    */
-  public static void stubFor(MethodStubBuilder methodStubBuilder) {
+  public static <ReqT, RespT> void stubFor(MethodStubBuilder<ReqT, RespT> methodStubBuilder) {
     INSTANCE.get().register(methodStubBuilder);
   }
 
@@ -238,7 +246,7 @@ public final class GrpcMock {
    * @deprecated Not yet implemented
    */
   @Deprecated
-  public static <ReqT, RespT> ClientStreamingMethodStubBuilderStep<ReqT, RespT> forClientStreamingMethod(
+  public static <ReqT, RespT> ClientStreamingMethodStubBuilderStep<ReqT, RespT> clientStreamingMethod(
       @Nonnull MethodDescriptor<ReqT, RespT> method) {
     throw new GrpcMockException("Not yet implemented");
   }
@@ -249,7 +257,7 @@ public final class GrpcMock {
    * @deprecated Not yet implemented
    */
   @Deprecated
-  public static <ReqT, RespT> BidiStreamingMethodStubBuilderStep<ReqT, RespT> forBidiStreamingMethod(
+  public static <ReqT, RespT> BidiStreamingMethodStubBuilderStep<ReqT, RespT> bidiStreamingMethod(
       @Nonnull MethodDescriptor<ReqT, RespT> method) {
     throw new GrpcMockException("Not yet implemented");
   }
@@ -294,6 +302,35 @@ public final class GrpcMock {
   }
 
   /**
+   * <p>Returns a stream response, which can respond with multiple {@link ResponseAction}.
+   * <p>In order to configure a {@link Delay} for the actions see {@link GrpcMock#response} method.
+   *
+   * @param responses single response objects for the stream response. Will be returned in provided
+   * list order.
+   */
+  public static <RespT> ObjectStreamResponseBuilderStep<RespT> stream(
+      @Nonnull List<RespT> responses
+  ) {
+    Objects.requireNonNull(responses);
+    responses.forEach(Objects::requireNonNull);
+    return new StreamResponseBuilderImpl<>(responses.stream()
+        .map(GrpcMock::response)
+        .map(ObjectResponseActionBuilder::build)
+        .collect(Collectors.toList()));
+  }
+
+  /**
+   * <p>Returns a stream response, which can respond with multiple {@link ResponseAction}.
+   * <p>In order to configure a {@link Delay} for the actions see {@link GrpcMock#response} method.
+   *
+   * @param responses single response objects for the stream response. Will be returned in provided
+   * array order.
+   */
+  public static <RespT> ObjectStreamResponseBuilderStep<RespT> stream(@Nonnull RespT... responses) {
+    return stream(Arrays.asList(responses));
+  }
+
+  /**
    * <p>Returns a terminating stream response, which will respond with {@link ResponseAction} and
    * terminate the call, since it will be {@link StreamObserver#onError} response.
    */
@@ -305,10 +342,30 @@ public final class GrpcMock {
   }
 
   /**
+   * <p>Verify that given method was called exactly once.
+   * <p>This is the same as invoking <code>verifyThat(method, times(1))</code>.
+   *
+   * @throws GrpcMockVerificationError if the verify step fails.
+   */
+  public static <ReqT> void verifyThat(@Nonnull MethodDescriptor<ReqT, ?> method) {
+    verifyThat(calledMethod(method), times(1));
+  }
+
+  /**
+   * <p>Verify that given {@link RequestPattern} was called exactly once.
+   * <p>This is the same as invoking <code>verifyThat(requestPattern, times(1))</code>.
+   *
+   * @throws GrpcMockVerificationError if the verify step fails.
+   */
+  public static <ReqT> void verifyThat(@Nonnull RequestPatternBuilderStep<ReqT> requestPattern) {
+    verifyThat(requestPattern, times(1));
+  }
+
+  /**
    * <p>Verify that given method was called number of times satisfying provided {@link
    * CountMatcher}.
    *
-   * @throws GrpcMockVerificationException if the verify step fails.
+   * @throws GrpcMockVerificationError if the verify step fails.
    */
   public static <ReqT> void verifyThat(
       @Nonnull MethodDescriptor<ReqT, ?> method,
@@ -321,7 +378,7 @@ public final class GrpcMock {
    * <p>Verify that given {@link RequestPattern} was called number of times satisfying provided
    * {@link CountMatcher}.
    *
-   * @throws GrpcMockVerificationException if the verify step fails.
+   * @throws GrpcMockVerificationError if the verify step fails.
    */
   public static <ReqT> void verifyThat(
       @Nonnull RequestPatternBuilderStep<ReqT> requestPattern,

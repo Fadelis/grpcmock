@@ -91,22 +91,22 @@ class GrpcMockUnaryMethodTest extends TestBase {
 
   @Test
   void should_register_multiple_method_stub_for_the_same_service() {
-    SimpleResponse expected1 = SimpleResponse.newBuilder()
+    SimpleResponse response1 = SimpleResponse.newBuilder()
         .setResponseMessage("message-1")
         .build();
-    SimpleResponse expected2 = SimpleResponse.newBuilder()
+    SimpleResponse response2 = SimpleResponse.newBuilder()
         .setResponseMessage("message-2")
         .build();
 
     stubFor(unaryMethod(SimpleServiceGrpc.getUnaryRpcMethod())
-        .willReturn(response(expected1)));
+        .willReturn(response1));
     stubFor(unaryMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
-        .willReturn(response(expected2)));
+        .willReturn(response2));
 
     SimpleServiceBlockingStub serviceStub = SimpleServiceGrpc.newBlockingStub(serverChannel);
 
-    assertThat(serviceStub.unaryRpc(request)).isEqualTo(expected1);
-    assertThat(serviceStub.serverStreamingRpc(request)).toIterable().containsExactly(expected2);
+    assertThat(serviceStub.unaryRpc(request)).isEqualTo(response1);
+    assertThat(serviceStub.serverStreamingRpc(request)).toIterable().containsExactly(response2);
   }
 
   @Test
@@ -114,17 +114,17 @@ class GrpcMockUnaryMethodTest extends TestBase {
     SimpleRequest matchRequest = SimpleRequest.newBuilder()
         .setRequestMessage("message-1")
         .build();
-    SimpleResponse expected = SimpleResponse.newBuilder()
+    SimpleResponse response = SimpleResponse.newBuilder()
         .setResponseMessage("message-1")
         .build();
 
     stubFor(unaryMethod(SimpleServiceGrpc.getUnaryRpcMethod())
         .withRequest(matchRequest)
-        .willReturn(response(expected)));
+        .willReturn(response));
 
     SimpleServiceBlockingStub serviceStub = SimpleServiceGrpc.newBlockingStub(serverChannel);
 
-    assertThat(serviceStub.unaryRpc(matchRequest)).isEqualTo(expected);
+    assertThat(serviceStub.unaryRpc(matchRequest)).isEqualTo(response);
   }
 
   @Test
@@ -132,13 +132,13 @@ class GrpcMockUnaryMethodTest extends TestBase {
     SimpleRequest matchRequest = SimpleRequest.newBuilder()
         .setRequestMessage("message-1")
         .build();
-    SimpleResponse expected = SimpleResponse.newBuilder()
+    SimpleResponse response = SimpleResponse.newBuilder()
         .setResponseMessage("message-1")
         .build();
 
     stubFor(unaryMethod(SimpleServiceGrpc.getUnaryRpcMethod())
         .withRequest(matchRequest)
-        .willReturn(response(expected)));
+        .willReturn(response));
 
     SimpleServiceBlockingStub serviceStub = SimpleServiceGrpc.newBlockingStub(serverChannel);
 
@@ -147,14 +147,14 @@ class GrpcMockUnaryMethodTest extends TestBase {
 
   @Test
   void should_return_a_response_when_headers_satisfies_defined_matching_condition() {
-    SimpleResponse expected = SimpleResponse.newBuilder()
+    SimpleResponse response = SimpleResponse.newBuilder()
         .setResponseMessage("message-1")
         .build();
 
     stubFor(unaryMethod(SimpleServiceGrpc.getUnaryRpcMethod())
         .withHeader(HEADER_1, "value-1")
         .withHeader(HEADER_2, value -> value.startsWith("value"))
-        .willReturn(response(expected)));
+        .willReturn(response));
 
     SimpleServiceBlockingStub serviceStub = stubWithHeaders(
         SimpleServiceGrpc.newBlockingStub(serverChannel),
@@ -162,18 +162,18 @@ class GrpcMockUnaryMethodTest extends TestBase {
         HEADER_2, "value-2"
     );
 
-    assertThat(serviceStub.unaryRpc(request)).isEqualTo(expected);
+    assertThat(serviceStub.unaryRpc(request)).isEqualTo(response);
   }
 
   @Test
   void should_not_return_a_response_when_headers_does_not_satisfy_matching_condition() {
-    SimpleResponse expected = SimpleResponse.newBuilder()
+    SimpleResponse response = SimpleResponse.newBuilder()
         .setResponseMessage("message-1")
         .build();
 
     stubFor(unaryMethod(SimpleServiceGrpc.getUnaryRpcMethod())
         .withoutHeader(HEADER_2)
-        .willReturn(response(expected)));
+        .willReturn(response));
 
     SimpleServiceBlockingStub serviceStub = stubWithHeaders(
         SimpleServiceGrpc.newBlockingStub(serverChannel),
@@ -186,44 +186,68 @@ class GrpcMockUnaryMethodTest extends TestBase {
 
   @Test
   void should_return_multiple_unary_responses_for_multiple_requests() {
-    SimpleResponse expected1 = SimpleResponse.newBuilder()
+    SimpleResponse response1 = SimpleResponse.newBuilder()
         .setResponseMessage("message-1")
         .build();
-    SimpleResponse expected2 = SimpleResponse.newBuilder()
+    SimpleResponse response2 = SimpleResponse.newBuilder()
         .setResponseMessage("message-1")
         .build();
 
     stubFor(unaryMethod(SimpleServiceGrpc.getUnaryRpcMethod())
-        .willReturn(response(expected1))
-        .nextWillReturn(response(expected2)));
+        .willReturn(response1)
+        .nextWillReturn(response2));
 
     SimpleServiceBlockingStub serviceStub = SimpleServiceGrpc.newBlockingStub(serverChannel);
 
-    assertThat(serviceStub.unaryRpc(request)).isEqualTo(expected1);
-    assertThat(serviceStub.unaryRpc(request)).isEqualTo(expected2);
-    assertThat(serviceStub.unaryRpc(request)).isEqualTo(expected2);
+    assertThat(serviceStub.unaryRpc(request)).isEqualTo(response1);
+    assertThat(serviceStub.unaryRpc(request)).isEqualTo(response2);
+    assertThat(serviceStub.unaryRpc(request)).isEqualTo(response2);
   }
 
   @Test
   void should_return_multiple_unary_object_or_error_responses_for_multiple_requests() {
-    SimpleResponse expected1 = SimpleResponse.newBuilder()
+    SimpleResponse response1 = SimpleResponse.newBuilder()
         .setResponseMessage("message-1")
         .build();
-    SimpleResponse expected2 = SimpleResponse.newBuilder()
+    SimpleResponse response2 = SimpleResponse.newBuilder()
         .setResponseMessage("message-1")
         .build();
 
     stubFor(unaryMethod(SimpleServiceGrpc.getUnaryRpcMethod())
-        .willReturn(response(expected1))
-        .nextWillReturn(statusException(Status.INTERNAL))
-        .nextWillReturn(response(expected2)));
+        .willReturn(response1)
+        .nextWillReturn(Status.INTERNAL)
+        .nextWillReturn(response(response2)));
 
     SimpleServiceBlockingStub serviceStub = SimpleServiceGrpc.newBlockingStub(serverChannel);
 
-    assertThat(serviceStub.unaryRpc(request)).isEqualTo(expected1);
+    assertThat(serviceStub.unaryRpc(request)).isEqualTo(response1);
     assertThatThrownBy(() -> serviceStub.unaryRpc(request)).hasMessage("INTERNAL");
-    assertThat(serviceStub.unaryRpc(request)).isEqualTo(expected1);
-    assertThat(serviceStub.unaryRpc(request)).isEqualTo(expected1);
+    assertThat(serviceStub.unaryRpc(request)).isEqualTo(response2);
+    assertThat(serviceStub.unaryRpc(request)).isEqualTo(response2);
+  }
+
+  @Test
+  void should_return_multiple_object_or_error_responses_for_multiple_requests_passing_with_delay() {
+    long start = System.currentTimeMillis();
+    SimpleResponse response1 = SimpleResponse.newBuilder()
+        .setResponseMessage("message-1")
+        .build();
+    SimpleResponse response2 = SimpleResponse.newBuilder()
+        .setResponseMessage("message-1")
+        .build();
+
+    stubFor(unaryMethod(SimpleServiceGrpc.getUnaryRpcMethod())
+        .willReturn(response(response1).withFixedDelay(100))
+        .nextWillReturn(statusException(Status.INVALID_ARGUMENT).withFixedDelay(100))
+        .nextWillReturn(response(response2).withFixedDelay(100)));
+
+    SimpleServiceBlockingStub serviceStub = SimpleServiceGrpc.newBlockingStub(serverChannel);
+
+    assertThat(serviceStub.unaryRpc(request)).isEqualTo(response1);
+    assertThatThrownBy(() -> serviceStub.unaryRpc(request)).hasMessage("INVALID_ARGUMENT");
+    assertThat(serviceStub.unaryRpc(request)).isEqualTo(response2);
+    assertThat(serviceStub.unaryRpc(request)).isEqualTo(response2);
+    assertThat(System.currentTimeMillis() - start).isGreaterThan(300);
   }
 
   @Test
