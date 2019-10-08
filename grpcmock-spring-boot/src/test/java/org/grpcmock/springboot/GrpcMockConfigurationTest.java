@@ -13,6 +13,7 @@ import org.grpcmock.exception.GrpcMockException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.context.ApplicationContext;
 
 /**
@@ -23,8 +24,9 @@ class GrpcMockConfigurationTest {
   private final GrpcMockProperties properties = mock(
       GrpcMockProperties.class, Mockito.RETURNS_DEEP_STUBS);
   private final ApplicationContext context = mock(ApplicationContext.class);
+  private final DefaultListableBeanFactory beanFactory = mock(DefaultListableBeanFactory.class);
   private final GrpcMockConfiguration configuration = new GrpcMockConfiguration(
-      properties, context);
+      properties, context, beanFactory);
 
   @BeforeEach
   void setup() {

@@ -57,6 +57,10 @@ public class GrpcMockExtension implements BeforeAllCallback, AfterAllCallback, A
     return this.server.getPort();
   }
 
+  public GrpcMock getInstance() {
+    return this.server;
+  }
+
   @Override
   public void beforeAll(ExtensionContext extensionContext) {
     server.resetAll();

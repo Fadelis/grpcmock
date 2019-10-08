@@ -24,7 +24,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
  */
 @SpringJUnitConfig
 @SpringBootTest(classes = TestApplication.class, webEnvironment = WebEnvironment.NONE)
-@AutoConfigureGrpcMock(port = 0, interceptors = MyServerInterceptor.class)
+@AutoConfigureGrpcMock(interceptors = MyServerInterceptor.class)
 class GrpcMockTestInterceptorInsertTest extends TestBase {
 
   private static final String MY_HEADER = "my-header";

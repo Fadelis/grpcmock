@@ -16,6 +16,7 @@ import org.grpcmock.exception.GrpcMockException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.SmartLifecycle;
@@ -30,18 +31,25 @@ import org.springframework.util.StringUtils;
 public class GrpcMockConfiguration implements SmartLifecycle {
 
   private static final Logger log = LoggerFactory.getLogger(GrpcMockConfiguration.class);
+  private static final String GRPCMOCK_BEAN_NAME = "grpcMock";
 
   private final GrpcMockProperties properties;
   private final ApplicationContext context;
+  private final DefaultListableBeanFactory beanFactory;
 
   private volatile boolean running;
 
   private GrpcMock server;
 
   @Autowired
-  GrpcMockConfiguration(GrpcMockProperties properties, ApplicationContext context) {
+  GrpcMockConfiguration(
+      GrpcMockProperties properties,
+      ApplicationContext context,
+      DefaultListableBeanFactory beanFactory
+  ) {
     this.properties = properties;
     this.context = context;
+    this.beanFactory = beanFactory;
   }
 
   @PostConstruct
@@ -112,9 +120,19 @@ public class GrpcMockConfiguration implements SmartLifecycle {
 
   private void updateGlobalServer() {
     GrpcMock.configureFor(this.server);
+    recreateBean();
     this.running = true;
     if (log.isDebugEnabled()) {
       log.debug(String.format("Started GrpcMock at port [%d]", properties.getServer().getPort()));
+    }
+  }
+
+  private void recreateBean() {
+    if (!this.beanFactory.containsBean(GRPCMOCK_BEAN_NAME)) {
+      this.beanFactory.registerSingleton(GRPCMOCK_BEAN_NAME, this.server);
+    } else {
+      this.beanFactory.destroySingleton(GRPCMOCK_BEAN_NAME);
+      this.beanFactory.registerSingleton(GRPCMOCK_BEAN_NAME, this.server);
     }
   }
 

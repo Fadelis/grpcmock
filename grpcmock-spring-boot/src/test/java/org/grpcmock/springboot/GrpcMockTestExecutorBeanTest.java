@@ -25,7 +25,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 @SpringJUnitConfig
 @Import(ExecutorConfiguration.class)
 @SpringBootTest(classes = TestApplication.class, webEnvironment = WebEnvironment.NONE)
-@AutoConfigureGrpcMock(port = 0, executorBeanName = "myExecutor")
+@AutoConfigureGrpcMock(executorBeanName = "myExecutor")
 class GrpcMockTestExecutorBeanTest extends TestBase {
 
   @MockBean

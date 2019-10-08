@@ -18,7 +18,7 @@ import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
  */
 @SpringJUnitConfig
 @SpringBootTest(classes = TestApplication.class, webEnvironment = WebEnvironment.NONE)
-@AutoConfigureGrpcMock(port = 0)
+@AutoConfigureGrpcMock
 class GrpcMockTestDynamicPortResetSecond extends TestBase {
 
   @Test

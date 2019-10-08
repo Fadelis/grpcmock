@@ -71,7 +71,7 @@ You have to declare the `@AutoConfigureGrpcMock` for the test class to enable gR
 ```java
 @SpringJUnitConfig
 @SpringBootTest(classes = Application.class, webEnvironment = WebEnvironment.NONE)
-@AutoConfigureGrpcMock(port = 0)
+@AutoConfigureGrpcMock
 class TestClass {
 
   @Value("${grpcmock.server.port}")
