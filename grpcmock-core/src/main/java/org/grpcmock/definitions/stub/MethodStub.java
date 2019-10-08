@@ -2,6 +2,7 @@ package org.grpcmock.definitions.stub;
 
 import static org.grpcmock.util.FunctionalHelpers.reverseStream;
 
+import io.grpc.Metadata;
 import io.grpc.MethodDescriptor;
 import io.grpc.ServerCallHandler;
 import io.grpc.ServerMethodDefinition;
@@ -9,7 +10,6 @@ import io.grpc.stub.ServerCalls;
 import io.grpc.stub.StreamObserver;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Queue;
@@ -97,7 +97,7 @@ public class MethodStub<ReqT, RespT> {
   }
 
   private void singleRequestCall(ReqT request, StreamObserver<RespT> streamObserver) {
-    Map<String, String> headers = HeadersInterceptor.INTERCEPTED_HEADERS.get();
+    Metadata headers = HeadersInterceptor.INTERCEPTED_HEADERS.get();
     Optional<StubScenario<ReqT, RespT>> maybeScenario = reverseStream(stubScenarios)
         .filter(scenario -> scenario.matches(headers))
         .filter(scenario -> scenario.matches(request))

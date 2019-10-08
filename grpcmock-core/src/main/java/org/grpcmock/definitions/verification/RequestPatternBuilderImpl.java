@@ -1,15 +1,15 @@
 package org.grpcmock.definitions.verification;
 
+import io.grpc.Metadata;
 import io.grpc.MethodDescriptor;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Predicate;
 import javax.annotation.Nonnull;
-import org.grpcmock.definitions.matcher.PredicateHeadersMatcher;
+import org.grpcmock.definitions.matcher.HeadersMatcher;
 import org.grpcmock.definitions.matcher.PredicateRequestMatcher;
+import org.grpcmock.definitions.matcher.steps.HeadersMatcherBuilder;
 import org.grpcmock.definitions.verification.steps.RequestPatternBuilderStep;
 
 /**
@@ -20,7 +20,7 @@ import org.grpcmock.definitions.verification.steps.RequestPatternBuilderStep;
 public class RequestPatternBuilderImpl<ReqT> implements RequestPatternBuilderStep<ReqT> {
 
   private final MethodDescriptor<ReqT, ?> method;
-  private final Map<String, Predicate<String>> headerPredicates = new HashMap<>();
+  private final HeadersMatcherBuilder headersMatcherBuilder = HeadersMatcher.builder();
   private Predicate<List<ReqT>> requestPredicate;
 
   public RequestPatternBuilderImpl(@Nonnull MethodDescriptor<ReqT, ?> method) {
@@ -29,11 +29,11 @@ public class RequestPatternBuilderImpl<ReqT> implements RequestPatternBuilderSte
   }
 
   @Override
-  public RequestPatternBuilderImpl<ReqT> withHeader(@Nonnull String headerName,
-      @Nonnull Predicate<String> valuePredicate) {
-    Objects.requireNonNull(headerName);
-    Objects.requireNonNull(valuePredicate);
-    this.headerPredicates.put(headerName, valuePredicate);
+  public <T> RequestPatternBuilderImpl<ReqT> withHeader(
+      @Nonnull Metadata.Key<T> headerKey,
+      @Nonnull Predicate<T> predicate
+  ) {
+    headersMatcherBuilder.withHeader(headerKey, predicate);
     return this;
   }
 
@@ -48,7 +48,7 @@ public class RequestPatternBuilderImpl<ReqT> implements RequestPatternBuilderSte
   public RequestPattern<ReqT> build() {
     return new RequestPattern<>(
         method,
-        new PredicateHeadersMatcher(headerPredicates),
+        headersMatcherBuilder.build(),
         Optional.ofNullable(requestPredicate).map(PredicateRequestMatcher::new).orElse(null)
     );
   }

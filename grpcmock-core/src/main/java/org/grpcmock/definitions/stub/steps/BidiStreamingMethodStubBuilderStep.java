@@ -6,7 +6,7 @@ import org.grpcmock.definitions.matcher.steps.HeadersMatcherBuilderStep;
  * @author Fadelis
  */
 public interface BidiStreamingMethodStubBuilderStep<ReqT, RespT> extends
-    MethodStubBuilder,
+    MethodStubBuilder<ReqT, RespT>,
     HeadersMatcherBuilderStep<BidiStreamingMethodStubBuilderStep<ReqT, RespT>> {
 
 }

@@ -23,13 +23,14 @@ public class RequestPattern<ReqT> {
 
   RequestPattern(
       @Nonnull MethodDescriptor<ReqT, ?> method,
-      @Nullable HeadersMatcher headersMatcher,
+      @Nonnull HeadersMatcher headersMatcher,
       @Nullable RequestMatcher<List<ReqT>> requestMatchers
   ) {
     Objects.requireNonNull(method);
     Objects.requireNonNull(method.getServiceName());
+    Objects.requireNonNull(headersMatcher);
     this.method = method;
-    this.headersMatcher = ofNullable(headersMatcher).orElseGet(HeadersMatcher::empty);
+    this.headersMatcher = headersMatcher;
     this.requestMatchers = ofNullable(requestMatchers).orElseGet(RequestMatcher::empty);
   }
 

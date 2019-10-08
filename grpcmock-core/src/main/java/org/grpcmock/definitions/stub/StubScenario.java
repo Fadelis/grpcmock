@@ -2,10 +2,10 @@ package org.grpcmock.definitions.stub;
 
 import static java.util.Optional.ofNullable;
 
+import io.grpc.Metadata;
 import io.grpc.stub.StreamObserver;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -28,15 +28,16 @@ public class StubScenario<ReqT, RespT> implements
   private final List<Response<ReqT, RespT>> responses;
 
   public StubScenario(
-      @Nullable HeadersMatcher headersMatcher,
+      @Nonnull HeadersMatcher headersMatcher,
       @Nullable RequestMatcher<ReqT> requestMatcher,
       @Nonnull List<Response<ReqT, RespT>> responses
   ) {
     Objects.requireNonNull(responses);
+    Objects.requireNonNull(headersMatcher);
     if (responses.isEmpty()) {
       throw new GrpcMockValidationException("Stub scenario should contain at least one response");
     }
-    this.headersMatcher = ofNullable(headersMatcher).orElseGet(HeadersMatcher::empty);
+    this.headersMatcher = headersMatcher;
     this.requestMatcher = ofNullable(requestMatcher).orElseGet(RequestMatcher::empty);
     this.responses = new ArrayList<>(responses);
   }
@@ -47,7 +48,7 @@ public class StubScenario<ReqT, RespT> implements
   }
 
   @Override
-  public boolean matches(Map<String, String> headers) {
+  public boolean matches(Metadata headers) {
     return headersMatcher.matches(headers);
   }
 

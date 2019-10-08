@@ -17,7 +17,7 @@ import org.grpcmock.definitions.response.steps.StreamResponseBuilder;
  */
 public interface NextStreamResponseBuilderStep<ReqT, RespT> extends
     BuilderStep,
-    MethodStubBuilder {
+    MethodStubBuilder<ReqT, RespT> {
 
   /**
    * <p>Defines a stream {@link Response} for subsequent request call that will execute multiple

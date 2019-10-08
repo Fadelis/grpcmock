@@ -28,6 +28,8 @@ stubFor(unaryMethod(SimpleServiceGrpc.getUnaryRpcMethod())
         .nextWillReturn(response(reponse2))); // subsequent invocations will return this response
 ```
 
+See more [examples](grpcmock-core/src/test/java/org/grpcmock/GrpcMockUnaryMethodTest.java)
+
 ### Server streaming methods
 
 ```java
@@ -37,8 +39,10 @@ stubFor(serverStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
         .willReturn(stream(response(responses1).withFixedDelay(200))
             .and(response(responses2).withFixedDelay(100))
             .and(response(responses3).withFixedDelay(200)))
-        .nextWillReturn(statusException(Status.NOT_FOUND)));
+        .nextWillReturn(statusException(Status.NOT_FOUND))); // subsequent invocations will return status exception
 ```
+
+See more [examples](grpcmock-core/src/test/java/org/grpcmock/GrpcMockServerStreamingMethodTest.java)
 
 ### Verifying invocation count
 
@@ -51,6 +55,8 @@ verifyThat(
 
 verifyThat(getUnaryRpcMethod(), never());
 ```
+
+See more [examples](grpcmock-core/src/test/java/org/grpcmock/GrpcMockVerifyTest.java)
 
 ## Integrations
 

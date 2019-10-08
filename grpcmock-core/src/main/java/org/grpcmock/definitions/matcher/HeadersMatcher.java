@@ -1,6 +1,7 @@
 package org.grpcmock.definitions.matcher;
 
-import java.util.Map;
+import io.grpc.Metadata;
+import org.grpcmock.definitions.matcher.steps.HeadersMatcherBuilder;
 
 /**
  * Header matcher interface. Currently only {@link String} type headers are supported.
@@ -9,9 +10,9 @@ import java.util.Map;
  */
 public interface HeadersMatcher {
 
-  boolean matches(Map<String, String> headers);
+  boolean matches(Metadata headers);
 
-  static HeadersMatcher empty() {
-    return header -> true;
+  static HeadersMatcherBuilder builder() {
+    return new HeadersMatcherBuilderImpl();
   }
 }

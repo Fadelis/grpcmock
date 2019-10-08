@@ -1,16 +1,16 @@
 package org.grpcmock.definitions.stub;
 
+import io.grpc.Metadata;
 import io.grpc.MethodDescriptor;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.function.Predicate;
 import javax.annotation.Nonnull;
-import org.grpcmock.definitions.matcher.PredicateHeadersMatcher;
+import org.grpcmock.definitions.matcher.HeadersMatcher;
 import org.grpcmock.definitions.matcher.PredicateRequestMatcher;
+import org.grpcmock.definitions.matcher.steps.HeadersMatcherBuilder;
 import org.grpcmock.definitions.response.Response;
 import org.grpcmock.definitions.response.ResponseImpl;
 import org.grpcmock.definitions.response.steps.ExceptionResponseActionBuilder;
@@ -28,7 +28,7 @@ public class UnaryMethodStubBuilderImpl<ReqT, RespT> implements
 
   private final MethodDescriptor<ReqT, RespT> method;
   private final List<Response<ReqT, RespT>> responses = new ArrayList<>();
-  private final Map<String, Predicate<String>> headerPredicates = new HashMap<>();
+  private final HeadersMatcherBuilder headersMatcherBuilder = HeadersMatcher.builder();
   private Predicate<ReqT> requestPredicate = request -> true;
 
   public UnaryMethodStubBuilderImpl(@Nonnull MethodDescriptor<ReqT, RespT> method) {
@@ -40,13 +40,11 @@ public class UnaryMethodStubBuilderImpl<ReqT, RespT> implements
   }
 
   @Override
-  public UnaryMethodStubBuilderStep<ReqT, RespT> withHeader(
-      @Nonnull String headerName,
-      @Nonnull Predicate<String> valuePredicate
+  public <T> UnaryMethodStubBuilderStep<ReqT, RespT> withHeader(
+      @Nonnull Metadata.Key<T> headerKey,
+      @Nonnull Predicate<T> predicate
   ) {
-    Objects.requireNonNull(headerName);
-    Objects.requireNonNull(valuePredicate);
-    this.headerPredicates.put(headerName, valuePredicate);
+    headersMatcherBuilder.withHeader(headerKey, predicate);
     return this;
   }
 
@@ -96,7 +94,7 @@ public class UnaryMethodStubBuilderImpl<ReqT, RespT> implements
     return new MethodStub<>(
         method,
         Collections.singletonList(new StubScenario<>(
-            new PredicateHeadersMatcher(headerPredicates),
+            headersMatcherBuilder.build(),
             new PredicateRequestMatcher<>(requestPredicate),
             responses
         ))

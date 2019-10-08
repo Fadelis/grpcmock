@@ -1,13 +1,11 @@
 package org.grpcmock.definitions.verification;
 
+import io.grpc.Metadata;
 import io.grpc.MethodDescriptor;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 
 /**
@@ -16,25 +14,26 @@ import javax.annotation.Nonnull;
 public class CapturedRequest<ReqT> {
 
   private final MethodDescriptor<ReqT, ?> method;
-  private final Map<String, String> headers;
+  private final Metadata headers;
   private final List<ReqT> requests;
 
   public CapturedRequest(
       @Nonnull MethodDescriptor<ReqT, ?> method,
-      @Nonnull Map<String, String> headers,
+      @Nonnull Metadata headers,
       @Nonnull List<ReqT> requests
   ) {
     Objects.requireNonNull(method);
     Objects.requireNonNull(headers);
     Objects.requireNonNull(requests);
     this.method = method;
-    this.headers = new HashMap<>(headers);
+    this.headers = new Metadata();
+    this.headers.merge(headers);
     this.requests = new ArrayList<>(requests);
   }
 
   public CapturedRequest(
       @Nonnull MethodDescriptor<ReqT, ?> method,
-      @Nonnull Map<String, String> headers,
+      @Nonnull Metadata headers,
       @Nonnull ReqT request
   ) {
     this(method, headers, Collections.singletonList(request));
@@ -44,7 +43,7 @@ public class CapturedRequest<ReqT> {
     return method;
   }
 
-  public Map<String, String> headers() {
+  public Metadata headers() {
     return headers;
   }
 
@@ -56,9 +55,7 @@ public class CapturedRequest<ReqT> {
   public String toString() {
     return String.format("Request to %s method%nwith headers:%n%s%nwith request:%n%s",
         method.getFullMethodName(),
-        headers.entrySet().stream()
-            .map(entry -> entry.getKey() + "=" + entry.getValue())
-            .collect(Collectors.joining(", ", "{", "}")),
+        headers.toString(),
         requests.size() == 1 ? requests.get(0) : requests
     );
   }
