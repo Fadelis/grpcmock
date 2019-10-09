@@ -4,7 +4,7 @@ The tool follows a similar DSL type of structure to HTTP mocking service [WireMo
 
 ## Features
 
- - gRPC method stub configurable through a fluent Java API
+ - gRPC method stubbing configurable through a fluent Java API
  - Headers and request body matchers to determine the correct stub
  - Configurable delay for individual responses
  - Verifiable method invocations for specific method
@@ -12,13 +12,16 @@ The tool follows a similar DSL type of structure to HTTP mocking service [WireMo
     - Unary methods
     - Server streaming methods
     - [SOON] Client streaming methods
-    - [SOON] Bidi stream methods with single response at the end (the same as Client streaming methods)
+    - [SOON] Bidi stream methods
     
 ## Quick usage
 
 ### Unary methods
 
 ```java
+stubFor(unaryMethod(SimpleServiceGrpc.getUnaryRpcMethod())
+        .willReturn(reponse1));
+
 stubFor(unaryMethod(SimpleServiceGrpc.getUnaryRpcMethod())
         .withHeader("header-1", "value-1")
         .withHeader("header-2", value -> value.startsWith("value"))
@@ -33,6 +36,9 @@ See more [examples](grpcmock-core/src/test/java/org/grpcmock/GrpcMockUnaryMethod
 ### Server streaming methods
 
 ```java
+stubFor(serverStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
+        willReturn(responses1, responses2, responses3); // return one by one with no delay
+
 stubFor(serverStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
         .withHeader("header-1", "value-1")
         .withRequest(req -> req.getRequestMessage().endsWith("1"))

@@ -10,7 +10,7 @@ public interface ServerStreamingMethodStubBuilderStep<ReqT, RespT> extends
     MethodStubBuilder<ReqT, RespT>,
     HeadersMatcherBuilderStep<ServerStreamingMethodStubBuilderStep<ReqT, RespT>>,
     RequestMatcherBuilderStep<ServerStreamingMethodStubBuilderStep<ReqT, RespT>, ReqT>,
-    SingleResponseBuilderStep<NextStreamResponseBuilderStep<ReqT, RespT>, RespT>,
-    StreamResponseBuilderStep<ReqT, RespT> {
+    StreamResponseBuilderStep<NextServerStreamingMethodResponseBuilderStep<ReqT, RespT>, ReqT, RespT>,
+    SingleRequestProxyResponseBuilderStep<NextServerStreamingMethodResponseBuilderStep<ReqT, RespT>, ReqT, RespT> {
 
 }

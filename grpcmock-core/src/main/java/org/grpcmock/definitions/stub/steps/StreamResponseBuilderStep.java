@@ -12,13 +12,14 @@ import org.grpcmock.definitions.response.steps.StreamResponseBuilder;
 /**
  * @author Fadelis
  */
-public interface StreamResponseBuilderStep<ReqT, RespT> extends BuilderStep {
+public interface StreamResponseBuilderStep<BUILDER extends BuilderStep, ReqT, RespT> extends
+    BuilderStep,
+    SingleResponseBuilderStep<BUILDER, RespT> {
 
   /**
    * Defines a stream {@link Response} that will execute multiple {@link ResponseAction}.
    */
-  NextStreamResponseBuilderStep<ReqT, RespT> willReturn(
-      @Nonnull StreamResponseBuilder<RespT> response);
+  BUILDER willReturn(@Nonnull StreamResponseBuilder<RespT> response);
 
   /**
    * <p>Defines a stream {@link Response}, which can respond with multiple {@link ResponseAction}.
@@ -27,7 +28,7 @@ public interface StreamResponseBuilderStep<ReqT, RespT> extends BuilderStep {
    * @param responses single response objects for the stream response. Will be returned in provided
    * array order.
    */
-  default NextStreamResponseBuilderStep<ReqT, RespT> willReturn(@Nonnull List<RespT> responses) {
+  default BUILDER willReturn(@Nonnull List<RespT> responses) {
     return willReturn(GrpcMock.stream(responses));
   }
 
@@ -38,7 +39,7 @@ public interface StreamResponseBuilderStep<ReqT, RespT> extends BuilderStep {
    * @param responses single response objects for the stream response. Will be returned in provided
    * array order.
    */
-  default NextStreamResponseBuilderStep<ReqT, RespT> willReturn(@Nonnull RespT... responses) {
+  default BUILDER willReturn(@Nonnull RespT... responses) {
     return willReturn(GrpcMock.stream(responses));
   }
 }

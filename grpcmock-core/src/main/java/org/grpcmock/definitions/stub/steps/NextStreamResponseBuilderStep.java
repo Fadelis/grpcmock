@@ -1,6 +1,5 @@
 package org.grpcmock.definitions.stub.steps;
 
-import io.grpc.Status;
 import java.util.List;
 import javax.annotation.Nonnull;
 import org.grpcmock.GrpcMock;
@@ -8,16 +7,15 @@ import org.grpcmock.definitions.BuilderStep;
 import org.grpcmock.definitions.response.Delay;
 import org.grpcmock.definitions.response.Response;
 import org.grpcmock.definitions.response.ResponseAction;
-import org.grpcmock.definitions.response.steps.ExceptionResponseActionBuilder;
-import org.grpcmock.definitions.response.steps.ObjectResponseActionBuilder;
 import org.grpcmock.definitions.response.steps.StreamResponseBuilder;
 
 /**
  * @author Fadelis
  */
-public interface NextStreamResponseBuilderStep<ReqT, RespT> extends
+public interface NextStreamResponseBuilderStep<BUILDER extends NextStreamResponseBuilderStep<BUILDER, ReqT, RespT>, ReqT, RespT> extends
     BuilderStep,
-    MethodStubBuilder<ReqT, RespT> {
+    MethodStubBuilder<ReqT, RespT>,
+    NextSingleResponseBuilderStep<BUILDER, ReqT, RespT> {
 
   /**
    * <p>Defines a stream {@link Response} for subsequent request call that will execute multiple
@@ -25,24 +23,7 @@ public interface NextStreamResponseBuilderStep<ReqT, RespT> extends
    * <p>If there are more requests coming in to this stub than responses defined,
    * the last stream response defined will be returned for those requests.
    */
-  NextStreamResponseBuilderStep<ReqT, RespT> nextWillReturn(
-      @Nonnull StreamResponseBuilder<RespT> response);
-
-  /**
-   * <p>Defines single action stream {@link Response} for subsequent request call to this stub.
-   * <p>If there are more requests coming in to this stub than responses defined,
-   * the last stream response defined will be returned for those requests.
-   */
-  NextStreamResponseBuilderStep<ReqT, RespT> nextWillReturn(
-      @Nonnull ObjectResponseActionBuilder<RespT> response);
-
-  /**
-   * <p>Defines exception {@link Response} for subsequent request call to this stub.
-   * <p>If there are more requests coming in to this stub than responses defined,
-   * the last stream response defined will be returned for those requests.
-   */
-  NextStreamResponseBuilderStep<ReqT, RespT> nextWillReturn(
-      @Nonnull ExceptionResponseActionBuilder response);
+  BUILDER nextWillReturn(@Nonnull StreamResponseBuilder<RespT> response);
 
   /**
    * <p>Defines a stream {@link Response} for subsequent request call that will return multiple
@@ -54,9 +35,7 @@ public interface NextStreamResponseBuilderStep<ReqT, RespT> extends
    * @param responses single response objects for the stream response. Will be returned in provided
    * list order.
    */
-  default NextStreamResponseBuilderStep<ReqT, RespT> nextWillReturn(
-      @Nonnull List<RespT> responses
-  ) {
+  default BUILDER nextWillReturn(@Nonnull List<RespT> responses) {
     return nextWillReturn(GrpcMock.stream(responses));
   }
 
@@ -71,22 +50,7 @@ public interface NextStreamResponseBuilderStep<ReqT, RespT> extends
    * array order.
    * @see GrpcMock#response
    */
-  default NextStreamResponseBuilderStep<ReqT, RespT> nextWillReturn(
-      @Nonnull RespT... responses
-  ) {
+  default BUILDER nextWillReturn(@Nonnull RespT... responses) {
     return nextWillReturn(GrpcMock.stream(responses));
-  }
-
-  /**
-   * <p>Defines status exception {@link Response} for subsequent request call to this stub.
-   * p>In order to configure a {@link Delay} for the response see {@link GrpcMock#statusException}
-   * method.
-   * <p>If there are more requests coming in to this stub than responses defined,
-   * the last stream response defined will be returned for those requests.
-   *
-   * @see GrpcMock#statusException
-   */
-  default NextStreamResponseBuilderStep<ReqT, RespT> nextWillReturn(@Nonnull Status status) {
-    return nextWillReturn(GrpcMock.statusException(status));
   }
 }

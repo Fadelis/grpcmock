@@ -8,10 +8,12 @@ import static org.grpcmock.GrpcMock.stubFor;
 import static org.grpcmock.GrpcMock.unaryMethod;
 
 import io.grpc.Status;
+import io.grpc.stub.StreamObserver;
 import io.grpc.testing.protobuf.SimpleRequest;
 import io.grpc.testing.protobuf.SimpleResponse;
 import io.grpc.testing.protobuf.SimpleServiceGrpc;
 import io.grpc.testing.protobuf.SimpleServiceGrpc.SimpleServiceBlockingStub;
+import io.grpc.testing.protobuf.SimpleServiceGrpc.SimpleServiceImplBase;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -297,5 +299,71 @@ class GrpcMockUnaryMethodTest extends TestBase {
     // check multiple times
     assertThat(serviceStub.unaryRpc(request)).isEqualTo(expected2);
     assertThat(serviceStub.unaryRpc(request)).isEqualTo(expected2);
+  }
+
+  @Test
+  void should_call_proxying_response_as_initial_response() {
+    SimpleResponse response1 = SimpleResponse.newBuilder()
+        .setResponseMessage("message-1")
+        .build();
+    SimpleResponse response2 = SimpleResponse.newBuilder()
+        .setResponseMessage("message-2")
+        .build();
+
+    stubFor(unaryMethod(SimpleServiceGrpc.getUnaryRpcMethod())
+        .willProxyTo((request, responseObserver) -> {
+          responseObserver.onNext(response1);
+          responseObserver.onCompleted();
+        })
+        .nextWillReturn(response2));
+
+    SimpleServiceBlockingStub serviceStub = SimpleServiceGrpc.newBlockingStub(serverChannel);
+
+    assertThat(serviceStub.unaryRpc(request)).isEqualTo(response1);
+    assertThat(serviceStub.unaryRpc(request)).isEqualTo(response2);
+  }
+
+  @Test
+  void should_call_proxying_response_as_subsequent_call_response() {
+    SimpleResponse response1 = SimpleResponse.newBuilder()
+        .setResponseMessage("message-1")
+        .build();
+    SimpleResponse response2 = SimpleResponse.newBuilder()
+        .setResponseMessage("message-2")
+        .build();
+
+    stubFor(unaryMethod(SimpleServiceGrpc.getUnaryRpcMethod())
+        .willReturn(response1)
+        .nextWillProxyTo((request, responseObserver) -> {
+          responseObserver.onNext(response2);
+          responseObserver.onCompleted();
+        }));
+
+    SimpleServiceBlockingStub serviceStub = SimpleServiceGrpc.newBlockingStub(serverChannel);
+
+    assertThat(serviceStub.unaryRpc(request)).isEqualTo(response1);
+    assertThat(serviceStub.unaryRpc(request)).isEqualTo(response2);
+  }
+
+  @Test
+  void should_call_proxying_response_passed_from_bindable_service_impl() {
+    SimpleResponse response = SimpleResponse.newBuilder()
+        .setResponseMessage("message-1")
+        .build();
+
+    SimpleServiceImplBase service = new SimpleServiceImplBase() {
+      @Override
+      public void unaryRpc(SimpleRequest request, StreamObserver<SimpleResponse> responseObserver) {
+        responseObserver.onNext(response);
+        responseObserver.onCompleted();
+      }
+    };
+
+    stubFor(unaryMethod(SimpleServiceGrpc.getUnaryRpcMethod())
+        .willProxyTo(service::unaryRpc));
+
+    SimpleServiceBlockingStub serviceStub = SimpleServiceGrpc.newBlockingStub(serverChannel);
+
+    assertThat(serviceStub.unaryRpc(request)).isEqualTo(response);
   }
 }

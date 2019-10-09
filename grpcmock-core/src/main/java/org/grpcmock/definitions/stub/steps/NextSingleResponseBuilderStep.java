@@ -12,7 +12,7 @@ import org.grpcmock.definitions.response.steps.ObjectResponseActionBuilder;
 /**
  * @author Fadelis
  */
-public interface NextSingleResponseBuilderStep<ReqT, RespT> extends
+public interface NextSingleResponseBuilderStep<BUILDER extends NextSingleResponseBuilderStep<BUILDER, ReqT, RespT>, ReqT, RespT> extends
     BuilderStep,
     MethodStubBuilder<ReqT, RespT> {
 
@@ -21,16 +21,14 @@ public interface NextSingleResponseBuilderStep<ReqT, RespT> extends
    * <p>If there are more requests coming in to this stub than responses defined,
    * the last response defined will be returned for those requests.
    */
-  NextSingleResponseBuilderStep<ReqT, RespT> nextWillReturn(
-      @Nonnull ObjectResponseActionBuilder<RespT> response);
+  BUILDER nextWillReturn(@Nonnull ObjectResponseActionBuilder<RespT> response);
 
   /**
    * <p>Defines a exception {@link Response} for subsequent request call to this stub.
    * <p>If there are more requests coming in to this stub than responses defined,
    * the last response defined will be returned for those requests.
    */
-  NextSingleResponseBuilderStep<ReqT, RespT> nextWillReturn(
-      @Nonnull ExceptionResponseActionBuilder response);
+  BUILDER nextWillReturn(@Nonnull ExceptionResponseActionBuilder response);
 
   /**
    * <p>Defines a single {@link Response} for subsequent request call to this stub.
@@ -39,7 +37,7 @@ public interface NextSingleResponseBuilderStep<ReqT, RespT> extends
    * <p>If there are more requests coming in to this stub than responses defined,
    * the last response defined will be returned for those requests.
    */
-  default NextSingleResponseBuilderStep<ReqT, RespT> nextWillReturn(@Nonnull RespT response) {
+  default BUILDER nextWillReturn(@Nonnull RespT response) {
     return nextWillReturn(GrpcMock.response(response));
   }
 
@@ -50,7 +48,7 @@ public interface NextSingleResponseBuilderStep<ReqT, RespT> extends
    * <p>If there are more requests coming in to this stub than responses defined,
    * the last response defined will be returned for those requests.
    */
-  default NextSingleResponseBuilderStep<ReqT, RespT> nextWillReturn(@Nonnull Status status) {
+  default BUILDER nextWillReturn(@Nonnull Status status) {
     return nextWillReturn(GrpcMock.statusException(status));
   }
 }

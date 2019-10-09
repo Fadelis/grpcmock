@@ -10,6 +10,7 @@ public interface UnaryMethodStubBuilderStep<ReqT, RespT> extends
     MethodStubBuilder<ReqT, RespT>,
     HeadersMatcherBuilderStep<UnaryMethodStubBuilderStep<ReqT, RespT>>,
     RequestMatcherBuilderStep<UnaryMethodStubBuilderStep<ReqT, RespT>, ReqT>,
-    SingleResponseBuilderStep<NextSingleResponseBuilderStep<ReqT, RespT>, RespT> {
+    SingleResponseBuilderStep<NextUnaryMethodResponseBuilderStep<ReqT, RespT>, RespT>,
+    SingleRequestProxyResponseBuilderStep<NextUnaryMethodResponseBuilderStep<ReqT, RespT>, ReqT, RespT> {
 
 }

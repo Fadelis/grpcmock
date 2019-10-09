@@ -12,7 +12,8 @@ import org.grpcmock.definitions.BuilderStep;
 /**
  * @author Fadelis
  */
-public interface HeadersMatcherBuilderStep<BUILDER extends BuilderStep> extends BuilderStep {
+public interface HeadersMatcherBuilderStep<BUILDER extends HeadersMatcherBuilderStep<BUILDER>> extends
+    BuilderStep {
 
   /**
    * <p>Adds a header matcher for the stub, which will trigger only if the given header

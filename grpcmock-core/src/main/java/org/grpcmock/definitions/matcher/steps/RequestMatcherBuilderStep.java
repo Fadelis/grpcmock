@@ -8,7 +8,8 @@ import org.grpcmock.definitions.BuilderStep;
 /**
  * @author Fadelis
  */
-public interface RequestMatcherBuilderStep<BUILDER extends BuilderStep, ReqT> extends BuilderStep {
+public interface RequestMatcherBuilderStep<BUILDER extends RequestMatcherBuilderStep<BUILDER, ReqT>, ReqT> extends
+    BuilderStep {
 
   /**
    * <p>Adds a request matcher for the stub, which will trigger only if incoming request

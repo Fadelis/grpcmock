@@ -17,6 +17,7 @@ import io.grpc.stub.StreamObserver;
 import io.grpc.testing.protobuf.SimpleRequest;
 import io.grpc.testing.protobuf.SimpleResponse;
 import io.grpc.testing.protobuf.SimpleServiceGrpc;
+import io.grpc.testing.protobuf.SimpleServiceGrpc.SimpleServiceImplBase;
 import io.grpc.testing.protobuf.SimpleServiceGrpc.SimpleServiceStub;
 import java.util.List;
 import java.util.Objects;
@@ -493,6 +494,75 @@ class GrpcMockServerStreamingMethodTest extends TestBase {
     // check multiple times
     assertThat(asyncStubCall(request, serviceStub::serverStreamingRpc)).containsExactly(expected2);
     assertThat(asyncStubCall(request, serviceStub::serverStreamingRpc)).containsExactly(expected2);
+  }
+
+  @Test
+  void should_call_proxying_response_as_initial_response() {
+    SimpleResponse response1 = SimpleResponse.newBuilder()
+        .setResponseMessage("message-1")
+        .build();
+    SimpleResponse response2 = SimpleResponse.newBuilder()
+        .setResponseMessage("message-2")
+        .build();
+
+    stubFor(serverStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
+        .willProxyTo((request, responseObserver) -> {
+          responseObserver.onNext(response1);
+          responseObserver.onCompleted();
+        })
+        .nextWillReturn(response2));
+
+    SimpleServiceStub serviceStub = SimpleServiceGrpc.newStub(serverChannel);
+
+    assertThat(asyncStubCall(request, serviceStub::serverStreamingRpc)).containsExactly(response1);
+    assertThat(asyncStubCall(request, serviceStub::serverStreamingRpc)).containsExactly(response2);
+  }
+
+  @Test
+  void should_call_proxying_response_as_subsequent_call_response() {
+    SimpleResponse response1 = SimpleResponse.newBuilder()
+        .setResponseMessage("message-1")
+        .build();
+    SimpleResponse response2 = SimpleResponse.newBuilder()
+        .setResponseMessage("message-2")
+        .build();
+
+    stubFor(serverStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
+        .willReturn(response1)
+        .nextWillProxyTo((request, responseObserver) -> {
+          responseObserver.onNext(response2);
+          responseObserver.onCompleted();
+        }));
+
+    SimpleServiceStub serviceStub = SimpleServiceGrpc.newStub(serverChannel);
+
+    assertThat(asyncStubCall(request, serviceStub::serverStreamingRpc)).containsExactly(response1);
+    assertThat(asyncStubCall(request, serviceStub::serverStreamingRpc)).containsExactly(response2);
+  }
+
+  @Test
+  void should_call_proxying_response_passed_from_bindable_service_impl() {
+    SimpleResponse response = SimpleResponse.newBuilder()
+        .setResponseMessage("message-1")
+        .build();
+
+    SimpleServiceImplBase service = new SimpleServiceImplBase() {
+      @Override
+      public void serverStreamingRpc(
+          SimpleRequest request,
+          StreamObserver<SimpleResponse> responseObserver
+      ) {
+        responseObserver.onNext(response);
+        responseObserver.onCompleted();
+      }
+    };
+
+    stubFor(serverStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
+        .willProxyTo(service::serverStreamingRpc));
+
+    SimpleServiceStub serviceStub = SimpleServiceGrpc.newStub(serverChannel);
+
+    assertThat(asyncStubCall(request, serviceStub::serverStreamingRpc)).containsExactly(response);
   }
 
   private <ReqT, RespT> List<RespT> asyncStubCall(
