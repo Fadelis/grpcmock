@@ -1,4 +1,5 @@
-# gRPC Mock
+# gRPC Mock ![Build pipeline](https://github.com/Fadelis/grpcmock/workflows/Build%20pipeline/badge.svg)
+
 A gRPC Java testing utility tool to easily mock endpoints of gRPC services.
 The tool follows a similar DSL type of structure to HTTP mocking service [WireMock](https://github.com/tomakehurst/wiremock).
 
