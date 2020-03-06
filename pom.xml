@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>org.grpcmock</groupId>
@@ -143,35 +144,6 @@
       </plugin>
 
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-javadoc-plugin</artifactId>
-        <version>${maven-javadoc-plugin.version}</version>
-        <configuration>
-          <source>${java.version}</source>
-          <doclint>none</doclint>
-        </configuration>
-        <executions>
-          <execution>
-            <goals>
-              <goal>jar</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-source-plugin</artifactId>
-        <version>${maven-source-plugin.version}</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>jar</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-
-      <plugin>
         <groupId>org.sonatype.plugins</groupId>
         <artifactId>nexus-staging-maven-plugin</artifactId>
         <version>${nexus-staging-maven-plugin.version}</version>
@@ -183,52 +155,6 @@
         </configuration>
       </plugin>
 
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-deploy-plugin</artifactId>
-        <version>${maven-deploy-plugin.version}</version>
-        <executions>
-          <execution>
-            <id>default-deploy</id>
-            <phase>deploy</phase>
-            <goals>
-              <goal>deploy</goal>
-            </goals>
-          </execution>
-        </executions>
-      </plugin>
-
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>build-helper-maven-plugin</artifactId>
-        <version>${maven.build.helper.plugin.version}</version>
-        <executions>
-          <execution>
-            <id>parse-versions-for-release</id>
-            <phase>validate</phase>
-            <goals>
-              <goal>parse-version</goal>
-            </goals>
-            <configuration>
-              <propertyPrefix>parsedVersion</propertyPrefix>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-release-plugin</artifactId>
-        <version>${maven-release-plugin.version}</version>
-        <configuration>
-          <localCheckout>true</localCheckout>
-          <autoVersionSubmodules>true</autoVersionSubmodules>
-          <mavenExecutorId>forked-path</mavenExecutorId>
-          <arguments>-Dgpg.passphrase=${gpg.passphrase}</arguments>
-          <tagNameFormat>@{project.version}</tagNameFormat>
-          <developmentVersion>${parsedVersion.majorVersion}.${parsedVersion.nextMinorVersion}.0-SNAPSHOT</developmentVersion>
-        </configuration>
-      </plugin>
     </plugins>
     <testResources>
       <testResource>
@@ -238,17 +164,46 @@
   </build>
 
   <profiles>
-    <!-- GPG Signature on release -->
+    <!-- Deployment profile (required so these plugins are only used when deploying) -->
     <profile>
-      <id>release-sign-artifacts</id>
-      <activation>
-        <property>
-          <name>performRelease</name>
-          <value>true</value>
-        </property>
-      </activation>
+      <id>deploy</id>
       <build>
         <plugins>
+          <!-- Source plugin -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-source-plugin</artifactId>
+            <version>${maven-source-plugin.version}</version>
+            <executions>
+              <execution>
+                <id>attach-sources</id>
+                <goals>
+                  <goal>jar-no-fork</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+
+          <!-- Javadoc plugin -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <version>${maven-javadoc-plugin.version}</version>
+            <configuration>
+              <source>${java.version}</source>
+              <doclint>none</doclint>
+            </configuration>
+            <executions>
+              <execution>
+                <id>attach-javadocs</id>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+
+          <!-- GPG plugin -->
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-gpg-plugin</artifactId>
@@ -260,6 +215,13 @@
                 <goals>
                   <goal>sign</goal>
                 </goals>
+                <configuration>
+                  <!-- Prevent `gpg` from using pinentry programs -->
+                  <gpgArguments>
+                    <arg>--pinentry-mode</arg>
+                    <arg>loopback</arg>
+                  </gpgArguments>
+                </configuration>
               </execution>
             </executions>
           </plugin>

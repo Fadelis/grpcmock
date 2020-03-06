@@ -25,13 +25,16 @@ jobs:
           path: ~/.m2/repository
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
 
-      - name: Setup Maven settings
-        run: echo "$M2_SETTINGS" | base64 --decode > ~/.m2/settings.xml
+      - name: Set version
+        run: |
+          export GITHUB_TAG=${GITHUB_REF##*/}
+          mvn versions:set -DnewVersion=$GITHUB_TAG
+          sed -i 's/<tag>HEAD<\/tag>/<tag>$GITHUB_TAG<\/tag>/' pom.xml
 
       - name: Perform release
-        run: mvn --batch-mode release:prepare release:perform
-
-      - name: Push release changes
-        uses: ad-m/github-push-action@master
+        uses: samuelmeuli/action-maven-publish@v1
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          gpg_private_key: ${{ secrets.gpg_private_key }}
+          gpg_passphrase: ${{ secrets.gpg_passphrase }}
+          nexus_username: ${{ secrets.nexus_username }}
+          nexus_password: ${{ secrets.nexus_password }}
