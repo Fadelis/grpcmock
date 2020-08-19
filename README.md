@@ -1,6 +1,6 @@
 # gRPC Mock ![Build pipeline](https://github.com/Fadelis/grpcmock/workflows/Build%20pipeline/badge.svg)
 
-A gRPC Java testing utility tool to easily mock endpoints of gRPC services.
+A gRPC Java testing tool to easily mock endpoints of gRPC services for IT or Unit testing.
 The tool follows a similar DSL type of structure to HTTP mocking service [WireMock](https://github.com/tomakehurst/wiremock).
 
 ## Features
@@ -75,7 +75,7 @@ gRPC Mock integrates with Spring-Boot via `grpcmock-spring-boot` module.
 <dependency>
   <groupId>org.grpcmock</groupId>
   <artifactId>grpcmock-spring-boot</artifactId>
-  <version>0.2.0</version>
+  <version>0.3.4</version>
 </dependency>
 ```
 
@@ -116,7 +116,7 @@ gRPC Mock integrates with JUnit5 via `grpcmock-junit5` module.
 <dependency>
   <groupId>org.grpcmock</groupId>
   <artifactId>grpcmock-junit5</artifactId>
-  <version>0.2.0</version>
+  <version>0.3.4</version>
 </dependency>
 ```
 
