@@ -13,6 +13,7 @@
     <module>grpcmock-core</module>
     <module>grpcmock-spring-boot</module>
     <module>grpcmock-junit5</module>
+    <module>grpcmock-examples</module>
   </modules>
 
   <name>gRPC Mock</name>
@@ -42,6 +43,12 @@
     <maven-javadoc-plugin.version>3.1.0</maven-javadoc-plugin.version>
     <maven-source-plugin.version>3.1.0</maven-source-plugin.version>
     <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
+
+    <!-- examples modules versions -->
+    <grpc-spring-boot-starter.version>4.4.0</grpc-spring-boot-starter.version>
+    <protoc-jar-maven-plugin.version>3.11.1</protoc-jar-maven-plugin.version>
+    <protoc.version>3.14.0</protoc.version>
+    <rest-assured.version>2.9.0</rest-assured.version>
   </properties>
 
   <dependencies>

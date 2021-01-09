@@ -67,6 +67,8 @@ See more [examples](grpcmock-core/src/test/java/org/grpcmock/GrpcMockVerifyTest.
 
 ## Integrations
 
+See example [projects](grpcmock-examples)
+
 ### Spring-Boot
 
 gRPC Mock integrates with Spring-Boot via `grpcmock-spring-boot` module.
@@ -98,6 +100,11 @@ class TestClass {
         .usePlaintext()
         .build();
   }
+  
+  @AfterEach
+  void shutdownChannel() {
+    Optional.ofNullable(channel).ifPresent(ManagedChannel::shutdownNow);
+  }
 }
 ```
 
@@ -126,13 +133,18 @@ You can integrate gRPC Mock with default configuration for a JUnit5 test via `@E
 @ExtendWith(GrpcMockExtension.class)
 class TestClass {
 
-  private ManagedChannel serverChannel;
+  private ManagedChannel channel;
 
   @BeforeEach
   void setupChannel() {
-    serverChannel = ManagedChannelBuilder.forAddress("localhost", GrpcMock.getGlobalPort())
+    channel = ManagedChannelBuilder.forAddress("localhost", GrpcMock.getGlobalPort())
         .usePlaintext()
         .build();
+  }
+  
+  @AfterEach
+  void shutdownChannel() {
+    Optional.ofNullable(channel).ifPresent(ManagedChannel::shutdownNow);
   }
 }
 ```
@@ -154,6 +166,11 @@ class TestClass {
     channel = ManagedChannelBuilder.forAddress("localhost", GrpcMock.getGlobalPort())
         .usePlaintext()
         .build();
+  }
+
+  @AfterEach
+  void shutdownChannel() {
+    Optional.ofNullable(channel).ifPresent(ManagedChannel::shutdownNow);
   }
 }
 ```

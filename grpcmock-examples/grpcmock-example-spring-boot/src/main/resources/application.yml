@@ -1,0 +1,2 @@
+downstream-service:
+  host: ${DOWNSTREAM_SERVICE_HOST:}

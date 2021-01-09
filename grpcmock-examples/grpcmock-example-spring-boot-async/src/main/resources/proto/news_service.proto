@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package grpcmock.examples.v1;
+
+option java_multiple_files = true;
+option java_package = "org.grpcmock.examples.v1";
+option java_outer_classname = "NewsServiceProto";
+
+service NewsService {
+  rpc GetNews (GetNewsRequest) returns (GetNewsResponse);
+}
+
+message GetNewsRequest {
+  string relevant_industry = 1;
+}
+
+message GetNewsResponse {
+  string news_content = 1;
+}

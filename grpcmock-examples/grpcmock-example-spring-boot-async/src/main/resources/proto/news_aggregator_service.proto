@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package grpcmock.examples.v1;
+
+option java_multiple_files = true;
+option java_package = "org.grpcmock.examples.v1";
+option java_outer_classname = "NewsAggregatorServiceProto";
+
+import "news_service.proto";
+
+service NewsAggregatorService {
+  rpc GetAggregatedNews (GetNewsRequest) returns (stream GetNewsResponse);
+}

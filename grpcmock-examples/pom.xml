@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <parent>
+    <groupId>org.grpcmock</groupId>
+    <artifactId>grpcmock</artifactId>
+    <version>0.3.7-SNAPSHOT</version>
+  </parent>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.grpcmock.examples</groupId>
+  <artifactId>grpcmock-examples</artifactId>
+  <packaging>pom</packaging>
+
+  <modules>
+    <module>grpcmock-example-spring-boot</module>
+    <module>grpcmock-example-spring-boot-async</module>
+    <module>grpcmock-example-junit5</module>
+  </modules>
+
+  <name>gRPC Mock Examples</name>
+  <description>Example projects for gRPC Mock integrations</description>
+
+  <properties>
+    <maven.deploy.skip>true</maven.deploy.skip>
+  </properties>
+</project>
