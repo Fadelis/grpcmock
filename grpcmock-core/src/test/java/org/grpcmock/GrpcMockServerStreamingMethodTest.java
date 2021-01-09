@@ -541,6 +541,48 @@ class GrpcMockServerStreamingMethodTest extends TestBase {
   }
 
   @Test
+  void should_call_proxying_response_built_based_on_request() {
+    SimpleResponse response1 = SimpleResponse.newBuilder()
+        .setResponseMessage("message-1 for " + REQUEST_MESSAGE)
+        .build();
+    SimpleResponse response2 = SimpleResponse.newBuilder()
+        .setResponseMessage("message-2")
+        .build();
+
+    stubFor(serverStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
+        .willReturn(request -> SimpleResponse.newBuilder()
+            .setResponseMessage("message-1 for " + request.getRequestMessage())
+            .build())
+        .nextWillReturn(response2));
+
+    SimpleServiceStub serviceStub = SimpleServiceGrpc.newStub(serverChannel);
+
+    assertThat(asyncStubCall(request, serviceStub::serverStreamingRpc)).containsExactly(response1);
+    assertThat(asyncStubCall(request, serviceStub::serverStreamingRpc)).containsExactly(response2);
+  }
+
+  @Test
+  void should_call_proxying_response_built_based_on_request_as_subsequent_call_response() {
+    SimpleResponse response1 = SimpleResponse.newBuilder()
+        .setResponseMessage("message-1")
+        .build();
+    SimpleResponse response2 = SimpleResponse.newBuilder()
+        .setResponseMessage("message-2 for " + REQUEST_MESSAGE)
+        .build();
+
+    stubFor(serverStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
+        .willReturn(response1)
+        .nextWillReturn(request -> SimpleResponse.newBuilder()
+            .setResponseMessage("message-2 for " + request.getRequestMessage())
+            .build()));
+
+    SimpleServiceStub serviceStub = SimpleServiceGrpc.newStub(serverChannel);
+
+    assertThat(asyncStubCall(request, serviceStub::serverStreamingRpc)).containsExactly(response1);
+    assertThat(asyncStubCall(request, serviceStub::serverStreamingRpc)).containsExactly(response2);
+  }
+
+  @Test
   void should_call_proxying_response_passed_from_bindable_service_impl() {
     SimpleResponse response = SimpleResponse.newBuilder()
         .setResponseMessage("message-1")

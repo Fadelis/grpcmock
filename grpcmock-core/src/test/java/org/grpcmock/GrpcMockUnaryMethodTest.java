@@ -346,6 +346,48 @@ class GrpcMockUnaryMethodTest extends TestBase {
   }
 
   @Test
+  void should_call_proxying_response_built_based_on_request() {
+    SimpleResponse response1 = SimpleResponse.newBuilder()
+        .setResponseMessage("message-1 for " + REQUEST_MESSAGE)
+        .build();
+    SimpleResponse response2 = SimpleResponse.newBuilder()
+        .setResponseMessage("message-2")
+        .build();
+
+    stubFor(unaryMethod(SimpleServiceGrpc.getUnaryRpcMethod())
+        .willReturn(request -> SimpleResponse.newBuilder()
+            .setResponseMessage("message-1 for " + request.getRequestMessage())
+            .build())
+        .nextWillReturn(response2));
+
+    SimpleServiceBlockingStub serviceStub = SimpleServiceGrpc.newBlockingStub(serverChannel);
+
+    assertThat(serviceStub.unaryRpc(request)).isEqualTo(response1);
+    assertThat(serviceStub.unaryRpc(request)).isEqualTo(response2);
+  }
+
+  @Test
+  void should_call_proxying_response_built_based_on_request_as_subsequent_call_response() {
+    SimpleResponse response1 = SimpleResponse.newBuilder()
+        .setResponseMessage("message-1")
+        .build();
+    SimpleResponse response2 = SimpleResponse.newBuilder()
+        .setResponseMessage("message-2 for " + REQUEST_MESSAGE)
+        .build();
+
+    stubFor(unaryMethod(SimpleServiceGrpc.getUnaryRpcMethod())
+        .willReturn(response1)
+        .nextWillReturn(request -> SimpleResponse.newBuilder()
+            .setResponseMessage("message-2 for " + request.getRequestMessage())
+            .build()));
+
+    SimpleServiceBlockingStub serviceStub = SimpleServiceGrpc.newBlockingStub(serverChannel);
+
+    assertThat(serviceStub.unaryRpc(request)).isEqualTo(response1);
+    assertThat(serviceStub.unaryRpc(request)).isEqualTo(response2);
+  }
+
+  @Test
   void should_call_proxying_response_passed_from_bindable_service_impl() {
     SimpleResponse response = SimpleResponse.newBuilder()
         .setResponseMessage("message-1")

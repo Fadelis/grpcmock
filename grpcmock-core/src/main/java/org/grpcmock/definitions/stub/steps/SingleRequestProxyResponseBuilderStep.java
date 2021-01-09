@@ -2,6 +2,7 @@ package org.grpcmock.definitions.stub.steps;
 
 import io.grpc.stub.StreamObserver;
 import java.util.function.BiConsumer;
+import java.util.function.Function;
 import javax.annotation.Nonnull;
 import org.grpcmock.definitions.BuilderStep;
 import org.grpcmock.definitions.response.Response;
@@ -27,4 +28,14 @@ public interface SingleRequestProxyResponseBuilderStep<BUILDER extends BuilderSt
    * </pre></code>
    */
   BUILDER willProxyTo(@Nonnull BiConsumer<ReqT, StreamObserver<RespT>> responseProxy);
+
+  /**
+   * Defines a proxying response, which is built based on received request.
+   */
+  default BUILDER willReturn(@Nonnull Function<ReqT, RespT> responseFunction) {
+    return willProxyTo((request, responseObserver) -> {
+      responseObserver.onNext(responseFunction.apply(request));
+      responseObserver.onCompleted();
+    });
+  }
 }

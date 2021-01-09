@@ -22,8 +22,9 @@ public class TestBase {
 
   static final String HEADER_1 = "header-1";
   static final String HEADER_2 = "header-2";
+  static final String REQUEST_MESSAGE = "request-1";
 
-  final SimpleRequest request = SimpleRequest.getDefaultInstance();
+  final SimpleRequest request = SimpleRequest.newBuilder().setRequestMessage(REQUEST_MESSAGE).build();
   ManagedChannel serverChannel;
 
   @BeforeAll

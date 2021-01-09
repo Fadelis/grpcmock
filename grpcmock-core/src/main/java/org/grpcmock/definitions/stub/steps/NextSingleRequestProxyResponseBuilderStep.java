@@ -2,6 +2,7 @@ package org.grpcmock.definitions.stub.steps;
 
 import io.grpc.stub.StreamObserver;
 import java.util.function.BiConsumer;
+import java.util.function.Function;
 import javax.annotation.Nonnull;
 import org.grpcmock.definitions.BuilderStep;
 import org.grpcmock.definitions.response.Response;
@@ -15,8 +16,7 @@ public interface NextSingleRequestProxyResponseBuilderStep<BUILDER extends NextS
 
   /**
    * <p>Defines a proxying response, which will proxy the request to given {@link Response} for
-   * subsequent request call to this stub. The user is responsible that the request is completed
-   * correctly.
+   * subsequent request call to this stub. The user is responsible that the request is completed correctly.
    * <p>Should be used when there needs to be more logic in the response method than returning a
    * simple response.
    *
@@ -28,4 +28,14 @@ public interface NextSingleRequestProxyResponseBuilderStep<BUILDER extends NextS
    * </pre></code>
    */
   BUILDER nextWillProxyTo(@Nonnull BiConsumer<ReqT, StreamObserver<RespT>> responseProxy);
+
+  /**
+   * Defines a proxying response for subsequent request call to this stub, which is built based on received request.
+   */
+  default BUILDER nextWillReturn(@Nonnull Function<ReqT, RespT> responseFunction) {
+    return nextWillProxyTo((request, responseObserver) -> {
+      responseObserver.onNext(responseFunction.apply(request));
+      responseObserver.onCompleted();
+    });
+  }
 }

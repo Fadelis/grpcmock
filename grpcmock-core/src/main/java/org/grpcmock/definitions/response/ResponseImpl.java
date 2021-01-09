@@ -29,7 +29,7 @@ public class ResponseImpl<ReqT, RespT> implements Response<ReqT, RespT> {
       throw new GrpcMockValidationException("Should not contain more that one terminating action");
     }
     if (responseActions.stream()
-        .limit(responseActions.size() - 1)
+        .limit(responseActions.size() - 1L)
         .anyMatch(ResponseAction::isTerminating)) {
       throw new GrpcMockValidationException("Terminating action should be the last one");
     }
