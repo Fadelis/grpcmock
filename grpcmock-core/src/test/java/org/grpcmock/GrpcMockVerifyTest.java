@@ -1,10 +1,13 @@
 package org.grpcmock;
 
+import static io.grpc.testing.protobuf.SimpleServiceGrpc.getServerStreamingRpcMethod;
 import static io.grpc.testing.protobuf.SimpleServiceGrpc.getUnaryRpcMethod;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.grpcmock.GrpcMock.atLeast;
 import static org.grpcmock.GrpcMock.atMost;
 import static org.grpcmock.GrpcMock.calledMethod;
+import static org.grpcmock.GrpcMock.exception;
 import static org.grpcmock.GrpcMock.never;
 import static org.grpcmock.GrpcMock.response;
 import static org.grpcmock.GrpcMock.stubFor;
@@ -12,10 +15,13 @@ import static org.grpcmock.GrpcMock.times;
 import static org.grpcmock.GrpcMock.unaryMethod;
 import static org.grpcmock.GrpcMock.verifyThat;
 
+import io.grpc.Status;
+import io.grpc.internal.testing.StreamRecorder;
 import io.grpc.testing.protobuf.SimpleRequest;
 import io.grpc.testing.protobuf.SimpleResponse;
 import io.grpc.testing.protobuf.SimpleServiceGrpc;
 import io.grpc.testing.protobuf.SimpleServiceGrpc.SimpleServiceBlockingStub;
+import io.grpc.testing.protobuf.SimpleServiceGrpc.SimpleServiceStub;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -141,6 +147,129 @@ class GrpcMockVerifyTest extends TestBase {
         .withHeader(HEADER_1, "value-3")
         .withHeader(HEADER_2, "value-4")
         .withRequest(request2));
+  }
+
+  @Test
+  void should_correctly_verify_unary_call_returning_an_exception() {
+    stubFor(unaryMethod(getUnaryRpcMethod()).willReturn(exception(new IllegalStateException())));
+
+    SimpleServiceBlockingStub serviceStub = stubWithHeaders(
+        SimpleServiceGrpc.newBlockingStub(serverChannel),
+        HEADER_1, "value-1",
+        HEADER_2, "value-2");
+
+    assertThatThrownBy(() -> serviceStub.unaryRpc(request1))
+        .hasMessageStartingWith("UNKNOWN");
+    verifyThat(calledMethod(getUnaryRpcMethod())
+        .withHeader(HEADER_1, "value-1")
+        .withRequest(request1));
+  }
+
+  @Test
+  void should_correctly_verify_unary_call_returning_a_status_exception() {
+    stubFor(unaryMethod(getUnaryRpcMethod()).willReturn(Status.INVALID_ARGUMENT));
+
+    SimpleServiceBlockingStub serviceStub = stubWithHeaders(
+        SimpleServiceGrpc.newBlockingStub(serverChannel),
+        HEADER_1, "value-1",
+        HEADER_2, "value-2");
+
+    assertThatThrownBy(() -> serviceStub.unaryRpc(request1))
+        .hasMessageStartingWith("INVALID_ARGUMENT");
+    verifyThat(calledMethod(getUnaryRpcMethod())
+        .withHeader(HEADER_1, "value-1")
+        .withRequest(request1));
+  }
+
+  @Test
+  void should_correctly_verify_mocked_unary_method_call_but_with_no_matching_stub() {
+    stubFor(unaryMethod(getUnaryRpcMethod())
+        .withRequest(request2)
+        .willReturn(response(response)));
+
+    SimpleServiceBlockingStub serviceStub = stubWithHeaders(
+        SimpleServiceGrpc.newBlockingStub(serverChannel),
+        HEADER_1, "value-1",
+        HEADER_2, "value-2");
+
+    assertThatThrownBy(() -> serviceStub.unaryRpc(request1))
+        .hasMessageStartingWith("UNIMPLEMENTED: No matching stub scenario was found for this method:");
+    verifyThat(calledMethod(getUnaryRpcMethod())
+        .withHeader(HEADER_1, "value-1")
+        .withRequest(request1));
+  }
+
+  @Test
+  void should_correctly_verify_a_mocked_method_not_called_when_a_different_one_is() throws Exception {
+    stubFor(unaryMethod(getUnaryRpcMethod()).willReturn(response));
+    stubFor(unaryMethod(getServerStreamingRpcMethod()).willReturn(response));
+
+    SimpleServiceStub serviceStub = stubWithHeaders(
+        SimpleServiceGrpc.newStub(serverChannel),
+        HEADER_1, "value-1",
+        HEADER_2, "value-2");
+
+    StreamRecorder<SimpleResponse> streamRecorder = StreamRecorder.create();
+    serviceStub.serverStreamingRpc(request1, streamRecorder);
+
+    streamRecorder.awaitCompletion();
+    assertThat(streamRecorder.getError()).isNull();
+    assertThat(streamRecorder.getValues()).containsExactly(response);
+    verifyThat(getServerStreamingRpcMethod());
+    verifyThat(getUnaryRpcMethod(), never());
+  }
+
+  @Test
+  void should_correctly_verify_non_mocked_unary_method_call() {
+    SimpleServiceBlockingStub serviceStub = stubWithHeaders(
+        SimpleServiceGrpc.newBlockingStub(serverChannel),
+        HEADER_1, "value-1",
+        HEADER_2, "value-2");
+
+    assertThatThrownBy(() -> serviceStub.unaryRpc(request1))
+        .hasMessageStartingWith("UNIMPLEMENTED: Method not found:");
+    verifyThat(calledMethod(getUnaryRpcMethod())
+        .withHeader(HEADER_1, "value-1")
+        .withRequest(request1));
+  }
+
+  @Test
+  void should_correctly_verify_non_mocked_server_streaming_method_call() throws Exception {
+    SimpleServiceStub serviceStub = stubWithHeaders(
+        SimpleServiceGrpc.newStub(serverChannel),
+        HEADER_1, "value-1",
+        HEADER_2, "value-2");
+
+    StreamRecorder<SimpleResponse> streamRecorder = StreamRecorder.create();
+    serviceStub.serverStreamingRpc(request1, streamRecorder);
+
+    streamRecorder.awaitCompletion();
+    assertThat(streamRecorder.getValues()).isEmpty();
+    assertThat(streamRecorder.getError())
+        .hasMessageStartingWith("UNIMPLEMENTED: Method not found:");
+    verifyThat(calledMethod(getServerStreamingRpcMethod())
+        .withHeader(HEADER_1, "value-1")
+        .withRequest(request1));
+  }
+
+  @Test
+  void should_correctly_verify_a_non_mocked_method_called_when_a_different_one_is_registered() throws Exception {
+    stubFor(unaryMethod(getUnaryRpcMethod()).willReturn(response));
+
+    SimpleServiceStub serviceStub = stubWithHeaders(
+        SimpleServiceGrpc.newStub(serverChannel),
+        HEADER_1, "value-1",
+        HEADER_2, "value-2");
+
+    StreamRecorder<SimpleResponse> streamRecorder = StreamRecorder.create();
+    serviceStub.serverStreamingRpc(request1, streamRecorder);
+
+    streamRecorder.awaitCompletion();
+    assertThat(streamRecorder.getValues()).isEmpty();
+    assertThat(streamRecorder.getError())
+        .hasMessageStartingWith("UNIMPLEMENTED: Method not found:");
+    verifyThat(getServerStreamingRpcMethod());
+    verifyThat(getUnaryRpcMethod(), never());
   }
 
   private void performUnaryMultipleUnaryCalls() {

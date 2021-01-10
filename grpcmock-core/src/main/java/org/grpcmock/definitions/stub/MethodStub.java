@@ -12,29 +12,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import javax.annotation.Nonnull;
-import org.grpcmock.GrpcMock;
-import org.grpcmock.definitions.verification.CapturedRequest;
-import org.grpcmock.definitions.verification.RequestPattern;
 import org.grpcmock.exception.GrpcMockException;
 import org.grpcmock.exception.UnimplementedStatusException;
-import org.grpcmock.interceptors.HeadersInterceptor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.grpcmock.interceptors.RequestCaptureInterceptor;
 
 /**
  * @author Fadelis
  */
 public class MethodStub<ReqT, RespT> {
 
-  private static final Logger log = LoggerFactory.getLogger(GrpcMock.class);
-  private static final String SEPARATOR = "----------------------------------------";
-
   private final MethodDescriptor<ReqT, RespT> method;
   private final List<StubScenario<ReqT, RespT>> stubScenarios;
-  private final Queue<CapturedRequest<ReqT>> capturedRequests = new ConcurrentLinkedQueue<>();
 
   MethodStub(
       @Nonnull MethodDescriptor<ReqT, RespT> method,
@@ -57,16 +46,6 @@ public class MethodStub<ReqT, RespT> {
 
   ServerMethodDefinition<ReqT, RespT> serverMethodDefinition() {
     return ServerMethodDefinition.create(method, serverCallHandler());
-  }
-
-  int callCountFor(@Nonnull RequestPattern<ReqT> requestPattern) {
-    Objects.requireNonNull(requestPattern);
-    if (!fullMethodName().equals(requestPattern.fullMethodName())) {
-      throw new GrpcMockException("Cannot get call count for a different method");
-    }
-    return Math.toIntExact(capturedRequests.stream()
-        .filter(requestPattern::matches)
-        .count());
   }
 
   MethodStub registerScenarios(@Nonnull MethodStub<ReqT, RespT> methodStub) {
@@ -97,27 +76,17 @@ public class MethodStub<ReqT, RespT> {
   }
 
   private void singleRequestCall(ReqT request, StreamObserver<RespT> streamObserver) {
-    Metadata headers = HeadersInterceptor.INTERCEPTED_HEADERS.get();
+    Metadata headers = RequestCaptureInterceptor.INTERCEPTED_HEADERS.get();
     Optional<StubScenario<ReqT, RespT>> maybeScenario = reverseStream(stubScenarios)
         .filter(scenario -> scenario.matches(headers))
         .filter(scenario -> scenario.matches(request))
         .findFirst();
     if (maybeScenario.isPresent()) {
-      // capture incoming request info
-      captureRequest(new CapturedRequest<>(method, headers, request));
       // pass the request to found scenario
       maybeScenario.get().call(request, streamObserver);
     } else {
       streamObserver.onError(new UnimplementedStatusException(
           "No matching stub scenario was found for this method: " + method.getFullMethodName()));
-    }
-  }
-
-  private void captureRequest(CapturedRequest<ReqT> capturedRequest) {
-    if (!capturedRequests.offer(capturedRequest)) {
-      log.warn("Failed to capture request in the queue");
-    } else {
-      log.info("\n{}\nReceived request:\n{}\n{}", SEPARATOR, capturedRequest, SEPARATOR);
     }
   }
 }

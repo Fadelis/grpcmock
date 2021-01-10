@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.Nonnull;
-import org.grpcmock.definitions.verification.RequestPattern;
 import org.grpcmock.exception.GrpcMockException;
 
 /**
@@ -25,10 +24,6 @@ public class ServiceStub {
     this.methodStubs.put(methodStub.fullMethodName(), methodStub);
   }
 
-  public String serviceName() {
-    return this.serviceName;
-  }
-
   public ServerServiceDefinition serverServiceDefinition() {
     ServerServiceDefinition.Builder builder = ServerServiceDefinition.builder(serviceName);
     this.methodStubs.values().stream()
@@ -36,17 +31,6 @@ public class ServiceStub {
         .forEach(builder::addMethod);
 
     return builder.build();
-  }
-
-  public <ReqT> int callCountFor(@Nonnull RequestPattern<ReqT> requestPattern) {
-    Objects.requireNonNull(requestPattern);
-    if (!serviceName.equals(requestPattern.serviceName())) {
-      throw new GrpcMockException("Request method is not part of this service");
-    }
-    return ofNullable(methodStubs.get(requestPattern.fullMethodName()))
-        .map(methodStub -> methodStub.callCountFor(requestPattern))
-        .orElseThrow(() -> new GrpcMockException(
-            "No stub found for the method: " + requestPattern.fullMethodName()));
   }
 
   public <ReqT, RespT> ServiceStub registerMethod(@Nonnull MethodStub<ReqT, RespT> methodStub) {

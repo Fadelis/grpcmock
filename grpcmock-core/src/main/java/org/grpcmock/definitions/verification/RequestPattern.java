@@ -3,8 +3,10 @@ package org.grpcmock.definitions.verification;
 import static java.util.Optional.ofNullable;
 
 import io.grpc.MethodDescriptor;
+import java.io.ByteArrayInputStream;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import org.grpcmock.definitions.matcher.HeadersMatcher;
@@ -27,15 +29,10 @@ public class RequestPattern<ReqT> {
       @Nullable RequestMatcher<List<ReqT>> requestMatchers
   ) {
     Objects.requireNonNull(method);
-    Objects.requireNonNull(method.getServiceName());
     Objects.requireNonNull(headersMatcher);
     this.method = method;
     this.headersMatcher = headersMatcher;
     this.requestMatchers = ofNullable(requestMatchers).orElseGet(RequestMatcher::empty);
-  }
-
-  public String serviceName() {
-    return this.method.getServiceName();
   }
 
   public String fullMethodName() {
@@ -45,6 +42,22 @@ public class RequestPattern<ReqT> {
   public boolean matches(CapturedRequest<ReqT> capturedRequest) {
     return capturedRequest.method().getFullMethodName().equals(method.getFullMethodName())
         && headersMatcher.matches(capturedRequest.headers())
-        && requestMatchers.matches(capturedRequest.requests());
+        && requestMatchers.matches(normalizeRequests(capturedRequest.requests()));
+  }
+
+  private List<ReqT> normalizeRequests(List<ReqT> requests) {
+    return requests.stream()
+        .map(this::normalizeRequest)
+        .collect(Collectors.toList());
+  }
+
+  private ReqT normalizeRequest(ReqT request) {
+    if (request instanceof byte[]) {
+      // when no stub is registered for a method, server cannot unmarshall the request
+      // as it has no knowledge of the schema, so it is stored as byte array
+      // and unmarshalled here when verifying
+      return method.getRequestMarshaller().parse(new ByteArrayInputStream((byte[]) request));
+    }
+    return request;
   }
 }

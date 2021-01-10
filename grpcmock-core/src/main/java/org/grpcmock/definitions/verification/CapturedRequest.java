@@ -2,8 +2,6 @@ package org.grpcmock.definitions.verification;
 
 import io.grpc.Metadata;
 import io.grpc.MethodDescriptor;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import javax.annotation.Nonnull;
@@ -26,17 +24,8 @@ public class CapturedRequest<ReqT> {
     Objects.requireNonNull(headers);
     Objects.requireNonNull(requests);
     this.method = method;
-    this.headers = new Metadata();
-    this.headers.merge(headers);
-    this.requests = new ArrayList<>(requests);
-  }
-
-  public CapturedRequest(
-      @Nonnull MethodDescriptor<ReqT, ?> method,
-      @Nonnull Metadata headers,
-      @Nonnull ReqT request
-  ) {
-    this(method, headers, Collections.singletonList(request));
+    this.headers = headers;
+    this.requests = requests;
   }
 
   public MethodDescriptor<ReqT, ?> method() {

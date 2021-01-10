@@ -43,6 +43,7 @@ import org.grpcmock.definitions.verification.RequestPatternBuilderImpl;
 import org.grpcmock.definitions.verification.steps.RequestPatternBuilderStep;
 import org.grpcmock.exception.GrpcMockException;
 import org.grpcmock.exception.GrpcMockVerificationError;
+import org.grpcmock.interceptors.RequestCaptureInterceptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,13 +60,20 @@ public final class GrpcMock {
 
   private final Server server;
   private final MutableHandlerRegistry handlerRegistry;
+  private final RequestCaptureInterceptor requestCaptureInterceptor;
   private final Map<String, ServiceStub> serviceStubs = new ConcurrentHashMap<>();
 
-  GrpcMock(@Nonnull Server server, @Nonnull MutableHandlerRegistry handlerRegistry) {
+  GrpcMock(
+      @Nonnull Server server,
+      @Nonnull MutableHandlerRegistry handlerRegistry,
+      @Nonnull RequestCaptureInterceptor requestCaptureInterceptor
+  ) {
     Objects.requireNonNull(server);
     Objects.requireNonNull(handlerRegistry);
+    Objects.requireNonNull(requestCaptureInterceptor);
     this.server = server;
     this.handlerRegistry = handlerRegistry;
+    this.requestCaptureInterceptor = requestCaptureInterceptor;
   }
 
   /**
@@ -121,8 +129,7 @@ public final class GrpcMock {
   }
 
   /**
-   * Verify that given {@link RequestPattern} is called a number of times satisfying the provided
-   * {@link CountMatcher}.
+   * Verify that given {@link RequestPattern} is called a number of times satisfying the provided {@link CountMatcher}.
    *
    * @throws GrpcMockVerificationError if the verify step fails.
    */
@@ -133,11 +140,7 @@ public final class GrpcMock {
     Objects.requireNonNull(requestPattern);
     Objects.requireNonNull(countMatcher);
 
-    int callCount = ofNullable(serviceStubs.get(requestPattern.serviceName()))
-        .map(serviceStub -> serviceStub.callCountFor(requestPattern))
-        .orElseThrow(() ->
-            new GrpcMockException("No stub found for service: " + requestPattern.serviceName()));
-
+    int callCount = requestCaptureInterceptor.callCountFor(requestPattern);
     if (!countMatcher.test(callCount)) {
       throw new GrpcMockVerificationError(String.format(
           "Expected %s method to be called %s, but actual call count was %d",
@@ -150,6 +153,7 @@ public final class GrpcMock {
    */
   public void resetAll() {
     serviceStubs.clear();
+    requestCaptureInterceptor.clear();
     handlerRegistry.getServices().forEach(handlerRegistry::removeService);
   }
 
@@ -161,16 +165,15 @@ public final class GrpcMock {
   }
 
   /**
-   * Returns gRPC Mock builder with the given port. If given port is <code>0</code>, then a random
-   * free port will be selected.
+   * Returns gRPC Mock builder with the given port. If given port is <code>0</code>, then a random free port will be selected.
    */
   public static GrpcMockBuilder grpcMock(int port) {
     return new GrpcMockBuilder(port);
   }
 
   /**
-   * Returns gRPC Mock builder using the provided gRPC {@link ServerBuilder} configuration. The user
-   * is responsible that the port used in the builder is available and free.
+   * Returns gRPC Mock builder using the provided gRPC {@link ServerBuilder} configuration. The user is responsible that the port
+   * used in the builder is available and free.
    */
   public static GrpcMockBuilder grpcMock(@Nonnull ServerBuilder serverBuilder) {
     return new GrpcMockBuilder(serverBuilder);
@@ -214,17 +217,16 @@ public final class GrpcMock {
    * <p>When multiple stubs, satisfying the same request condition matching, are registered, the
    * last one registered will be triggered.
    *
-   * @param methodStubBuilder a method stub builder created through one of {@link #unaryMethod},
-   * {@link #serverStreamingMethod}, {@link #clientStreamingMethod} or {@link
-   * #bidiStreamingMethod}.
+   * @param methodStubBuilder a method stub builder created through one of {@link #unaryMethod}, {@link #serverStreamingMethod},
+   * {@link #clientStreamingMethod} or {@link #bidiStreamingMethod}.
    */
   public static <ReqT, RespT> void stubFor(MethodStubBuilder<ReqT, RespT> methodStubBuilder) {
     INSTANCE.get().register(methodStubBuilder);
   }
 
   /**
-   * Returns a stub builder for {@link MethodType#UNARY} method or {@link
-   * MethodType#SERVER_STREAMING} method with a single response.
+   * Returns a stub builder for {@link MethodType#UNARY} method or {@link MethodType#SERVER_STREAMING} method with a single
+   * response.
    */
   public static <ReqT, RespT> UnaryMethodStubBuilderStep<ReqT, RespT> unaryMethod(
       @Nonnull MethodDescriptor<ReqT, RespT> method) {
@@ -263,8 +265,7 @@ public final class GrpcMock {
   }
 
   /**
-   * Returns a response action, which will send out the given response object via {@link
-   * StreamObserver#onNext}.
+   * Returns a response action, which will send out the given response object via {@link StreamObserver#onNext}.
    */
   public static <RespT> ObjectResponseActionBuilder<RespT> response(
       @Nonnull RespT responseObject) {
@@ -275,9 +276,9 @@ public final class GrpcMock {
    * <p>Returns a response action, which will send out
    * the given exception via {@link StreamObserver#onError}.
    * <p>It not recommended to use this methods, because without
-   * a proper {@link ServerInterceptor} translating non-gRPC exceptions to gRPC ones It will be
-   * translated to {@link Status#UNKNOWN} type of exception without any message. The {@link
-   * #statusException(Status)} should be used to define concrete gRPC errors.
+   * a proper {@link ServerInterceptor} translating non-gRPC exceptions to gRPC ones It will be translated to {@link
+   * Status#UNKNOWN} type of exception without any message. The {@link #statusException(Status)} should be used to define concrete
+   * gRPC errors.
    */
   public static ExceptionResponseActionBuilder exception(@Nonnull Throwable exception) {
     return new ExceptionResponseActionBuilderImpl(exception);
@@ -305,8 +306,7 @@ public final class GrpcMock {
    * <p>Returns a stream response, which can respond with multiple {@link ResponseAction}.
    * <p>In order to configure a {@link Delay} for the actions see {@link GrpcMock#response} method.
    *
-   * @param responses single response objects for the stream response. Will be returned in provided
-   * list order.
+   * @param responses single response objects for the stream response. Will be returned in provided list order.
    */
   public static <RespT> ObjectStreamResponseBuilderStep<RespT> stream(
       @Nonnull List<RespT> responses
@@ -323,8 +323,7 @@ public final class GrpcMock {
    * <p>Returns a stream response, which can respond with multiple {@link ResponseAction}.
    * <p>In order to configure a {@link Delay} for the actions see {@link GrpcMock#response} method.
    *
-   * @param responses single response objects for the stream response. Will be returned in provided
-   * array order.
+   * @param responses single response objects for the stream response. Will be returned in provided array order.
    */
   public static <RespT> ObjectStreamResponseBuilderStep<RespT> stream(@Nonnull RespT... responses) {
     return stream(Arrays.asList(responses));
@@ -389,8 +388,8 @@ public final class GrpcMock {
   }
 
   /**
-   * Returns request pattern builder instance, used for verifying call count using {@link
-   * #verifyThat(RequestPatternBuilderStep, CountMatcher)}.
+   * Returns request pattern builder instance, used for verifying call count using {@link #verifyThat(RequestPatternBuilderStep,
+   * CountMatcher)}.
    */
   public static <ReqT> RequestPatternBuilderStep<ReqT> calledMethod(
       @Nonnull MethodDescriptor<ReqT, ?> method
