@@ -2,6 +2,7 @@ package org.grpcmock.definitions.verification;
 
 import io.grpc.Metadata;
 import io.grpc.MethodDescriptor;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import javax.annotation.Nonnull;
@@ -37,7 +38,7 @@ public class CapturedRequest<ReqT> {
   }
 
   public List<ReqT> requests() {
-    return requests;
+    return Collections.unmodifiableList(requests);
   }
 
   @Override

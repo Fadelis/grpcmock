@@ -10,9 +10,6 @@ import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 import javax.annotation.Nonnull;
-import org.grpcmock.definitions.matcher.HeadersMatcher;
-import org.grpcmock.definitions.matcher.PredicateRequestMatcher;
-import org.grpcmock.definitions.matcher.steps.HeadersMatcherBuilder;
 import org.grpcmock.definitions.response.Response;
 import org.grpcmock.definitions.response.ResponseImpl;
 import org.grpcmock.definitions.response.ResponseProxyImpl;
@@ -20,6 +17,7 @@ import org.grpcmock.definitions.response.steps.ExceptionResponseActionBuilder;
 import org.grpcmock.definitions.response.steps.ObjectResponseActionBuilder;
 import org.grpcmock.definitions.stub.steps.NextUnaryMethodResponseBuilderStep;
 import org.grpcmock.definitions.stub.steps.UnaryMethodStubBuilderStep;
+import org.grpcmock.definitions.verification.RequestPatternBuilderImpl;
 import org.grpcmock.exception.GrpcMockException;
 
 /**
@@ -30,9 +28,8 @@ public class UnaryMethodStubBuilderImpl<ReqT, RespT> implements
     NextUnaryMethodResponseBuilderStep<ReqT, RespT> {
 
   private final MethodDescriptor<ReqT, RespT> method;
-  private final List<Response<ReqT, RespT>> responses = new ArrayList<>();
-  private final HeadersMatcherBuilder headersMatcherBuilder = HeadersMatcher.builder();
-  private Predicate<ReqT> requestPredicate = request -> true;
+  private final List<Response<ReqT, RespT>> responses;
+  private final RequestPatternBuilderImpl<ReqT> requestPatternBuilder;
 
   public UnaryMethodStubBuilderImpl(@Nonnull MethodDescriptor<ReqT, RespT> method) {
     Objects.requireNonNull(method);
@@ -40,6 +37,8 @@ public class UnaryMethodStubBuilderImpl<ReqT, RespT> implements
       throw new GrpcMockException("This builder accepts only unary and server streaming methods");
     }
     this.method = method;
+    this.responses = new ArrayList<>();
+    this.requestPatternBuilder = new RequestPatternBuilderImpl<>(method);
   }
 
   @Override
@@ -47,7 +46,7 @@ public class UnaryMethodStubBuilderImpl<ReqT, RespT> implements
       @Nonnull Metadata.Key<T> headerKey,
       @Nonnull Predicate<T> predicate
   ) {
-    headersMatcherBuilder.withHeader(headerKey, predicate);
+    this.requestPatternBuilder.withHeader(headerKey, predicate);
     return this;
   }
 
@@ -55,8 +54,7 @@ public class UnaryMethodStubBuilderImpl<ReqT, RespT> implements
   public UnaryMethodStubBuilderStep<ReqT, RespT> withRequest(
       @Nonnull Predicate<ReqT> requestPredicate
   ) {
-    Objects.requireNonNull(requestPredicate);
-    this.requestPredicate = requestPredicate;
+    this.requestPatternBuilder.withRequest(requestPredicate);
     return this;
   }
 
@@ -110,11 +108,7 @@ public class UnaryMethodStubBuilderImpl<ReqT, RespT> implements
   public MethodStub<ReqT, RespT> build() {
     return new MethodStub<>(
         method,
-        Collections.singletonList(new StubScenario<>(
-            headersMatcherBuilder.build(),
-            new PredicateRequestMatcher<>(requestPredicate),
-            responses
-        ))
+        Collections.singletonList(new StubScenario<>(requestPatternBuilder.build(), responses))
     );
   }
 }
