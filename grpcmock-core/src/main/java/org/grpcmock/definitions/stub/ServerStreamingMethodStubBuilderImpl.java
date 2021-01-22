@@ -11,9 +11,6 @@ import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 import javax.annotation.Nonnull;
-import org.grpcmock.definitions.matcher.HeadersMatcher;
-import org.grpcmock.definitions.matcher.PredicateRequestMatcher;
-import org.grpcmock.definitions.matcher.steps.HeadersMatcherBuilder;
 import org.grpcmock.definitions.response.Response;
 import org.grpcmock.definitions.response.ResponseImpl;
 import org.grpcmock.definitions.response.ResponseProxyImpl;
@@ -22,6 +19,7 @@ import org.grpcmock.definitions.response.steps.ObjectResponseActionBuilder;
 import org.grpcmock.definitions.response.steps.StreamResponseBuilder;
 import org.grpcmock.definitions.stub.steps.NextServerStreamingMethodResponseBuilderStep;
 import org.grpcmock.definitions.stub.steps.ServerStreamingMethodStubBuilderStep;
+import org.grpcmock.definitions.verification.RequestPatternBuilderImpl;
 import org.grpcmock.exception.GrpcMockException;
 
 /**
@@ -32,9 +30,8 @@ public class ServerStreamingMethodStubBuilderImpl<ReqT, RespT> implements
     NextServerStreamingMethodResponseBuilderStep<ReqT, RespT> {
 
   private final MethodDescriptor<ReqT, RespT> method;
-  private final List<Response<ReqT, RespT>> responses = new ArrayList<>();
-  private final HeadersMatcherBuilder headersMatcherBuilder = HeadersMatcher.builder();
-  private Predicate<ReqT> requestPredicate = request -> true;
+  private final List<Response<ReqT, RespT>> responses;
+  private final RequestPatternBuilderImpl<ReqT> requestPatternBuilder;
 
   public ServerStreamingMethodStubBuilderImpl(@Nonnull MethodDescriptor<ReqT, RespT> method) {
     Objects.requireNonNull(method);
@@ -42,6 +39,8 @@ public class ServerStreamingMethodStubBuilderImpl<ReqT, RespT> implements
       throw new GrpcMockException("This builder accepts only server streaming methods");
     }
     this.method = method;
+    this.responses = new ArrayList<>();
+    this.requestPatternBuilder = new RequestPatternBuilderImpl<>(method);
   }
 
   @Override
@@ -49,7 +48,7 @@ public class ServerStreamingMethodStubBuilderImpl<ReqT, RespT> implements
       @Nonnull Metadata.Key<T> headerKey,
       @Nonnull Predicate<T> predicate
   ) {
-    headersMatcherBuilder.withHeader(headerKey, predicate);
+    this.requestPatternBuilder.withHeader(headerKey, predicate);
     return this;
   }
 
@@ -57,8 +56,7 @@ public class ServerStreamingMethodStubBuilderImpl<ReqT, RespT> implements
   public ServerStreamingMethodStubBuilderStep<ReqT, RespT> withRequest(
       @Nonnull Predicate<ReqT> requestPredicate
   ) {
-    Objects.requireNonNull(requestPredicate);
-    this.requestPredicate = requestPredicate;
+    this.requestPatternBuilder.withRequest(requestPredicate);
     return this;
   }
 
@@ -126,11 +124,7 @@ public class ServerStreamingMethodStubBuilderImpl<ReqT, RespT> implements
   public MethodStub<ReqT, RespT> build() {
     return new MethodStub<>(
         method,
-        Collections.singletonList(new StubScenario<>(
-            headersMatcherBuilder.build(),
-            new PredicateRequestMatcher<>(requestPredicate),
-            responses
-        ))
+        Collections.singletonList(new StubScenario<>(requestPatternBuilder.build(), responses))
     );
   }
 }

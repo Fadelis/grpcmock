@@ -28,7 +28,7 @@ public class RequestCaptureInterceptor implements ServerInterceptor {
 
   private static final Logger log = LoggerFactory.getLogger(GrpcMock.class);
   private static final String SEPARATOR = "----------------------------------------";
-  public static final Context.Key<Metadata> INTERCEPTED_HEADERS = Context.key("headers");
+  public static final Context.Key<CapturedRequest> CAPTURED_REQUEST = Context.key("capture_request");
 
   private final Queue<CapturedRequest> capturedRequests = new ConcurrentLinkedQueue<>();
 
@@ -54,7 +54,7 @@ public class RequestCaptureInterceptor implements ServerInterceptor {
     List<ReqT> requests = new CopyOnWriteArrayList<>();
     CapturedRequest<ReqT> capturedRequest = captureRequest(method, headers, requests);
 
-    Context ctx = Context.current().withValue(INTERCEPTED_HEADERS, headers);
+    Context ctx = Context.current().withValue(CAPTURED_REQUEST, capturedRequest);
     Listener<ReqT> interceptedListener = Contexts.interceptCall(ctx, call, metadata, next);
 
     return new ForwardingServerCallListener.SimpleForwardingServerCallListener<ReqT>(interceptedListener) {
@@ -79,5 +79,9 @@ public class RequestCaptureInterceptor implements ServerInterceptor {
     Metadata capturedHeaders = new Metadata();
     capturedHeaders.merge(incomingMetadata);
     return capturedHeaders;
+  }
+
+  public static <ReqT> CapturedRequest<ReqT> getCapturedRequest() {
+    return CAPTURED_REQUEST.get();
   }
 }
