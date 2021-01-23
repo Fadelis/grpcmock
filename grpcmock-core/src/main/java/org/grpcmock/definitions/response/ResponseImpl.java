@@ -8,6 +8,7 @@ import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.annotation.Nonnull;
 import org.grpcmock.exception.GrpcMockValidationException;
+import org.grpcmock.util.FunctionalResponseObserver;
 
 /**
  * @author Fadelis
@@ -41,16 +42,28 @@ public class ResponseImpl<ReqT, RespT> implements Response<ReqT, RespT> {
   }
 
   @Override
+  public int timesCalled() {
+    return counter.get();
+  }
+
+  @Override
   public void execute(ReqT request, StreamObserver<RespT> responseObserver) {
     counter.incrementAndGet();
+    executeActions(responseObserver);
+  }
+
+  @Override
+  public StreamObserver<ReqT> execute(StreamObserver<RespT> responseObserver) {
+    counter.incrementAndGet();
+    return FunctionalResponseObserver.<ReqT>builder()
+        .onCompleted(() -> executeActions(responseObserver))
+        .build();
+  }
+
+  private void executeActions(StreamObserver<RespT> responseObserver) {
     responseActions.forEach(action -> action.execute(responseObserver));
     if (!responseActions.get(responseActions.size() - 1).isTerminating()) {
       responseObserver.onCompleted();
     }
-  }
-
-  @Override
-  public int timesCalled() {
-    return counter.get();
   }
 }

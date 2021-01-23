@@ -2,10 +2,10 @@ package org.grpcmock.definitions.stub;
 
 import static org.grpcmock.util.FunctionalHelpers.reverseStream;
 
-import io.grpc.Metadata;
 import io.grpc.MethodDescriptor;
 import io.grpc.ServerCallHandler;
 import io.grpc.ServerMethodDefinition;
+import io.grpc.StatusRuntimeException;
 import io.grpc.stub.ServerCalls;
 import io.grpc.stub.StreamObserver;
 import java.util.ArrayList;
@@ -48,7 +48,7 @@ public class MethodStub<ReqT, RespT> {
     return ServerMethodDefinition.create(method, serverCallHandler());
   }
 
-  MethodStub registerScenarios(@Nonnull MethodStub<ReqT, RespT> methodStub) {
+  MethodStub<ReqT, RespT> registerScenarios(@Nonnull MethodStub<ReqT, RespT> methodStub) {
     Objects.requireNonNull(methodStub);
     if (!method.getFullMethodName().equals(methodStub.fullMethodName())) {
       throw new GrpcMockException("Cannot register stub scenarios for a different method");
@@ -64,29 +64,78 @@ public class MethodStub<ReqT, RespT> {
       case SERVER_STREAMING:
         return ServerCalls.asyncServerStreamingCall(this::singleRequestCall);
       case CLIENT_STREAMING:
-        return ServerCalls.asyncClientStreamingCall(responseObserver -> ServerCalls
-            .asyncUnimplementedStreamingCall(method, responseObserver));
+        return ServerCalls.asyncClientStreamingCall(this::streamRequestCall);
       case BIDI_STREAMING:
-        return ServerCalls.asyncBidiStreamingCall(responseObserver -> ServerCalls
-            .asyncUnimplementedStreamingCall(method, responseObserver));
+        return ServerCalls.asyncBidiStreamingCall(this::streamRequestCall);
       default:
         throw new GrpcMockException("Unsupported method type: " + method.getType());
     }
 
   }
 
-  private void singleRequestCall(ReqT request, StreamObserver<RespT> streamObserver) {
-    Metadata headers = RequestCaptureInterceptor.INTERCEPTED_HEADERS.get();
-    Optional<StubScenario<ReqT, RespT>> maybeScenario = reverseStream(stubScenarios)
-        .filter(scenario -> scenario.matches(headers))
-        .filter(scenario -> scenario.matches(request))
-        .findFirst();
+  private void singleRequestCall(ReqT request, StreamObserver<RespT> responseObserver) {
+    Optional<StubScenario<ReqT, RespT>> maybeScenario = findStub();
     if (maybeScenario.isPresent()) {
-      // pass the request to found scenario
-      maybeScenario.get().call(request, streamObserver);
+      maybeScenario.get().call(request, responseObserver);
     } else {
-      streamObserver.onError(new UnimplementedStatusException(
-          "No matching stub scenario was found for this method: " + method.getFullMethodName()));
+      responseObserver.onError(stubNotFoundException());
+    }
+  }
+
+  private StreamObserver<ReqT> streamRequestCall(StreamObserver<RespT> responseObserver) {
+    // client and bidi streaming methods are invoked without any request
+    // so we return a wrapped request observer which will check for a matching stub on every incoming request
+    // and then will proxy to it all future requests and all requests received until match was found.
+    return new WrappedRequestStreamObserver(responseObserver);
+  }
+
+  private Optional<StubScenario<ReqT, RespT>> findStub() {
+    return reverseStream(stubScenarios)
+        .filter(scenario -> scenario.matches(RequestCaptureInterceptor.getCapturedRequest()))
+        .findFirst();
+  }
+
+  private StatusRuntimeException stubNotFoundException() {
+    return new UnimplementedStatusException("No matching stub scenario was found for this method: " + method.getFullMethodName());
+  }
+
+  private class WrappedRequestStreamObserver implements StreamObserver<ReqT> {
+
+    private final StreamObserver<RespT> responseObserver;
+    private StreamObserver<ReqT> delegate;
+
+    private WrappedRequestStreamObserver(StreamObserver<RespT> responseObserver) {
+      this.responseObserver = responseObserver;
+    }
+
+    @Override
+    public void onNext(ReqT request) {
+      if (Objects.nonNull(delegate)) {
+        delegate.onNext(request);
+      } else {
+        findStub().ifPresent(stub -> {
+          delegate = stub.call(responseObserver);
+          // pass all previous requests to the found delegate
+          RequestCaptureInterceptor.<ReqT>getCapturedRequest().requests()
+              .forEach(delegate::onNext);
+        });
+      }
+    }
+
+    @Override
+    public void onError(Throwable error) {
+      if (Objects.nonNull(delegate)) {
+        delegate.onError(error);
+      }
+    }
+
+    @Override
+    public void onCompleted() {
+      if (Objects.nonNull(delegate)) {
+        delegate.onCompleted();
+      } else {
+        responseObserver.onError(stubNotFoundException());
+      }
     }
   }
 }

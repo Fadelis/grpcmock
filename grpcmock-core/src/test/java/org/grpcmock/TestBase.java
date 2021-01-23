@@ -9,6 +9,7 @@ import io.grpc.Metadata;
 import io.grpc.stub.AbstractStub;
 import io.grpc.stub.MetadataUtils;
 import io.grpc.testing.protobuf.SimpleRequest;
+import io.grpc.testing.protobuf.SimpleResponse;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
@@ -22,9 +23,15 @@ public class TestBase {
 
   static final String HEADER_1 = "header-1";
   static final String HEADER_2 = "header-2";
+  static final String RESPONSE_MESSAGE = "message-1";
+  static final String RESPONSE_MESSAGE_2 = "request-2";
   static final String REQUEST_MESSAGE = "request-1";
+  static final String REQUEST_MESSAGE_2 = "request-2";
 
   final SimpleRequest request = SimpleRequest.newBuilder().setRequestMessage(REQUEST_MESSAGE).build();
+  final SimpleRequest request2 = SimpleRequest.newBuilder().setRequestMessage(REQUEST_MESSAGE_2).build();
+  final SimpleResponse response = SimpleResponse.newBuilder().setResponseMessage(RESPONSE_MESSAGE).build();
+  final SimpleResponse response2 = SimpleResponse.newBuilder().setResponseMessage(RESPONSE_MESSAGE_2).build();
   ManagedChannel serverChannel;
 
   @BeforeAll

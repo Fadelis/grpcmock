@@ -12,7 +12,7 @@ The tool follows a similar DSL type of structure to HTTP mocking service [WireMo
  - Supported gRPC method types:
     - Unary methods
     - Server streaming methods
-    - [SOON] Client streaming methods
+    - Client streaming methods
     - [SOON] Bidi stream methods
 
 ## Quick usage
@@ -50,6 +50,23 @@ stubFor(serverStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
 ```
 
 See more [examples](grpcmock-core/src/test/java/org/grpcmock/GrpcMockServerStreamingMethodTest.java)
+
+### Client streaming methods
+
+Stubs for client streaming method calls are selected on receiving first stream request message.
+
+```java
+stubFor(clientStreamingMethod(SimpleServiceGrpc.getClientStreamingRpcMethod())
+        willReturn(responses1)); // return a response on completed client streaming requests
+
+stubFor(clientStreamingMethod(SimpleServiceGrpc.getClientStreamingRpcMethod())
+        .withHeader("header-1", "value-1")
+        .withFirstRequest(req -> req.getRequestMessage().endsWith("1"))
+        .willReturn(response(responses1).withFixedDelay(200))
+        .nextWillReturn(statusException(Status.NOT_FOUND))); // subsequent invocations will return status exception
+```
+
+See more [examples](grpcmock-core/src/test/java/org/grpcmock/GrpcMockClientStreamingMethodTest.java)
 
 ### Verifying invocation count
 
