@@ -36,10 +36,17 @@ public class StubScenario<ReqT, RespT> {
   }
 
   public void call(ReqT request, StreamObserver<RespT> streamObserver) {
-    responses.stream()
+    nextResponse().execute(request, streamObserver);
+  }
+
+  public StreamObserver<ReqT> call(StreamObserver<RespT> streamObserver) {
+    return nextResponse().execute(streamObserver);
+  }
+
+  private Response<ReqT, RespT> nextResponse() {
+    return responses.stream()
         .filter(response -> !response.wasCalled())
         .findFirst()
-        .orElseGet(() -> responses.get(responses.size() - 1))
-        .execute(request, streamObserver);
+        .orElseGet(() -> responses.get(responses.size() - 1));
   }
 }

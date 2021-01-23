@@ -28,6 +28,7 @@ import org.grpcmock.definitions.response.steps.ExceptionResponseActionBuilder;
 import org.grpcmock.definitions.response.steps.ExceptionStreamResponseBuildersStep;
 import org.grpcmock.definitions.response.steps.ObjectResponseActionBuilder;
 import org.grpcmock.definitions.response.steps.ObjectStreamResponseBuilderStep;
+import org.grpcmock.definitions.stub.ClientStreamingMethodStubBuilderImpl;
 import org.grpcmock.definitions.stub.MethodStub;
 import org.grpcmock.definitions.stub.ServerStreamingMethodStubBuilderImpl;
 import org.grpcmock.definitions.stub.ServiceStub;
@@ -244,13 +245,10 @@ public final class GrpcMock {
   /**
    * <p>Returns a stub builder for {@link MethodType#CLIENT_STREAMING} method or {@link
    * MethodType#BIDI_STREAMING} method with a single response at request stream completion.
-   *
-   * @deprecated Not yet implemented
    */
-  @Deprecated
   public static <ReqT, RespT> ClientStreamingMethodStubBuilderStep<ReqT, RespT> clientStreamingMethod(
       @Nonnull MethodDescriptor<ReqT, RespT> method) {
-    throw new GrpcMockException("Not yet implemented");
+    return new ClientStreamingMethodStubBuilderImpl<>(method);
   }
 
   /**

@@ -1,5 +1,7 @@
 package org.grpcmock;
 
+import static io.grpc.testing.protobuf.SimpleServiceGrpc.getBidiStreamingRpcMethod;
+import static io.grpc.testing.protobuf.SimpleServiceGrpc.getClientStreamingRpcMethod;
 import static io.grpc.testing.protobuf.SimpleServiceGrpc.getServerStreamingRpcMethod;
 import static io.grpc.testing.protobuf.SimpleServiceGrpc.getUnaryRpcMethod;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -17,6 +19,7 @@ import static org.grpcmock.GrpcMock.verifyThat;
 
 import io.grpc.Status;
 import io.grpc.internal.testing.StreamRecorder;
+import io.grpc.stub.StreamObserver;
 import io.grpc.testing.protobuf.SimpleRequest;
 import io.grpc.testing.protobuf.SimpleResponse;
 import io.grpc.testing.protobuf.SimpleServiceGrpc;
@@ -248,6 +251,50 @@ class GrpcMockVerifyTest extends TestBase {
     assertThat(streamRecorder.getError())
         .hasMessageStartingWith("UNIMPLEMENTED: Method not found:");
     verifyThat(calledMethod(getServerStreamingRpcMethod())
+        .withHeader(HEADER_1, "value-1")
+        .withRequest(request1));
+  }
+
+  @Test
+  void should_correctly_verify_non_mocked_client_streaming_method_call() throws Exception {
+    SimpleServiceStub serviceStub = stubWithHeaders(
+        SimpleServiceGrpc.newStub(serverChannel),
+        HEADER_1, "value-1",
+        HEADER_2, "value-2");
+
+    StreamRecorder<SimpleResponse> responseRecorder = StreamRecorder.create();
+    StreamObserver<SimpleRequest> requestObserver = serviceStub.clientStreamingRpc(responseRecorder);
+
+    requestObserver.onNext(request1);
+    requestObserver.onNext(request2); // only first request will be captured, as an error is throw after it
+
+    responseRecorder.awaitCompletion();
+    assertThat(responseRecorder.getValues()).isEmpty();
+    assertThat(responseRecorder.getError())
+        .hasMessageStartingWith("UNIMPLEMENTED: Method not found:");
+    verifyThat(calledMethod(getClientStreamingRpcMethod())
+        .withHeader(HEADER_1, "value-1")
+        .withRequest(request1));
+  }
+
+  @Test
+  void should_correctly_verify_non_mocked_bidi_streaming_method_call() throws Exception {
+    SimpleServiceStub serviceStub = stubWithHeaders(
+        SimpleServiceGrpc.newStub(serverChannel),
+        HEADER_1, "value-1",
+        HEADER_2, "value-2");
+
+    StreamRecorder<SimpleResponse> responseRecorder = StreamRecorder.create();
+    StreamObserver<SimpleRequest> requestObserver = serviceStub.bidiStreamingRpc(responseRecorder);
+
+    requestObserver.onNext(request1);
+    requestObserver.onNext(request2); // only first request will be captured, as an error is throw after it
+
+    responseRecorder.awaitCompletion();
+    assertThat(responseRecorder.getValues()).isEmpty();
+    assertThat(responseRecorder.getError())
+        .hasMessageStartingWith("UNIMPLEMENTED: Method not found:");
+    verifyThat(calledMethod(getBidiStreamingRpcMethod())
         .withHeader(HEADER_1, "value-1")
         .withRequest(request1));
   }

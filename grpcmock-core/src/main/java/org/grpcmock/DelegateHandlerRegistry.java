@@ -10,6 +10,7 @@ import io.grpc.services.BinaryLogProvider;
 import io.grpc.stub.ServerCalls;
 import io.grpc.util.MutableHandlerRegistry;
 import javax.annotation.Nullable;
+import org.grpcmock.util.FunctionalResponseObserver;
 
 /**
  * @author Fadelis
@@ -33,9 +34,11 @@ public final class DelegateHandlerRegistry extends HandlerRegistry {
   }
 
   private static ServerCallHandler<byte[], byte[]> notFoundUnaryCall(String fullMethodName) {
-    return ServerCalls.asyncUnaryCall((request, responseObserver) -> responseObserver.onError(Status.UNIMPLEMENTED
-        .withDescription(String.format("Method not found: %s", fullMethodName))
-        .asRuntimeException()));
+    return ServerCalls.asyncClientStreamingCall(responseObserver -> FunctionalResponseObserver.<byte[]>builder()
+        .onNext(ignore -> responseObserver.onError(Status.UNIMPLEMENTED
+            .withDescription(String.format("Method not found: %s", fullMethodName))
+            .asRuntimeException()))
+        .build());
   }
 
   private static MethodDescriptor<byte[], byte[]> noopMethod(String fullMethodName) {

@@ -40,7 +40,7 @@ public class RequestPatternBuilderImpl<ReqT> implements RequestPatternBuilderSte
   @Override
   public RequestPatternBuilderImpl<ReqT> withRequest(@Nonnull Predicate<ReqT> requestPredicate) {
     Objects.requireNonNull(requestPredicate);
-    this.requestPredicate = list -> list.stream().allMatch(requestPredicate);
+    this.requestPredicate = list -> list.size() == 1 && requestPredicate.test(list.get(0));
     return this;
   }
 
