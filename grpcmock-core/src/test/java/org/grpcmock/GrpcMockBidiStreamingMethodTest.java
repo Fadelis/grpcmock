@@ -89,6 +89,20 @@ class GrpcMockBidiStreamingMethodTest extends TestBase {
   }
 
   @Test
+  void should_overwrite_first_request_condition_on_subsequent_call() {
+    stubFor(bidiStreamingMethod(SimpleServiceGrpc.getBidiStreamingRpcMethod())
+        .withFirstRequest(request)
+        .withFirstRequest(request2)
+        .willProxyTo(proxyingResponse(response)));
+
+    SimpleServiceStub serviceStub = SimpleServiceGrpc.newStub(serverChannel);
+
+    assertThatThrownBy(() -> asyncClientStreamingCall(serviceStub::bidiStreamingRpc, request))
+        .isInstanceOf(StatusRuntimeException.class)
+        .hasMessageStartingWith("UNIMPLEMENTED: No matching stub scenario was found for this method: ");
+  }
+
+  @Test
   void should_return_method_not_found_error_when_no_stub_registered() {
     SimpleServiceStub serviceStub = SimpleServiceGrpc.newStub(serverChannel);
 

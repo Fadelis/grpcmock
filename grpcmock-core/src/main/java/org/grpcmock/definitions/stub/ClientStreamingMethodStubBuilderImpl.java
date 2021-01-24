@@ -54,6 +54,7 @@ public final class ClientStreamingMethodStubBuilderImpl<ReqT, RespT> implements
   public ClientStreamingMethodStubBuilderStep<ReqT, RespT> withFirstRequest(
       @Nonnull Predicate<ReqT> requestPredicate
   ) {
+    this.requestPatternBuilder.clearRequestsPredicates();
     this.requestPatternBuilder.withRequestAtIndex(0, requestPredicate);
     return this;
   }

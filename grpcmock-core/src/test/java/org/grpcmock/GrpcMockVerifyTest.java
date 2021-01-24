@@ -234,6 +234,30 @@ class GrpcMockVerifyTest extends TestBase {
   }
 
   @Test
+  void should_correctly_verify_call_count_for_client_streaming_method_with_multiple_conditions() {
+    performUnaryMultipleClientStreamingCalls();
+
+    verifyThat(calledMethod(getClientStreamingRpcMethod())
+            .withFirstRequest(request2)
+            .withRequestsContaining(request)
+            .withNumberOfRequests(2)
+            .withRequestAtIndex(1, req -> req.getRequestMessage().equals(request.getRequestMessage())),
+        times(2));
+  }
+
+  @Test
+  void should_not_verify_call_count_for_client_streaming_method_with_multiple_conditions_if_one_condition_fails() {
+    performUnaryMultipleClientStreamingCalls();
+
+    verifyThat(calledMethod(getClientStreamingRpcMethod())
+            .withFirstRequest(request2)
+            .withRequestsContaining(request)
+            .withNumberOfRequests(3)
+            .withRequestAtIndex(1, req -> req.getRequestMessage().equals(request.getRequestMessage())),
+        never());
+  }
+
+  @Test
   void should_correctly_verify_call_count_for_client_streaming_method_with_header_matching() {
     performUnaryMultipleClientStreamingCalls();
 

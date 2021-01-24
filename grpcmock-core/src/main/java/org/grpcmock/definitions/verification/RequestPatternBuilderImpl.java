@@ -2,9 +2,9 @@ package org.grpcmock.definitions.verification;
 
 import io.grpc.Metadata;
 import io.grpc.MethodDescriptor;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.function.Predicate;
 import javax.annotation.Nonnull;
 import org.grpcmock.definitions.matcher.HeadersMatcher;
@@ -22,7 +22,7 @@ public class RequestPatternBuilderImpl<ReqT> implements RequestPatternBuilderSte
 
   private final MethodDescriptor<ReqT, ?> method;
   private final HeadersMatcherBuilder headersMatcherBuilder = HeadersMatcher.builder();
-  private Predicate<List<ReqT>> requestsPredicate;
+  private final List<Predicate<List<ReqT>>> requestsPredicates = new ArrayList<>();
 
   public RequestPatternBuilderImpl(@Nonnull MethodDescriptor<ReqT, ?> method) {
     Objects.requireNonNull(method);
@@ -44,7 +44,8 @@ public class RequestPatternBuilderImpl<ReqT> implements RequestPatternBuilderSte
     if (!method.getType().clientSendsOneMessage()) {
       throw new GrpcMockException("This builder step is only applicable to unary or server streaming methods");
     }
-    this.requestsPredicate = list -> list.size() == 1 && requestPredicate.test(list.get(0));
+    clearRequestsPredicates();
+    this.requestsPredicates.add(list -> list.size() == 1 && requestPredicate.test(list.get(0)));
     return this;
   }
 
@@ -54,8 +55,12 @@ public class RequestPatternBuilderImpl<ReqT> implements RequestPatternBuilderSte
     if (method.getType().clientSendsOneMessage()) {
       throw new GrpcMockException("This builder step is only applicable to client or bidi streaming methods");
     }
-    this.requestsPredicate = requestsPredicate;
+    this.requestsPredicates.add(requestsPredicate);
     return this;
+  }
+
+  public void clearRequestsPredicates() {
+    this.requestsPredicates.clear();
   }
 
   @Override
@@ -63,7 +68,10 @@ public class RequestPatternBuilderImpl<ReqT> implements RequestPatternBuilderSte
     return new RequestPattern<>(
         method,
         headersMatcherBuilder.build(),
-        Optional.ofNullable(requestsPredicate).map(PredicateRequestMatcher::new).orElse(null)
+        requestsPredicates.stream()
+            .reduce(Predicate::and)
+            .map(PredicateRequestMatcher::new)
+            .orElse(null)
     );
   }
 }

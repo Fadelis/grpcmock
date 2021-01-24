@@ -177,6 +177,20 @@ class GrpcMockClientStreamingMethodTest extends TestBase {
   }
 
   @Test
+  void should_overwrite_first_request_condition_on_subsequent_call() {
+    stubFor(clientStreamingMethod(SimpleServiceGrpc.getClientStreamingRpcMethod())
+        .withFirstRequest(request)
+        .withFirstRequest(request2)
+        .willReturn(response));
+
+    SimpleServiceStub serviceStub = SimpleServiceGrpc.newStub(serverChannel);
+
+    assertThatThrownBy(() -> asyncClientStreamingCall(serviceStub::clientStreamingRpc, request))
+        .isInstanceOf(StatusRuntimeException.class)
+        .hasMessageStartingWith("UNIMPLEMENTED: No matching stub scenario was found for this method: ");
+  }
+
+  @Test
   void should_return_method_not_found_error_when_no_stub_registered() {
     SimpleServiceStub serviceStub = SimpleServiceGrpc.newStub(serverChannel);
 
