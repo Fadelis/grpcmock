@@ -13,7 +13,7 @@ import org.grpcmock.exception.GrpcMockValidationException;
 /**
  * @author Fadelis
  */
-public class StubScenario<ReqT, RespT> {
+public final class StubScenario<ReqT, RespT> {
 
   private final RequestPattern<ReqT> requestPattern;
   private final List<Response<ReqT, RespT>> responses;

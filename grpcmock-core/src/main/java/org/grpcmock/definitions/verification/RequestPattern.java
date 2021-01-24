@@ -21,18 +21,18 @@ public class RequestPattern<ReqT> {
 
   private final MethodDescriptor<ReqT, ?> method;
   private final HeadersMatcher headersMatcher;
-  private final RequestMatcher<List<ReqT>> requestMatchers;
+  private final RequestMatcher<ReqT> requestsMatcher;
 
   RequestPattern(
       @Nonnull MethodDescriptor<ReqT, ?> method,
       @Nonnull HeadersMatcher headersMatcher,
-      @Nullable RequestMatcher<List<ReqT>> requestMatchers
+      @Nullable RequestMatcher<ReqT> requestsMatcher
   ) {
     Objects.requireNonNull(method);
     Objects.requireNonNull(headersMatcher);
     this.method = method;
     this.headersMatcher = headersMatcher;
-    this.requestMatchers = ofNullable(requestMatchers).orElseGet(RequestMatcher::empty);
+    this.requestsMatcher = ofNullable(requestsMatcher).orElseGet(RequestMatcher::empty);
   }
 
   public String fullMethodName() {
@@ -42,7 +42,7 @@ public class RequestPattern<ReqT> {
   public boolean matches(CapturedRequest<ReqT> capturedRequest) {
     return capturedRequest.method().getFullMethodName().equals(method.getFullMethodName())
         && headersMatcher.matches(capturedRequest.headers())
-        && requestMatchers.matches(normalizeRequests(capturedRequest.requests()));
+        && requestsMatcher.matches(normalizeRequests(capturedRequest.requests()));
   }
 
   private List<ReqT> normalizeRequests(List<ReqT> requests) {

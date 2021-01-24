@@ -25,7 +25,7 @@ import org.grpcmock.exception.GrpcMockException;
 /**
  * @author Fadelis
  */
-public class ServerStreamingMethodStubBuilderImpl<ReqT, RespT> implements
+public final class ServerStreamingMethodStubBuilderImpl<ReqT, RespT> implements
     ServerStreamingMethodStubBuilderStep<ReqT, RespT>,
     NextServerStreamingMethodResponseBuilderStep<ReqT, RespT> {
 

@@ -14,14 +14,16 @@ public interface RequestMatcherBuilderStep<BUILDER extends RequestMatcherBuilder
   /**
    * <p>Adds a request matcher for the stub, which will trigger only if incoming request
    * satisfies given {@link Predicate}.
-   * <p>Subsequent matchers for the request will replace the old one.
+   * <p>Only applicable to unary or server streaming methods.
+   * <p>Subsequent request matchers will replace the old one.
    */
   BUILDER withRequest(@Nonnull Predicate<ReqT> requestPredicate);
 
   /**
    * <p>Adds a request matcher for the stub, which will trigger only if incoming request
    * is equal to the provided one.
-   * <p>Subsequent matchers for the request will replace the old one.
+   * <p>Only applicable to unary or server streaming methods.
+   * <p>Subsequent request matchers will replace the old one.
    */
   default BUILDER withRequest(@Nonnull ReqT request) {
     Objects.requireNonNull(request);

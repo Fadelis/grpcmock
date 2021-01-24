@@ -24,7 +24,7 @@ public class TestBase {
   static final String HEADER_1 = "header-1";
   static final String HEADER_2 = "header-2";
   static final String RESPONSE_MESSAGE = "message-1";
-  static final String RESPONSE_MESSAGE_2 = "request-2";
+  static final String RESPONSE_MESSAGE_2 = "message-2";
   static final String REQUEST_MESSAGE = "request-1";
   static final String REQUEST_MESSAGE_2 = "request-2";
 

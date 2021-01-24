@@ -20,7 +20,7 @@ import org.grpcmock.interceptors.RequestCaptureInterceptor;
 /**
  * @author Fadelis
  */
-public class MethodStub<ReqT, RespT> {
+public final class MethodStub<ReqT, RespT> {
 
   private final MethodDescriptor<ReqT, RespT> method;
   private final List<StubScenario<ReqT, RespT>> stubScenarios;

@@ -1,5 +1,6 @@
 package org.grpcmock.definitions.matcher;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
 import javax.annotation.Nonnull;
@@ -9,15 +10,15 @@ import javax.annotation.Nonnull;
  */
 public class PredicateRequestMatcher<ReqT> implements RequestMatcher<ReqT> {
 
-  private final Predicate<ReqT> requestPredicate;
+  private final Predicate<List<ReqT>> requestsPredicate;
 
-  public PredicateRequestMatcher(@Nonnull Predicate<ReqT> requestPredicate) {
-    Objects.requireNonNull(requestPredicate);
-    this.requestPredicate = requestPredicate;
+  public PredicateRequestMatcher(@Nonnull Predicate<List<ReqT>> requestsPredicate) {
+    Objects.requireNonNull(requestsPredicate);
+    this.requestsPredicate = requestsPredicate;
   }
 
   @Override
-  public boolean matches(ReqT request) {
-    return requestPredicate.test(request);
+  public boolean matches(List<ReqT> requests) {
+    return requestsPredicate.test(requests);
   }
 }
