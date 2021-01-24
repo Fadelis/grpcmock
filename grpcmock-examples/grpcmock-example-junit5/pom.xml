@@ -14,7 +14,8 @@
   <description>A simple example of gRPC Mock integration in JUnit5</description>
 
   <properties>
-    <maven.deploy.skip>true</maven.deploy.skip>
+    <skip.deploy>true</skip.deploy>
+    <maven.javadoc.skip>true</maven.javadoc.skip>
     <spotbugs.skip>true</spotbugs.skip>
     <javax.version>1.3.2</javax.version>
   </properties>

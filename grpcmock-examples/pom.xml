@@ -22,6 +22,25 @@
   <description>Example projects for gRPC Mock integrations</description>
 
   <properties>
-    <maven.deploy.skip>true</maven.deploy.skip>
+    <skip.deploy>true</skip.deploy>
+    <maven.javadoc.skip>true</maven.javadoc.skip>
   </properties>
+
+  <profiles>
+    <!-- Deployment profile (required so these plugins are only used when deploying) -->
+    <profile>
+      <id>deploy</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-deploy-plugin</artifactId>
+            <configuration>
+              <skip>true</skip>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
 </project>
