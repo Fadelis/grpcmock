@@ -23,7 +23,7 @@ import org.grpcmock.exception.GrpcMockException;
 /**
  * @author Fadelis
  */
-public class UnaryMethodStubBuilderImpl<ReqT, RespT> implements
+public final class UnaryMethodStubBuilderImpl<ReqT, RespT> implements
     UnaryMethodStubBuilderStep<ReqT, RespT>,
     NextUnaryMethodResponseBuilderStep<ReqT, RespT> {
 

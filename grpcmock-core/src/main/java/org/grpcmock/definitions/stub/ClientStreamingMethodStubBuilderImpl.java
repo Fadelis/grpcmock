@@ -23,7 +23,7 @@ import org.grpcmock.exception.GrpcMockException;
 /**
  * @author Fadelis
  */
-public class ClientStreamingMethodStubBuilderImpl<ReqT, RespT> implements
+public final class ClientStreamingMethodStubBuilderImpl<ReqT, RespT> implements
     ClientStreamingMethodStubBuilderStep<ReqT, RespT>,
     NextClientStreamingMethodResponseBuilderStep<ReqT, RespT> {
 
@@ -54,7 +54,7 @@ public class ClientStreamingMethodStubBuilderImpl<ReqT, RespT> implements
   public ClientStreamingMethodStubBuilderStep<ReqT, RespT> withFirstRequest(
       @Nonnull Predicate<ReqT> requestPredicate
   ) {
-    this.requestPatternBuilder.withRequest(requestPredicate);
+    this.requestPatternBuilder.withRequestAtIndex(0, requestPredicate);
     return this;
   }
 

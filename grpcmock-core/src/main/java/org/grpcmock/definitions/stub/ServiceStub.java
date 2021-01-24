@@ -12,7 +12,7 @@ import org.grpcmock.exception.GrpcMockException;
 /**
  * @author Fadelis
  */
-public class ServiceStub {
+public final class ServiceStub {
 
   private final String serviceName;
   private final Map<String, MethodStub> methodStubs = new ConcurrentHashMap<>();
