@@ -21,15 +21,15 @@ The tool follows a similar DSL type of structure to HTTP mocking service [WireMo
 
 ```java
 stubFor(unaryMethod(SimpleServiceGrpc.getUnaryRpcMethod())
-        .willReturn(response1));
+    .willReturn(response1));
 
 stubFor(unaryMethod(SimpleServiceGrpc.getUnaryRpcMethod())
-        .withHeader("header-1", "value-1")
-        .withHeader("header-2", value -> value.startsWith("value"))
-        .withRequest(expectedRequest)
-        .willReturn(response(response1)
-            .withFixedDelay(200)) // first invocation will return this response after 200 ms
-        .nextWillReturn(response(response2))); // subsequent invocations will return this response
+    .withHeader("header-1", "value-1")
+    .withHeader("header-2", value -> value.startsWith("value"))
+    .withRequest(expectedRequest)
+    .willReturn(response(response1)
+        .withFixedDelay(200)) // first invocation will return this response after 200 ms
+    .nextWillReturn(response(response2))); // subsequent invocations will return this response
 ```
 
 See more [examples](grpcmock-core/src/test/java/org/grpcmock/GrpcMockUnaryMethodTest.java)
@@ -38,15 +38,15 @@ See more [examples](grpcmock-core/src/test/java/org/grpcmock/GrpcMockUnaryMethod
 
 ```java
 stubFor(serverStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
-        willReturn(responses1, responses2, responses3)); // return one by one with no delay
+    .willReturn(responses1, responses2, responses3)); // return one by one with no delay
 
 stubFor(serverStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
-        .withHeader("header-1", "value-1")
-        .withRequest(req -> req.getRequestMessage().endsWith("1"))
-        .willReturn(stream(response(responses1).withFixedDelay(200))
-            .and(response(responses2).withFixedDelay(100))
-            .and(response(responses3).withFixedDelay(200)))
-        .nextWillReturn(statusException(Status.NOT_FOUND))); // subsequent invocations will return status exception
+    .withHeader("header-1", "value-1")
+    .withRequest(req -> req.getRequestMessage().endsWith("1"))
+    .willReturn(stream(response(responses1).withFixedDelay(200))
+        .and(response(responses2).withFixedDelay(100))
+        .and(response(responses3).withFixedDelay(200)))
+    .nextWillReturn(statusException(Status.NOT_FOUND))); // subsequent invocations will return status exception
 ```
 
 See more [examples](grpcmock-core/src/test/java/org/grpcmock/GrpcMockServerStreamingMethodTest.java)
@@ -57,13 +57,13 @@ Stubs for client streaming method calls are selected on receiving first stream r
 
 ```java
 stubFor(clientStreamingMethod(SimpleServiceGrpc.getClientStreamingRpcMethod())
-        willReturn(responses1)); // return a response on completed client streaming requests
+    .willReturn(responses1)); // return a response on completed client streaming requests
 
 stubFor(clientStreamingMethod(SimpleServiceGrpc.getClientStreamingRpcMethod())
-        .withHeader("header-1", "value-1")
-        .withFirstRequest(req -> req.getRequestMessage().endsWith("1"))
-        .willReturn(response(responses1).withFixedDelay(200))
-        .nextWillReturn(statusException(Status.NOT_FOUND))); // subsequent invocations will return status exception
+    .withHeader("header-1", "value-1")
+    .withFirstRequest(req -> req.getRequestMessage().endsWith("1"))
+    .willReturn(response(responses1).withFixedDelay(200))
+    .nextWillReturn(statusException(Status.NOT_FOUND))); // subsequent invocations will return status exception
 ```
 
 See more [examples](grpcmock-core/src/test/java/org/grpcmock/GrpcMockClientStreamingMethodTest.java)
@@ -74,27 +74,27 @@ Stubs for bidi streaming method calls are selected on receiving first stream req
 
 ```java
 stubFor(bidiStreamingMethod(SimpleServiceGrpc.getBidiStreamingRpcMethod())
-        .withHeader("header-1", "value-1")
-        .withFirstRequest(req -> req.getRequestMessage().endsWith("1"))
-        .willProxyTo(responseObserver -> new StreamObserver<SimpleRequest>() {
-            @Override
-            public void onNext(SimpleRequest request) {
-              SimpleResponse response = SimpleResponse.newBuilder()
-                .setResponseMessage(request.getRequestMessage())
-                .build();
-              responseObserver.onNext(response);
-            }
-            
-            @Override
-            public void onError(Throwable error) {
-              // handle error
-            }
-            
-            @Override
-            public void onCompleted() {
-              responseObserver.onCompleted();
-            }
-        }));
+    .withHeader("header-1", "value-1")
+    .withFirstRequest(req -> req.getRequestMessage().endsWith("1"))
+    .willProxyTo(responseObserver -> new StreamObserver<SimpleRequest>() {
+        @Override
+        public void onNext(SimpleRequest request) {
+          SimpleResponse response = SimpleResponse.newBuilder()
+            .setResponseMessage(request.getRequestMessage())
+            .build();
+          responseObserver.onNext(response);
+        }
+        
+        @Override
+        public void onError(Throwable error) {
+          // handle error
+        }
+        
+        @Override
+        public void onCompleted() {
+          responseObserver.onCompleted();
+        }
+    }));
 ```
 
 See more [examples](grpcmock-core/src/test/java/org/grpcmock/GrpcMockBidiStreamingMethodTest.java)
