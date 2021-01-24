@@ -109,6 +109,12 @@ verifyThat(
     times(3));
 
 verifyThat(getUnaryRpcMethod(), never());
+
+verifyThat(
+    calledMethod(getClientStreamingRpcMethod())
+        .withNumberOfRequests(2)
+        .withFirstRequest(request)
+        .withRequestAtIndex(1, request2));
 ```
 
 See more [examples](grpcmock-core/src/test/java/org/grpcmock/GrpcMockVerifyTest.java)
