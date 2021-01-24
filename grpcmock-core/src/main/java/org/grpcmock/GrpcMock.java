@@ -28,6 +28,7 @@ import org.grpcmock.definitions.response.steps.ExceptionResponseActionBuilder;
 import org.grpcmock.definitions.response.steps.ExceptionStreamResponseBuildersStep;
 import org.grpcmock.definitions.response.steps.ObjectResponseActionBuilder;
 import org.grpcmock.definitions.response.steps.ObjectStreamResponseBuilderStep;
+import org.grpcmock.definitions.stub.BidiStreamingMethodStubBuilderImpl;
 import org.grpcmock.definitions.stub.ClientStreamingMethodStubBuilderImpl;
 import org.grpcmock.definitions.stub.MethodStub;
 import org.grpcmock.definitions.stub.ServerStreamingMethodStubBuilderImpl;
@@ -253,13 +254,10 @@ public final class GrpcMock {
 
   /**
    * <p>Returns a stub builder for {@link MethodType#BIDI_STREAMING} method.
-   *
-   * @deprecated Not yet implemented
    */
-  @Deprecated
   public static <ReqT, RespT> BidiStreamingMethodStubBuilderStep<ReqT, RespT> bidiStreamingMethod(
       @Nonnull MethodDescriptor<ReqT, RespT> method) {
-    throw new GrpcMockException("Not yet implemented");
+    return new BidiStreamingMethodStubBuilderImpl<>(method);
   }
 
   /**

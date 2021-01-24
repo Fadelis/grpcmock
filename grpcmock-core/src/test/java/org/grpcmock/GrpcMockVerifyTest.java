@@ -6,7 +6,6 @@ import static io.grpc.testing.protobuf.SimpleServiceGrpc.getServerStreamingRpcMe
 import static io.grpc.testing.protobuf.SimpleServiceGrpc.getUnaryRpcMethod;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.api.Assertions.fail;
 import static org.grpcmock.GrpcMock.atLeast;
 import static org.grpcmock.GrpcMock.atMost;
 import static org.grpcmock.GrpcMock.calledMethod;
@@ -30,9 +29,6 @@ import io.grpc.testing.protobuf.SimpleServiceGrpc.SimpleServiceStub;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
-import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -497,26 +493,5 @@ class GrpcMockVerifyTest extends TestBase {
     asyncClientStreamingCall(serviceStub2::clientStreamingRpc, request2, request);
     asyncClientStreamingCall(serviceStub2::clientStreamingRpc, request2);
     asyncClientStreamingCall(serviceStub1::clientStreamingRpc, request, request2);
-  }
-
-  private <ReqT, RespT> List<RespT> asyncClientStreamingCall(
-      Function<StreamObserver<RespT>, StreamObserver<ReqT>> callMethod,
-      ReqT... requests
-  ) {
-    StreamRecorder<RespT> streamRecorder = StreamRecorder.create();
-    StreamObserver<ReqT> requestObserver = callMethod.apply(streamRecorder);
-    Stream.of(requests).forEach(requestObserver::onNext);
-    requestObserver.onCompleted();
-
-    try {
-      streamRecorder.awaitCompletion(10, TimeUnit.SECONDS);
-    } catch (Exception e) {
-      fail("failed waiting for response");
-    }
-
-    if (Objects.nonNull(streamRecorder.getError())) {
-      throw Status.fromThrowable(streamRecorder.getError()).asRuntimeException();
-    }
-    return streamRecorder.getValues();
   }
 }

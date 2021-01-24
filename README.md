@@ -13,7 +13,7 @@ The tool follows a similar DSL type of structure to HTTP mocking service [WireMo
     - Unary methods
     - Server streaming methods
     - Client streaming methods
-    - [SOON] Bidi stream methods
+    - Bidi stream methods
 
 ## Quick usage
 
@@ -67,6 +67,37 @@ stubFor(clientStreamingMethod(SimpleServiceGrpc.getClientStreamingRpcMethod())
 ```
 
 See more [examples](grpcmock-core/src/test/java/org/grpcmock/GrpcMockClientStreamingMethodTest.java)
+
+### Bidi streaming methods
+
+Stubs for bidi streaming method calls are selected on receiving first stream request message.
+
+```java
+stubFor(bidiStreamingMethod(SimpleServiceGrpc.getBidiStreamingRpcMethod())
+        .withHeader("header-1", "value-1")
+        .withFirstRequest(req -> req.getRequestMessage().endsWith("1"))
+        .willProxyTo(responseObserver -> new StreamObserver<SimpleRequest>() {
+            @Override
+            public void onNext(SimpleRequest request) {
+              SimpleResponse response = SimpleResponse.newBuilder()
+                .setResponseMessage(request.getRequestMessage())
+                .build();
+              responseObserver.onNext(response);
+            }
+            
+            @Override
+            public void onError(Throwable error) {
+              // handle error
+            }
+            
+            @Override
+            public void onCompleted() {
+              responseObserver.onCompleted();
+            }
+        }));
+```
+
+See more [examples](grpcmock-core/src/test/java/org/grpcmock/GrpcMockBidiStreamingMethodTest.java)
 
 ### Verifying invocation count
 

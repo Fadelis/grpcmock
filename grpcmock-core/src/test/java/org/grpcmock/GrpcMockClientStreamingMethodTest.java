@@ -2,7 +2,6 @@ package org.grpcmock;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.api.Assertions.fail;
 import static org.grpcmock.GrpcMock.clientStreamingMethod;
 import static org.grpcmock.GrpcMock.response;
 import static org.grpcmock.GrpcMock.statusException;
@@ -19,12 +18,9 @@ import io.grpc.testing.protobuf.SimpleServiceGrpc.SimpleServiceImplBase;
 import io.grpc.testing.protobuf.SimpleServiceGrpc.SimpleServiceStub;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
-import java.util.stream.Stream;
 import org.grpcmock.util.FunctionalResponseObserver;
 import org.junit.jupiter.api.Test;
 
@@ -41,7 +37,7 @@ class GrpcMockClientStreamingMethodTest extends TestBase {
 
     SimpleServiceStub serviceStub = SimpleServiceGrpc.newStub(serverChannel);
 
-    assertThat(asyncStubCall(serviceStub::clientStreamingRpc, request, request2)).containsExactly(response);
+    assertThat(asyncClientStreamingCall(serviceStub::clientStreamingRpc, request, request2)).containsExactly(response);
   }
 
   @Test
@@ -53,7 +49,7 @@ class GrpcMockClientStreamingMethodTest extends TestBase {
 
     SimpleServiceStub serviceStub = SimpleServiceGrpc.newStub(serverChannel);
 
-    assertThat(asyncStubCall(serviceStub::clientStreamingRpc, request, request2)).containsExactly(response);
+    assertThat(asyncClientStreamingCall(serviceStub::clientStreamingRpc, request, request2)).containsExactly(response);
     assertThat(System.currentTimeMillis() - start).isGreaterThan(200);
   }
 
@@ -64,7 +60,7 @@ class GrpcMockClientStreamingMethodTest extends TestBase {
 
     SimpleServiceStub serviceStub = SimpleServiceGrpc.newStub(serverChannel);
 
-    assertThatThrownBy(() -> asyncStubCall(serviceStub::clientStreamingRpc, request))
+    assertThatThrownBy(() -> asyncClientStreamingCall(serviceStub::clientStreamingRpc, request))
         .isInstanceOf(StatusRuntimeException.class)
         .hasMessage("ALREADY_EXISTS: some error");
   }
@@ -78,7 +74,7 @@ class GrpcMockClientStreamingMethodTest extends TestBase {
 
     SimpleServiceStub serviceStub = SimpleServiceGrpc.newStub(serverChannel);
 
-    assertThatThrownBy(() -> asyncStubCall(serviceStub::clientStreamingRpc, request))
+    assertThatThrownBy(() -> asyncClientStreamingCall(serviceStub::clientStreamingRpc, request))
         .isInstanceOf(StatusRuntimeException.class)
         .hasMessage("ALREADY_EXISTS: some error");
     assertThat(System.currentTimeMillis() - start).isGreaterThan(200);
@@ -112,7 +108,7 @@ class GrpcMockClientStreamingMethodTest extends TestBase {
 
     SimpleServiceStub serviceStub = SimpleServiceGrpc.newStub(serverChannel);
 
-    assertThat(asyncStubCall(serviceStub::bidiStreamingRpc, request)).containsExactly(response);
+    assertThat(asyncClientStreamingCall(serviceStub::bidiStreamingRpc, request)).containsExactly(response);
   }
 
   @Test
@@ -127,7 +123,7 @@ class GrpcMockClientStreamingMethodTest extends TestBase {
 
     SimpleServiceStub serviceStub = SimpleServiceGrpc.newStub(serverChannel);
 
-    assertThat(asyncStubCall(serviceStub::clientStreamingRpc, matchRequest, request)).containsExactly(response);
+    assertThat(asyncClientStreamingCall(serviceStub::clientStreamingRpc, matchRequest, request)).containsExactly(response);
   }
 
   @Test
@@ -142,7 +138,7 @@ class GrpcMockClientStreamingMethodTest extends TestBase {
 
     SimpleServiceStub serviceStub = SimpleServiceGrpc.newStub(serverChannel);
 
-    assertThatThrownBy(() -> asyncStubCall(serviceStub::clientStreamingRpc, request))
+    assertThatThrownBy(() -> asyncClientStreamingCall(serviceStub::clientStreamingRpc, request))
         .isInstanceOf(StatusRuntimeException.class)
         .hasMessageStartingWith("UNIMPLEMENTED: No matching stub scenario was found for this method: ");
   }
@@ -160,7 +156,7 @@ class GrpcMockClientStreamingMethodTest extends TestBase {
         HEADER_2, "value-2"
     );
 
-    assertThat(asyncStubCall(serviceStub::clientStreamingRpc, request, request2)).containsExactly(response);
+    assertThat(asyncClientStreamingCall(serviceStub::clientStreamingRpc, request, request2)).containsExactly(response);
   }
 
   @Test
@@ -175,7 +171,7 @@ class GrpcMockClientStreamingMethodTest extends TestBase {
         HEADER_2, "value-2"
     );
 
-    assertThatThrownBy(() -> asyncStubCall(serviceStub::clientStreamingRpc, request, request2))
+    assertThatThrownBy(() -> asyncClientStreamingCall(serviceStub::clientStreamingRpc, request, request2))
         .isInstanceOf(StatusRuntimeException.class)
         .hasMessageStartingWith("UNIMPLEMENTED: No matching stub scenario was found for this method: ");
   }
@@ -184,7 +180,7 @@ class GrpcMockClientStreamingMethodTest extends TestBase {
   void should_return_method_not_found_error_when_no_stub_registered() {
     SimpleServiceStub serviceStub = SimpleServiceGrpc.newStub(serverChannel);
 
-    assertThatThrownBy(() -> asyncStubCall(serviceStub::clientStreamingRpc, request, request2))
+    assertThatThrownBy(() -> asyncClientStreamingCall(serviceStub::clientStreamingRpc, request, request2))
         .isInstanceOf(StatusRuntimeException.class)
         .hasMessageStartingWith("UNIMPLEMENTED: Method not found: ");
   }
@@ -197,8 +193,8 @@ class GrpcMockClientStreamingMethodTest extends TestBase {
 
     SimpleServiceStub serviceStub = SimpleServiceGrpc.newStub(serverChannel);
 
-    assertThat(asyncStubCall(serviceStub::clientStreamingRpc, request)).containsExactly(response);
-    assertThat(asyncStubCall(serviceStub::clientStreamingRpc, request)).containsExactly(response2);
+    assertThat(asyncClientStreamingCall(serviceStub::clientStreamingRpc, request)).containsExactly(response);
+    assertThat(asyncClientStreamingCall(serviceStub::clientStreamingRpc, request)).containsExactly(response2);
   }
 
   @Test
@@ -210,10 +206,10 @@ class GrpcMockClientStreamingMethodTest extends TestBase {
 
     SimpleServiceStub serviceStub = SimpleServiceGrpc.newStub(serverChannel);
 
-    assertThat(asyncStubCall(serviceStub::clientStreamingRpc, request)).containsExactly(response);
-    assertThatThrownBy(() -> asyncStubCall(serviceStub::clientStreamingRpc, request)).hasMessage("INTERNAL");
-    assertThat(asyncStubCall(serviceStub::clientStreamingRpc, request)).containsExactly(response2);
-    assertThat(asyncStubCall(serviceStub::clientStreamingRpc, request)).containsExactly(response2);
+    assertThat(asyncClientStreamingCall(serviceStub::clientStreamingRpc, request)).containsExactly(response);
+    assertThatThrownBy(() -> asyncClientStreamingCall(serviceStub::clientStreamingRpc, request)).hasMessage("INTERNAL");
+    assertThat(asyncClientStreamingCall(serviceStub::clientStreamingRpc, request)).containsExactly(response2);
+    assertThat(asyncClientStreamingCall(serviceStub::clientStreamingRpc, request)).containsExactly(response2);
   }
 
   @Test
@@ -226,10 +222,10 @@ class GrpcMockClientStreamingMethodTest extends TestBase {
 
     SimpleServiceStub serviceStub = SimpleServiceGrpc.newStub(serverChannel);
 
-    assertThat(asyncStubCall(serviceStub::clientStreamingRpc, request)).containsExactly(response);
-    assertThatThrownBy(() -> asyncStubCall(serviceStub::clientStreamingRpc, request)).hasMessage("INVALID_ARGUMENT");
-    assertThat(asyncStubCall(serviceStub::clientStreamingRpc, request)).containsExactly(response2);
-    assertThat(asyncStubCall(serviceStub::clientStreamingRpc, request)).containsExactly(response2);
+    assertThat(asyncClientStreamingCall(serviceStub::clientStreamingRpc, request)).containsExactly(response);
+    assertThatThrownBy(() -> asyncClientStreamingCall(serviceStub::clientStreamingRpc, request)).hasMessage("INVALID_ARGUMENT");
+    assertThat(asyncClientStreamingCall(serviceStub::clientStreamingRpc, request)).containsExactly(response2);
+    assertThat(asyncClientStreamingCall(serviceStub::clientStreamingRpc, request)).containsExactly(response2);
     assertThat(System.currentTimeMillis() - start).isGreaterThan(300);
   }
 
@@ -244,8 +240,8 @@ class GrpcMockClientStreamingMethodTest extends TestBase {
 
     SimpleServiceStub serviceStub = SimpleServiceGrpc.newStub(serverChannel);
 
-    assertThat(asyncStubCall(serviceStub::clientStreamingRpc, request)).containsExactly(response);
-    assertThat(asyncStubCall(serviceStub::clientStreamingRpc, request2)).containsExactly(response2);
+    assertThat(asyncClientStreamingCall(serviceStub::clientStreamingRpc, request)).containsExactly(response);
+    assertThat(asyncClientStreamingCall(serviceStub::clientStreamingRpc, request2)).containsExactly(response2);
   }
 
   @Test
@@ -258,8 +254,8 @@ class GrpcMockClientStreamingMethodTest extends TestBase {
     SimpleServiceStub serviceStub = SimpleServiceGrpc.newStub(serverChannel);
 
     // check multiple times
-    assertThat(asyncStubCall(serviceStub::clientStreamingRpc, request)).containsExactly(response2);
-    assertThat(asyncStubCall(serviceStub::clientStreamingRpc, request)).containsExactly(response2);
+    assertThat(asyncClientStreamingCall(serviceStub::clientStreamingRpc, request)).containsExactly(response2);
+    assertThat(asyncClientStreamingCall(serviceStub::clientStreamingRpc, request)).containsExactly(response2);
   }
 
   @Test
@@ -275,8 +271,8 @@ class GrpcMockClientStreamingMethodTest extends TestBase {
 
     SimpleServiceStub serviceStub = SimpleServiceGrpc.newStub(serverChannel);
 
-    assertThat(asyncStubCall(serviceStub::clientStreamingRpc, request)).containsExactly(response);
-    assertThat(asyncStubCall(serviceStub::clientStreamingRpc, request)).containsExactly(response2);
+    assertThat(asyncClientStreamingCall(serviceStub::clientStreamingRpc, request)).containsExactly(response);
+    assertThat(asyncClientStreamingCall(serviceStub::clientStreamingRpc, request)).containsExactly(response2);
   }
 
   @Test
@@ -292,8 +288,8 @@ class GrpcMockClientStreamingMethodTest extends TestBase {
 
     SimpleServiceStub serviceStub = SimpleServiceGrpc.newStub(serverChannel);
 
-    assertThat(asyncStubCall(serviceStub::clientStreamingRpc, request)).containsExactly(response);
-    assertThat(asyncStubCall(serviceStub::clientStreamingRpc, request)).containsExactly(response2);
+    assertThat(asyncClientStreamingCall(serviceStub::clientStreamingRpc, request)).containsExactly(response);
+    assertThat(asyncClientStreamingCall(serviceStub::clientStreamingRpc, request)).containsExactly(response2);
   }
 
   @Test
@@ -315,7 +311,7 @@ class GrpcMockClientStreamingMethodTest extends TestBase {
 
     SimpleServiceStub serviceStub = SimpleServiceGrpc.newStub(serverChannel);
 
-    assertThat(asyncStubCall(serviceStub::clientStreamingRpc, request)).containsExactly(response);
+    assertThat(asyncClientStreamingCall(serviceStub::clientStreamingRpc, request)).containsExactly(response);
   }
 
   @Test
@@ -333,28 +329,7 @@ class GrpcMockClientStreamingMethodTest extends TestBase {
 
     SimpleServiceStub serviceStub = SimpleServiceGrpc.newStub(serverChannel);
 
-    assertThat(asyncStubCall(serviceStub::clientStreamingRpc, request, request2)).containsExactly(response);
+    assertThat(asyncClientStreamingCall(serviceStub::clientStreamingRpc, request, request2)).containsExactly(response);
     assertThat(receivedRequests).containsExactly(request, request2);
-  }
-
-  private <ReqT, RespT> List<RespT> asyncStubCall(
-      Function<StreamObserver<RespT>, StreamObserver<ReqT>> callMethod,
-      ReqT... requests
-  ) {
-    StreamRecorder<RespT> streamRecorder = StreamRecorder.create();
-    StreamObserver<ReqT> requestObserver = callMethod.apply(streamRecorder);
-    Stream.of(requests).forEach(requestObserver::onNext);
-    requestObserver.onCompleted();
-
-    try {
-      streamRecorder.awaitCompletion(10, TimeUnit.SECONDS);
-    } catch (Exception e) {
-      fail("failed waiting for response");
-    }
-
-    if (Objects.nonNull(streamRecorder.getError())) {
-      throw Status.fromThrowable(streamRecorder.getError()).asRuntimeException();
-    }
-    return streamRecorder.getValues();
   }
 }

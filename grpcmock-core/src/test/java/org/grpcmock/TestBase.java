@@ -1,17 +1,26 @@
 package org.grpcmock;
 
+import static org.assertj.core.api.Assertions.fail;
 import static org.grpcmock.GrpcMock.getGlobalPort;
 import static org.grpcmock.GrpcMock.grpcMock;
 
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.Metadata;
+import io.grpc.Status;
+import io.grpc.internal.testing.StreamRecorder;
 import io.grpc.stub.AbstractStub;
 import io.grpc.stub.MetadataUtils;
+import io.grpc.stub.StreamObserver;
 import io.grpc.testing.protobuf.SimpleRequest;
 import io.grpc.testing.protobuf.SimpleResponse;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -70,5 +79,26 @@ public class TestBase {
         .put(Metadata.Key.of(key, Metadata.ASCII_STRING_MARSHALLER), value));
 
     return MetadataUtils.attachHeaders(baseStub, metadata);
+  }
+
+  <ReqT, RespT> List<RespT> asyncClientStreamingCall(
+      Function<StreamObserver<RespT>, StreamObserver<ReqT>> callMethod,
+      ReqT... requests
+  ) {
+    StreamRecorder<RespT> streamRecorder = StreamRecorder.create();
+    StreamObserver<ReqT> requestObserver = callMethod.apply(streamRecorder);
+    Stream.of(requests).forEach(requestObserver::onNext);
+    requestObserver.onCompleted();
+
+    try {
+      streamRecorder.awaitCompletion(10, TimeUnit.SECONDS);
+    } catch (Exception e) {
+      fail("failed waiting for response");
+    }
+
+    if (Objects.nonNull(streamRecorder.getError())) {
+      throw Status.fromThrowable(streamRecorder.getError()).asRuntimeException();
+    }
+    return streamRecorder.getValues();
   }
 }
