@@ -14,8 +14,7 @@
   <description>A simple example of gRPC Mock integration in Spring Boot</description>
 
   <properties>
-    <skip.deploy>true</skip.deploy>
-    <maven.javadoc.skip>true</maven.javadoc.skip>
+    <maven.skip.deploy>true</maven.skip.deploy>
     <spotbugs.skip>true</spotbugs.skip>
   </properties>
 

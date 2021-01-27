@@ -22,12 +22,10 @@
   <description>Example projects for gRPC Mock integrations</description>
 
   <properties>
-    <skip.deploy>true</skip.deploy>
-    <maven.javadoc.skip>true</maven.javadoc.skip>
+    <maven.skip.deploy>true</maven.skip.deploy>
   </properties>
 
   <profiles>
-    <!-- Deployment profile (required so these plugins are only used when deploying) -->
     <profile>
       <id>deploy</id>
       <build>
