@@ -53,4 +53,5 @@ jobs:
       - name: Commit snapshot version bump
         uses: EndBug/add-and-commit@v7
         with:
+          branch: 'master'
           message: 'Bumps snapshot version'
