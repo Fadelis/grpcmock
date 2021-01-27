@@ -38,3 +38,18 @@ jobs:
           gpg_passphrase: ${{ secrets.gpg_passphrase }}
           nexus_username: ${{ secrets.nexus_username }}
           nexus_password: ${{ secrets.nexus_password }}
+
+      - name: Clean release changes
+        run: git add . && git stash && git stash drop
+
+      - name: Bump snapshot version
+        run: |
+          export GITHUB_TAG=${GITHUB_REF##*/}
+          export NEW_SNAPSHOT_VERSION=${GITHUB_TAG%%${GITHUB_TAG##*[!0-9]}}$((${GITHUB_TAG##*[!0-9]} + 1))-SNAPSHOT
+          sed -i 's/<version>[0-9.]*<\/version>/<version>GITHUB_TAG<\/version>/' README.md
+          mvn versions:set -DnewVersion=${NEW_SNAPSHOT_VERSION}
+
+      - name: Commit snapshot version bump
+        uses: EndBug/add-and-commit@v7
+        with:
+          message: 'Bumps snapshot version'
