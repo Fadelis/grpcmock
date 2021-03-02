@@ -47,8 +47,8 @@ jobs:
         run: |
           export GITHUB_TAG=${GITHUB_REF##*/}
           export NEW_SNAPSHOT_VERSION=${GITHUB_TAG%%${GITHUB_TAG##*[!0-9]}}$((${GITHUB_TAG##*[!0-9]} + 1))-SNAPSHOT
-          sed -i 's/<version>[0-9.]*<\/version>/<version>$GITHUB_TAG<\/version>/' README.md
-          mvn versions:set -DnewVersion=$NEW_SNAPSHOT_VERSION
+          sed -i "s/<version>[0-9.]*<\/version>/<version>$GITHUB_TAG<\/version>/" README.md
+          mvn versions:set -DgenerateBackupPoms=false -DnewVersion=$NEW_SNAPSHOT_VERSION
 
       - name: Commit snapshot version bump
         uses: EndBug/add-and-commit@v7
