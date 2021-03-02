@@ -29,6 +29,27 @@
       <groupId>io.github.lognet</groupId>
       <artifactId>grpc-spring-boot-starter</artifactId>
       <version>${grpc-spring-boot-starter.version}</version>
+      <!-- allows to bump gRPC version independently -->
+      <exclusions>
+        <exclusion>
+          <groupId>io.grpc</groupId>
+          <artifactId>grpc-netty-shaded</artifactId>
+        </exclusion>
+        <exclusion>
+          <groupId>io.grpc</groupId>
+          <artifactId>grpc-services</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>io.grpc</groupId>
+      <artifactId>grpc-netty-shaded</artifactId>
+      <version>${grpc.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.grpc</groupId>
+      <artifactId>grpc-services</artifactId>
+      <version>${grpc.version}</version>
     </dependency>
 
     <dependency>
