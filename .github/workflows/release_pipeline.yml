@@ -55,3 +55,5 @@ jobs:
         with:
           branch: 'master'
           message: 'bump snapshot version'
+          author_name: github-actions
+          author_email: 41898282+github-actions[bot]@users.noreply.github.com
