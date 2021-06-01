@@ -6,7 +6,7 @@ import io.grpc.MethodDescriptor.MethodType;
 import io.grpc.ServerCallHandler;
 import io.grpc.ServerMethodDefinition;
 import io.grpc.Status;
-import io.grpc.services.BinaryLogProvider;
+import io.grpc.protobuf.services.BinaryLogProvider;
 import io.grpc.stub.ServerCalls;
 import io.grpc.util.MutableHandlerRegistry;
 import javax.annotation.Nullable;
