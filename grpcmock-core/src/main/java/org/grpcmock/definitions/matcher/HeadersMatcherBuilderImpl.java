@@ -7,12 +7,12 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
 import javax.annotation.Nonnull;
-import org.grpcmock.definitions.matcher.steps.HeadersMatcherBuilder;
+import org.grpcmock.definitions.matcher.steps.HeadersMatcherBuilderStep;
 
 /**
  * @author Fadelis
  */
-public class HeadersMatcherBuilderImpl implements HeadersMatcherBuilder {
+public class HeadersMatcherBuilderImpl implements HeadersMatcherBuilderStep<HeadersMatcherBuilderImpl> {
 
   private final List<Predicate<Metadata>> headerPredicates = new ArrayList<>();
 
@@ -20,7 +20,7 @@ public class HeadersMatcherBuilderImpl implements HeadersMatcherBuilder {
   }
 
   @Override
-  public <T> HeadersMatcherBuilder withHeader(
+  public <T> HeadersMatcherBuilderImpl withHeader(
       @Nonnull Key<T> headerKey,
       @Nonnull Predicate<T> predicate
   ) {
@@ -30,7 +30,6 @@ public class HeadersMatcherBuilderImpl implements HeadersMatcherBuilder {
     return this;
   }
 
-  @Override
   public HeadersMatcher build() {
     return headers -> headerPredicates.stream().allMatch(predicate -> predicate.test(headers));
   }

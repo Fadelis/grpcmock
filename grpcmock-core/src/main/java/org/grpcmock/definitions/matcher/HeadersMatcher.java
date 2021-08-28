@@ -1,10 +1,9 @@
 package org.grpcmock.definitions.matcher;
 
 import io.grpc.Metadata;
-import org.grpcmock.definitions.matcher.steps.HeadersMatcherBuilder;
 
 /**
- * Header matcher interface. Currently only {@link String} type headers are supported.
+ * Header matcher interface.
  *
  * @author Fadelis
  */
@@ -12,7 +11,7 @@ public interface HeadersMatcher {
 
   boolean matches(Metadata headers);
 
-  static HeadersMatcherBuilder builder() {
+  static HeadersMatcherBuilderImpl builder() {
     return new HeadersMatcherBuilderImpl();
   }
 }

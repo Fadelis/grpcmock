@@ -75,8 +75,7 @@ public class TestBase {
 
   <T extends AbstractStub<T>> T stubWithHeaders(T baseStub, Map<String, String> headers) {
     Metadata metadata = new Metadata();
-    headers.forEach((key, value) -> metadata
-        .put(Metadata.Key.of(key, Metadata.ASCII_STRING_MARSHALLER), value));
+    headers.forEach((key, value) -> metadata.put(Metadata.Key.of(key, Metadata.ASCII_STRING_MARSHALLER), value));
 
     return MetadataUtils.attachHeaders(baseStub, metadata);
   }

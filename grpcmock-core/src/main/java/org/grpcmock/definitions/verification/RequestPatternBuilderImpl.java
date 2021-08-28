@@ -2,16 +2,17 @@ package org.grpcmock.definitions.verification;
 
 import io.grpc.Metadata;
 import io.grpc.MethodDescriptor;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
 import javax.annotation.Nonnull;
 import org.grpcmock.definitions.matcher.HeadersMatcher;
-import org.grpcmock.definitions.matcher.PredicateRequestMatcher;
-import org.grpcmock.definitions.matcher.steps.HeadersMatcherBuilder;
+import org.grpcmock.definitions.matcher.HeadersMatcherBuilderImpl;
+import org.grpcmock.definitions.matcher.RequestMatcher;
+import org.grpcmock.definitions.matcher.RequestMatcherBuilderImpl;
 import org.grpcmock.definitions.verification.steps.RequestPatternBuilderStep;
 import org.grpcmock.exception.GrpcMockException;
+import org.grpcmock.interceptors.CapturedRequest;
 
 /**
  * Builder for {@link RequestPattern} to define conditions for {@link CapturedRequest} matching.
@@ -21,8 +22,8 @@ import org.grpcmock.exception.GrpcMockException;
 public class RequestPatternBuilderImpl<ReqT> implements RequestPatternBuilderStep<ReqT> {
 
   private final MethodDescriptor<ReqT, ?> method;
-  private final HeadersMatcherBuilder headersMatcherBuilder = HeadersMatcher.builder();
-  private final List<Predicate<List<ReqT>>> requestsPredicates = new ArrayList<>();
+  private final HeadersMatcherBuilderImpl headersMatcherBuilder = HeadersMatcher.builder();
+  private final RequestMatcherBuilderImpl<ReqT> requestMatcherBuilder = RequestMatcher.builder();
 
   public RequestPatternBuilderImpl(@Nonnull MethodDescriptor<ReqT, ?> method) {
     Objects.requireNonNull(method);
@@ -44,8 +45,7 @@ public class RequestPatternBuilderImpl<ReqT> implements RequestPatternBuilderSte
     if (!method.getType().clientSendsOneMessage()) {
       throw new GrpcMockException("This builder step is only applicable to unary or server streaming methods");
     }
-    clearRequestsPredicates();
-    this.requestsPredicates.add(list -> list.size() == 1 && requestPredicate.test(list.get(0)));
+    requestMatcherBuilder.withRequest(requestPredicate);
     return this;
   }
 
@@ -55,12 +55,12 @@ public class RequestPatternBuilderImpl<ReqT> implements RequestPatternBuilderSte
     if (method.getType().clientSendsOneMessage()) {
       throw new GrpcMockException("This builder step is only applicable to client or bidi streaming methods");
     }
-    this.requestsPredicates.add(requestsPredicate);
+    requestMatcherBuilder.withRequests(requestsPredicate);
     return this;
   }
 
   public void clearRequestsPredicates() {
-    this.requestsPredicates.clear();
+    this.requestMatcherBuilder.clearRequestsPredicates();
   }
 
   @Override
@@ -68,10 +68,7 @@ public class RequestPatternBuilderImpl<ReqT> implements RequestPatternBuilderSte
     return new RequestPattern<>(
         method,
         headersMatcherBuilder.build(),
-        requestsPredicates.stream()
-            .reduce(Predicate::and)
-            .map(PredicateRequestMatcher::new)
-            .orElse(null)
+        requestMatcherBuilder.build()
     );
   }
 }

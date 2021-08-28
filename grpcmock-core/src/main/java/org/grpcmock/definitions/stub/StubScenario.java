@@ -6,9 +6,9 @@ import java.util.List;
 import java.util.Objects;
 import javax.annotation.Nonnull;
 import org.grpcmock.definitions.response.Response;
-import org.grpcmock.definitions.verification.CapturedRequest;
 import org.grpcmock.definitions.verification.RequestPattern;
 import org.grpcmock.exception.GrpcMockValidationException;
+import org.grpcmock.interceptors.CapturedRequest;
 
 /**
  * @author Fadelis

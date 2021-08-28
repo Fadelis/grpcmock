@@ -25,27 +25,31 @@ class GrpcMockBidiStreamingMethodTest extends TestBase {
 
   @Test
   void should_return_a_response_when_first_request_satisfies_defined_matching_condition() {
-    SimpleRequest matchRequest = SimpleRequest.newBuilder()
-        .setRequestMessage("message-1")
-        .build();
-
     stubFor(bidiStreamingMethod(SimpleServiceGrpc.getBidiStreamingRpcMethod())
-        .withFirstRequest(matchRequest)
+        .withFirstRequest(request)
         .willProxyTo(proxyingResponse(response)));
 
     SimpleServiceStub serviceStub = SimpleServiceGrpc.newStub(serverChannel);
 
-    assertThat(asyncClientStreamingCall(serviceStub::bidiStreamingRpc, matchRequest, request)).containsExactly(response);
+    assertThat(asyncClientStreamingCall(serviceStub::bidiStreamingRpc, request, request2)).containsExactly(response);
+  }
+
+  @Test
+  void should_overwrite_first_request_matching_condition_on_subsequent_call() {
+    stubFor(bidiStreamingMethod(SimpleServiceGrpc.getBidiStreamingRpcMethod())
+        .withFirstRequest(request2)
+        .withFirstRequest(request)
+        .willProxyTo(proxyingResponse(response)));
+
+    SimpleServiceStub serviceStub = SimpleServiceGrpc.newStub(serverChannel);
+
+    assertThat(asyncClientStreamingCall(serviceStub::bidiStreamingRpc, request)).containsExactly(response);
   }
 
   @Test
   void should_not_return_a_response_when_first_request_does_not_satisfy_matching_condition() {
-    SimpleRequest matchRequest = SimpleRequest.newBuilder()
-        .setRequestMessage("message-1")
-        .build();
-
     stubFor(bidiStreamingMethod(SimpleServiceGrpc.getBidiStreamingRpcMethod())
-        .withFirstRequest(matchRequest)
+        .withFirstRequest(request2)
         .willProxyTo(proxyingResponse(response)));
 
     SimpleServiceStub serviceStub = SimpleServiceGrpc.newStub(serverChannel);

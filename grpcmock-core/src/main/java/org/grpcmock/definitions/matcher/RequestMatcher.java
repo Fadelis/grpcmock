@@ -9,7 +9,7 @@ public interface RequestMatcher<ReqT> {
 
   boolean matches(List<ReqT> requests);
 
-  static <ReqT> RequestMatcher<ReqT> empty() {
-    return requests -> true;
+  static <ReqT> RequestMatcherBuilderImpl<ReqT> builder() {
+    return new RequestMatcherBuilderImpl<>();
   }
 }

@@ -113,27 +113,31 @@ class GrpcMockClientStreamingMethodTest extends TestBase {
 
   @Test
   void should_return_a_response_when_first_request_satisfies_defined_matching_condition() {
-    SimpleRequest matchRequest = SimpleRequest.newBuilder()
-        .setRequestMessage("message-1")
-        .build();
-
     stubFor(clientStreamingMethod(SimpleServiceGrpc.getClientStreamingRpcMethod())
-        .withFirstRequest(matchRequest)
+        .withFirstRequest(request)
         .willReturn(response(response)));
 
     SimpleServiceStub serviceStub = SimpleServiceGrpc.newStub(serverChannel);
 
-    assertThat(asyncClientStreamingCall(serviceStub::clientStreamingRpc, matchRequest, request)).containsExactly(response);
+    assertThat(asyncClientStreamingCall(serviceStub::clientStreamingRpc, request, request2)).containsExactly(response);
+  }
+
+  @Test
+  void should_overwrite_first_request_matching_condition_on_subsequent_call() {
+    stubFor(clientStreamingMethod(SimpleServiceGrpc.getClientStreamingRpcMethod())
+        .withFirstRequest(request2)
+        .withFirstRequest(request)
+        .willReturn(response(response)));
+
+    SimpleServiceStub serviceStub = SimpleServiceGrpc.newStub(serverChannel);
+
+    assertThat(asyncClientStreamingCall(serviceStub::clientStreamingRpc, request)).containsExactly(response);
   }
 
   @Test
   void should_not_return_a_response_when_first_request_does_not_satisfy_matching_condition() {
-    SimpleRequest matchRequest = SimpleRequest.newBuilder()
-        .setRequestMessage("message-1")
-        .build();
-
     stubFor(clientStreamingMethod(SimpleServiceGrpc.getClientStreamingRpcMethod())
-        .withFirstRequest(matchRequest)
+        .withFirstRequest(request2)
         .willReturn(response));
 
     SimpleServiceStub serviceStub = SimpleServiceGrpc.newStub(serverChannel);

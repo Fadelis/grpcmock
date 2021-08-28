@@ -1,16 +1,14 @@
 package org.grpcmock.definitions.verification;
 
-import static java.util.Optional.ofNullable;
-
 import io.grpc.MethodDescriptor;
 import java.io.ByteArrayInputStream;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import org.grpcmock.definitions.matcher.HeadersMatcher;
 import org.grpcmock.definitions.matcher.RequestMatcher;
+import org.grpcmock.interceptors.CapturedRequest;
 
 /**
  * Defines the conditions for {@link CapturedRequest} matching.
@@ -26,13 +24,14 @@ public class RequestPattern<ReqT> {
   RequestPattern(
       @Nonnull MethodDescriptor<ReqT, ?> method,
       @Nonnull HeadersMatcher headersMatcher,
-      @Nullable RequestMatcher<ReqT> requestsMatcher
+      @Nonnull RequestMatcher<ReqT> requestsMatcher
   ) {
     Objects.requireNonNull(method);
     Objects.requireNonNull(headersMatcher);
+    Objects.requireNonNull(requestsMatcher);
     this.method = method;
     this.headersMatcher = headersMatcher;
-    this.requestsMatcher = ofNullable(requestsMatcher).orElseGet(RequestMatcher::empty);
+    this.requestsMatcher = requestsMatcher;
   }
 
   public String fullMethodName() {

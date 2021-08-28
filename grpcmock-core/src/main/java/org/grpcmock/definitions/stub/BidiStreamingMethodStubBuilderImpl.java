@@ -53,7 +53,7 @@ public final class BidiStreamingMethodStubBuilderImpl<ReqT, RespT> implements
       @Nonnull Predicate<ReqT> requestPredicate
   ) {
     this.requestPatternBuilder.clearRequestsPredicates();
-    this.requestPatternBuilder.withRequestAtIndex(0, requestPredicate);
+    this.requestPatternBuilder.withFirstRequest(requestPredicate);
     return this;
   }
 

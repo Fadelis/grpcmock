@@ -9,6 +9,7 @@ import static org.grpcmock.GrpcMock.statusException;
 import static org.grpcmock.GrpcMock.stream;
 import static org.grpcmock.GrpcMock.stubFor;
 import static org.grpcmock.GrpcMock.times;
+import static org.grpcmock.GrpcMock.unaryMethod;
 import static org.grpcmock.GrpcMock.verifyThat;
 
 import io.grpc.Status;
@@ -34,32 +35,25 @@ class GrpcMockServerStreamingMethodTest extends TestBase {
 
   @Test
   void should_return_a_unary_response() {
-    SimpleResponse expected = SimpleResponse.newBuilder()
-        .setResponseMessage("message-1")
-        .build();
-
     stubFor(serverStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
-        .willReturn(expected));
+        .willReturn(response));
 
     SimpleServiceStub serviceStub = SimpleServiceGrpc.newStub(serverChannel);
 
-    assertThat(asyncStubCall(request, serviceStub::serverStreamingRpc)).containsExactly(expected);
+    assertThat(asyncStubCall(request, serviceStub::serverStreamingRpc)).containsExactly(response);
   }
 
   @Test
   void should_return_a_unary_response_with_a_delay() {
     long start = System.currentTimeMillis();
-    SimpleResponse expected = SimpleResponse.newBuilder()
-        .setResponseMessage("message-1")
-        .build();
 
     stubFor(serverStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
-        .willReturn(response(expected)
+        .willReturn(response(response)
             .withFixedDelay(200)));
 
     SimpleServiceStub serviceStub = SimpleServiceGrpc.newStub(serverChannel);
 
-    assertThat(asyncStubCall(request, serviceStub::serverStreamingRpc)).containsExactly(expected);
+    assertThat(asyncStubCall(request, serviceStub::serverStreamingRpc)).containsExactly(response);
     assertThat(System.currentTimeMillis() - start).isGreaterThan(200);
   }
 
@@ -174,54 +168,43 @@ class GrpcMockServerStreamingMethodTest extends TestBase {
 
   @Test
   void should_return_a_response_when_request_equals_to_defined_condition_one() {
-    SimpleRequest matchRequest = SimpleRequest.newBuilder()
-        .setRequestMessage("message-1")
-        .build();
-    SimpleResponse expected = SimpleResponse.newBuilder()
-        .setResponseMessage("message-1")
-        .build();
-
     stubFor(serverStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
-        .withRequest(matchRequest)
-        .willReturn(response(expected)));
+        .withRequest(request)
+        .willReturn(response(response)));
 
     SimpleServiceStub serviceStub = SimpleServiceGrpc.newStub(serverChannel);
 
-    assertThat(asyncStubCall(matchRequest, serviceStub::serverStreamingRpc))
-        .containsExactly(expected);
+    assertThat(asyncStubCall(request, serviceStub::serverStreamingRpc)).containsExactly(response);
   }
 
   @Test
   void should_return_a_response_when_request_satisfies_defined_matching_condition() {
-    SimpleRequest matchRequest = SimpleRequest.newBuilder()
-        .setRequestMessage("message-1")
-        .build();
-    SimpleResponse expected = SimpleResponse.newBuilder()
-        .setResponseMessage("message-1")
-        .build();
-
     stubFor(serverStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
         .withRequest(req -> req.getRequestMessage().endsWith("1"))
-        .willReturn(response(expected)));
+        .willReturn(response(response)));
 
     SimpleServiceStub serviceStub = SimpleServiceGrpc.newStub(serverChannel);
 
-    assertThat(asyncStubCall(matchRequest, serviceStub::serverStreamingRpc))
-        .containsExactly(expected);
+    assertThat(asyncStubCall(request, serviceStub::serverStreamingRpc)).containsExactly(response);
+  }
+
+  @Test
+  void should_overwrite_request_matching_condition_on_subsequent_call() {
+    stubFor(unaryMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
+        .withRequest(request2)
+        .withRequest(request)
+        .willReturn(response));
+
+    SimpleServiceStub serviceStub = SimpleServiceGrpc.newStub(serverChannel);
+
+    assertThat(asyncStubCall(request, serviceStub::serverStreamingRpc)).containsExactly(response);
   }
 
   @Test
   void should_not_return_a_response_when_request_does_not_satisfy_matching_condition() {
-    SimpleRequest matchRequest = SimpleRequest.newBuilder()
-        .setRequestMessage("message-1")
-        .build();
-    SimpleResponse expected = SimpleResponse.newBuilder()
-        .setResponseMessage("message-1")
-        .build();
-
     stubFor(serverStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
-        .withRequest(matchRequest)
-        .willReturn(response(expected)));
+        .withRequest(request2)
+        .willReturn(response(response)));
 
     SimpleServiceStub serviceStub = SimpleServiceGrpc.newStub(serverChannel);
 
@@ -231,14 +214,10 @@ class GrpcMockServerStreamingMethodTest extends TestBase {
 
   @Test
   void should_return_a_response_when_headers_satisfies_defined_matching_condition() {
-    SimpleResponse expected = SimpleResponse.newBuilder()
-        .setResponseMessage("message-1")
-        .build();
-
     stubFor(serverStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
         .withHeader(HEADER_1, "value-1")
         .withHeader(HEADER_2, value -> value.startsWith("value"))
-        .willReturn(response(expected)));
+        .willReturn(response(response)));
 
     SimpleServiceStub serviceStub = stubWithHeaders(
         SimpleServiceGrpc.newStub(serverChannel),
@@ -246,18 +225,14 @@ class GrpcMockServerStreamingMethodTest extends TestBase {
         HEADER_2, "value-2"
     );
 
-    assertThat(asyncStubCall(request, serviceStub::serverStreamingRpc)).containsExactly(expected);
+    assertThat(asyncStubCall(request, serviceStub::serverStreamingRpc)).containsExactly(response);
   }
 
   @Test
   void should_not_return_a_response_when_headers_does_not_satisfy_matching_condition() {
-    SimpleResponse expected = SimpleResponse.newBuilder()
-        .setResponseMessage("message-1")
-        .build();
-
     stubFor(serverStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
         .withoutHeader(HEADER_2)
-        .willReturn(response(expected)));
+        .willReturn(response(response)));
 
     SimpleServiceStub serviceStub = stubWithHeaders(
         SimpleServiceGrpc.newStub(serverChannel),
@@ -271,22 +246,15 @@ class GrpcMockServerStreamingMethodTest extends TestBase {
 
   @Test
   void should_return_multiple_unary_responses_for_multiple_requests() {
-    SimpleResponse expected1 = SimpleResponse.newBuilder()
-        .setResponseMessage("message-1")
-        .build();
-    SimpleResponse expected2 = SimpleResponse.newBuilder()
-        .setResponseMessage("message-2")
-        .build();
-
     stubFor(serverStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
-        .willReturn(expected1)
-        .nextWillReturn(expected2));
+        .willReturn(response)
+        .nextWillReturn(response2));
 
     SimpleServiceStub serviceStub = SimpleServiceGrpc.newStub(serverChannel);
 
-    assertThat(asyncStubCall(request, serviceStub::serverStreamingRpc)).containsExactly(expected1);
-    assertThat(asyncStubCall(request, serviceStub::serverStreamingRpc)).containsExactly(expected2);
-    assertThat(asyncStubCall(request, serviceStub::serverStreamingRpc)).containsExactly(expected2);
+    assertThat(asyncStubCall(request, serviceStub::serverStreamingRpc)).containsExactly(response);
+    assertThat(asyncStubCall(request, serviceStub::serverStreamingRpc)).containsExactly(response2);
+    assertThat(asyncStubCall(request, serviceStub::serverStreamingRpc)).containsExactly(response2);
   }
 
   @Test
@@ -365,23 +333,15 @@ class GrpcMockServerStreamingMethodTest extends TestBase {
 
   @Test
   void should_return_multiple_unary_object_or_error_responses_for_multiple_requests() {
-    SimpleResponse response1 = SimpleResponse.newBuilder()
-        .setResponseMessage("message-1")
-        .build();
-    SimpleResponse response2 = SimpleResponse.newBuilder()
-        .setResponseMessage("message-2")
-        .build();
-
     stubFor(serverStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
-        .willReturn(response1)
+        .willReturn(response)
         .nextWillReturn(Status.INTERNAL)
         .nextWillReturn(response2));
 
     SimpleServiceStub serviceStub = SimpleServiceGrpc.newStub(serverChannel);
 
-    assertThat(asyncStubCall(request, serviceStub::serverStreamingRpc)).containsExactly(response1);
-    assertThatThrownBy(() -> asyncStubCall(request, serviceStub::serverStreamingRpc))
-        .hasMessage("INTERNAL");
+    assertThat(asyncStubCall(request, serviceStub::serverStreamingRpc)).containsExactly(response);
+    assertThatThrownBy(() -> asyncStubCall(request, serviceStub::serverStreamingRpc)).hasMessage("INTERNAL");
     assertThat(asyncStubCall(request, serviceStub::serverStreamingRpc)).containsExactly(response2);
     assertThat(asyncStubCall(request, serviceStub::serverStreamingRpc)).containsExactly(response2);
   }
@@ -448,87 +408,53 @@ class GrpcMockServerStreamingMethodTest extends TestBase {
 
   @Test
   void should_register_multiple_same_method_scenarios_with_different_matching_conditions() {
-    SimpleRequest request1 = SimpleRequest.newBuilder()
-        .setRequestMessage("message-1")
-        .build();
-    SimpleRequest request2 = SimpleRequest.newBuilder()
-        .setRequestMessage("message-2")
-        .build();
-    SimpleResponse expected1 = SimpleResponse.newBuilder()
-        .setResponseMessage("message-1")
-        .build();
-    SimpleResponse expected2 = SimpleResponse.newBuilder()
-        .setResponseMessage("message-2")
-        .build();
-
     stubFor(serverStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
-        .withRequest(request1)
-        .willReturn(expected1));
+        .withRequest(request)
+        .willReturn(response));
     stubFor(serverStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
         .withRequest(request2)
-        .willReturn(expected2));
+        .willReturn(response2));
 
     SimpleServiceStub serviceStub = SimpleServiceGrpc.newStub(serverChannel);
 
-    assertThat(asyncStubCall(request1, serviceStub::serverStreamingRpc)).containsExactly(expected1);
-    assertThat(asyncStubCall(request2, serviceStub::serverStreamingRpc)).containsExactly(expected2);
+    assertThat(asyncStubCall(request, serviceStub::serverStreamingRpc)).containsExactly(response);
+    assertThat(asyncStubCall(request2, serviceStub::serverStreamingRpc)).containsExactly(response2);
     verifyThat(SimpleServiceGrpc.getServerStreamingRpcMethod(), times(2));
   }
 
   @Test
   void should_last_register_method_scenario_should_be_triggered_when_multiple_matches_available() {
-    SimpleResponse expected1 = SimpleResponse.newBuilder()
-        .setResponseMessage("message-1")
-        .build();
-    SimpleResponse expected2 = SimpleResponse.newBuilder()
-        .setResponseMessage("message-2")
-        .build();
-
     stubFor(serverStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
-        .willReturn(expected1));
+        .willReturn(response));
     stubFor(serverStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
-        .willReturn(expected2));
+        .willReturn(response2));
 
     SimpleServiceStub serviceStub = SimpleServiceGrpc.newStub(serverChannel);
 
     // check multiple times
-    assertThat(asyncStubCall(request, serviceStub::serverStreamingRpc)).containsExactly(expected2);
-    assertThat(asyncStubCall(request, serviceStub::serverStreamingRpc)).containsExactly(expected2);
+    assertThat(asyncStubCall(request, serviceStub::serverStreamingRpc)).containsExactly(response2);
+    assertThat(asyncStubCall(request, serviceStub::serverStreamingRpc)).containsExactly(response2);
   }
 
   @Test
   void should_call_proxying_response_as_initial_response() {
-    SimpleResponse response1 = SimpleResponse.newBuilder()
-        .setResponseMessage("message-1")
-        .build();
-    SimpleResponse response2 = SimpleResponse.newBuilder()
-        .setResponseMessage("message-2")
-        .build();
-
     stubFor(serverStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
         .willProxyTo((request, responseObserver) -> {
-          responseObserver.onNext(response1);
+          responseObserver.onNext(response);
           responseObserver.onCompleted();
         })
         .nextWillReturn(response2));
 
     SimpleServiceStub serviceStub = SimpleServiceGrpc.newStub(serverChannel);
 
-    assertThat(asyncStubCall(request, serviceStub::serverStreamingRpc)).containsExactly(response1);
+    assertThat(asyncStubCall(request, serviceStub::serverStreamingRpc)).containsExactly(response);
     assertThat(asyncStubCall(request, serviceStub::serverStreamingRpc)).containsExactly(response2);
   }
 
   @Test
   void should_call_proxying_response_as_subsequent_call_response() {
-    SimpleResponse response1 = SimpleResponse.newBuilder()
-        .setResponseMessage("message-1")
-        .build();
-    SimpleResponse response2 = SimpleResponse.newBuilder()
-        .setResponseMessage("message-2")
-        .build();
-
     stubFor(serverStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
-        .willReturn(response1)
+        .willReturn(response)
         .nextWillProxyTo((request, responseObserver) -> {
           responseObserver.onNext(response2);
           responseObserver.onCompleted();
@@ -536,7 +462,7 @@ class GrpcMockServerStreamingMethodTest extends TestBase {
 
     SimpleServiceStub serviceStub = SimpleServiceGrpc.newStub(serverChannel);
 
-    assertThat(asyncStubCall(request, serviceStub::serverStreamingRpc)).containsExactly(response1);
+    assertThat(asyncStubCall(request, serviceStub::serverStreamingRpc)).containsExactly(response);
     assertThat(asyncStubCall(request, serviceStub::serverStreamingRpc)).containsExactly(response2);
   }
 
@@ -544,9 +470,6 @@ class GrpcMockServerStreamingMethodTest extends TestBase {
   void should_call_proxying_response_built_based_on_request() {
     SimpleResponse response1 = SimpleResponse.newBuilder()
         .setResponseMessage("message-1 for " + REQUEST_MESSAGE)
-        .build();
-    SimpleResponse response2 = SimpleResponse.newBuilder()
-        .setResponseMessage("message-2")
         .build();
 
     stubFor(serverStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
@@ -563,31 +486,24 @@ class GrpcMockServerStreamingMethodTest extends TestBase {
 
   @Test
   void should_call_proxying_response_built_based_on_request_as_subsequent_call_response() {
-    SimpleResponse response1 = SimpleResponse.newBuilder()
-        .setResponseMessage("message-1")
-        .build();
     SimpleResponse response2 = SimpleResponse.newBuilder()
         .setResponseMessage("message-2 for " + REQUEST_MESSAGE)
         .build();
 
     stubFor(serverStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
-        .willReturn(response1)
+        .willReturn(response)
         .nextWillReturn(request -> SimpleResponse.newBuilder()
             .setResponseMessage("message-2 for " + request.getRequestMessage())
             .build()));
 
     SimpleServiceStub serviceStub = SimpleServiceGrpc.newStub(serverChannel);
 
-    assertThat(asyncStubCall(request, serviceStub::serverStreamingRpc)).containsExactly(response1);
+    assertThat(asyncStubCall(request, serviceStub::serverStreamingRpc)).containsExactly(response);
     assertThat(asyncStubCall(request, serviceStub::serverStreamingRpc)).containsExactly(response2);
   }
 
   @Test
   void should_call_proxying_response_passed_from_bindable_service_impl() {
-    SimpleResponse response = SimpleResponse.newBuilder()
-        .setResponseMessage("message-1")
-        .build();
-
     SimpleServiceImplBase service = new SimpleServiceImplBase() {
       @Override
       public void serverStreamingRpc(
