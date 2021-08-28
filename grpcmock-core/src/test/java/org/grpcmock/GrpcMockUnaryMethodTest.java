@@ -14,6 +14,7 @@ import io.grpc.testing.protobuf.SimpleResponse;
 import io.grpc.testing.protobuf.SimpleServiceGrpc;
 import io.grpc.testing.protobuf.SimpleServiceGrpc.SimpleServiceBlockingStub;
 import io.grpc.testing.protobuf.SimpleServiceGrpc.SimpleServiceImplBase;
+import java.time.Duration;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -50,6 +51,57 @@ class GrpcMockUnaryMethodTest extends TestBase {
 
     assertThat(serviceStub.unaryRpc(request)).isEqualTo(expected);
     assertThat(System.currentTimeMillis() - start).isGreaterThan(200);
+  }
+
+  @Test
+  void should_return_a_unary_response_with_a_random_delay() {
+    long start = System.currentTimeMillis();
+    SimpleResponse expected = SimpleResponse.newBuilder()
+        .setResponseMessage("message-1")
+        .build();
+
+    stubFor(unaryMethod(SimpleServiceGrpc.getUnaryRpcMethod())
+        .willReturn(response(expected)
+            .withRandomDelay(50, 200)));
+
+    SimpleServiceBlockingStub serviceStub = SimpleServiceGrpc.newBlockingStub(serverChannel);
+
+    assertThat(serviceStub.unaryRpc(request)).isEqualTo(expected);
+    assertThat(System.currentTimeMillis() - start).isGreaterThan(50L);
+  }
+
+  @Test
+  void should_return_a_unary_response_with_a_duration_delay() {
+    long start = System.currentTimeMillis();
+    SimpleResponse expected = SimpleResponse.newBuilder()
+        .setResponseMessage("message-1")
+        .build();
+
+    stubFor(unaryMethod(SimpleServiceGrpc.getUnaryRpcMethod())
+        .willReturn(response(expected)
+            .withFixedDelay(Duration.ofMillis(200))));
+
+    SimpleServiceBlockingStub serviceStub = SimpleServiceGrpc.newBlockingStub(serverChannel);
+
+    assertThat(serviceStub.unaryRpc(request)).isEqualTo(expected);
+    assertThat(System.currentTimeMillis() - start).isGreaterThan(200);
+  }
+
+  @Test
+  void should_return_a_unary_response_with_a_duration_random_delay() {
+    long start = System.currentTimeMillis();
+    SimpleResponse expected = SimpleResponse.newBuilder()
+        .setResponseMessage("message-1")
+        .build();
+
+    stubFor(unaryMethod(SimpleServiceGrpc.getUnaryRpcMethod())
+        .willReturn(response(expected)
+            .withRandomDelay(Duration.ofMillis(50), Duration.ofMillis(200))));
+
+    SimpleServiceBlockingStub serviceStub = SimpleServiceGrpc.newBlockingStub(serverChannel);
+
+    assertThat(serviceStub.unaryRpc(request)).isEqualTo(expected);
+    assertThat(System.currentTimeMillis() - start).isGreaterThan(50L);
   }
 
   @Test

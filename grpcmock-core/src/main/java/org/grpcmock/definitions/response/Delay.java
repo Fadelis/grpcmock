@@ -30,13 +30,6 @@ public interface Delay {
   }
 
   /**
-   * Random delay between 0 and maxMilliseconds.
-   */
-  static Delay randomDelay(long maxMilliseconds) {
-    return randomDelay(0, maxMilliseconds);
-  }
-
-  /**
    * Trigger configured delay for the response action.
    */
   default void delayAction() {
