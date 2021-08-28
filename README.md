@@ -104,6 +104,7 @@ See more [examples](grpcmock-core/src/test/java/org/grpcmock/GrpcMockBidiStreami
 ```java
 verifyThat(
     calledMethod(getUnaryRpcMethod())
+        .withStatusOk()
         .withHeader("header-1", "value-1")
         .withRequest(request),
     times(3));

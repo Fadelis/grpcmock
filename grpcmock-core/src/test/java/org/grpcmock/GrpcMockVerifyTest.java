@@ -19,6 +19,7 @@ import static org.grpcmock.GrpcMock.unaryMethod;
 import static org.grpcmock.GrpcMock.verifyThat;
 
 import io.grpc.Status;
+import io.grpc.Status.Code;
 import io.grpc.internal.testing.StreamRecorder;
 import io.grpc.stub.StreamObserver;
 import io.grpc.testing.protobuf.SimpleRequest;
@@ -141,6 +142,7 @@ class GrpcMockVerifyTest extends TestBase {
 
     // specific invocation conditions
     verifyThat(calledMethod(getUnaryRpcMethod())
+        .withStatusOk()
         .withHeader(HEADER_1, "value-3")
         .withHeader(HEADER_2, "value-4")
         .withRequest(request2));
@@ -148,7 +150,8 @@ class GrpcMockVerifyTest extends TestBase {
 
   @Test
   void should_correctly_verify_unary_call_returning_an_exception() {
-    stubFor(unaryMethod(getUnaryRpcMethod()).willReturn(exception(new IllegalStateException())));
+    Exception exception = new IllegalStateException("some error");
+    stubFor(unaryMethod(getUnaryRpcMethod()).willReturn(exception(exception)));
 
     SimpleServiceBlockingStub serviceStub = stubWithHeaders(
         SimpleServiceGrpc.newBlockingStub(serverChannel),
@@ -156,10 +159,41 @@ class GrpcMockVerifyTest extends TestBase {
         HEADER_2, "value-2");
 
     assertThatThrownBy(() -> serviceStub.unaryRpc(request))
-        .hasMessageStartingWith("UNKNOWN");
+        .hasMessage("UNKNOWN");
     verifyThat(calledMethod(getUnaryRpcMethod())
+        .withStatus(closeStatus -> exception.equals(closeStatus.getCause()))
         .withHeader(HEADER_1, "value-1")
         .withRequest(request));
+  }
+
+  @Test
+  void should_correctly_verify_close_status_conditions() {
+    Status status = Status.ABORTED.withDescription("something went wrong");
+    stubFor(unaryMethod(getUnaryRpcMethod()).willReturn(status));
+
+    SimpleServiceBlockingStub serviceStub = SimpleServiceGrpc.newBlockingStub(serverChannel);
+
+    assertThatThrownBy(() -> serviceStub.unaryRpc(request))
+        .hasMessage("ABORTED: something went wrong");
+    verifyThat(calledMethod(getUnaryRpcMethod())
+        .withStatusCode(status.getCode())
+        .withStatusMessage(status.getDescription())
+        .withStatus(closeStatus -> closeStatus.getCause() == null));
+  }
+
+  @Test
+  void should_fail_verify_close_status_conditions() {
+    Status status = Status.ABORTED.withDescription("something went wrong");
+    stubFor(unaryMethod(getUnaryRpcMethod()).willReturn(status));
+
+    SimpleServiceBlockingStub serviceStub = SimpleServiceGrpc.newBlockingStub(serverChannel);
+
+    assertThatThrownBy(() -> serviceStub.unaryRpc(request)).hasMessage("ABORTED: something went wrong");
+    assertThatThrownBy(() -> verifyThat(calledMethod(getUnaryRpcMethod()).withStatusOk()));
+    assertThatThrownBy(() -> verifyThat(calledMethod(getUnaryRpcMethod()).withStatusCode(Code.INVALID_ARGUMENT)));
+    assertThatThrownBy(() -> verifyThat(calledMethod(getUnaryRpcMethod()).withStatusMessage("some message")));
+    assertThatThrownBy(() -> verifyThat(calledMethod(getUnaryRpcMethod())
+        .withStatus(closeStatus -> closeStatus.getCause() != null)));
   }
 
   @Test
@@ -174,6 +208,7 @@ class GrpcMockVerifyTest extends TestBase {
     assertThatThrownBy(() -> serviceStub.unaryRpc(request))
         .hasMessageStartingWith("INVALID_ARGUMENT");
     verifyThat(calledMethod(getUnaryRpcMethod())
+        .withStatusCode(Code.INVALID_ARGUMENT)
         .withHeader(HEADER_1, "value-1")
         .withRequest(request));
   }
@@ -344,6 +379,7 @@ class GrpcMockVerifyTest extends TestBase {
     assertThatThrownBy(() -> serviceStub.unaryRpc(request))
         .hasMessageStartingWith("UNIMPLEMENTED: No matching stub scenario was found for this method:");
     verifyThat(calledMethod(getUnaryRpcMethod())
+        .withStatusCode(Code.UNIMPLEMENTED)
         .withHeader(HEADER_1, "value-1")
         .withRequest(request));
   }
@@ -378,6 +414,7 @@ class GrpcMockVerifyTest extends TestBase {
     assertThatThrownBy(() -> serviceStub.unaryRpc(request))
         .hasMessageStartingWith("UNIMPLEMENTED: Method not found:");
     verifyThat(calledMethod(getUnaryRpcMethod())
+        .withStatusCode(Code.UNIMPLEMENTED)
         .withHeader(HEADER_1, "value-1")
         .withRequest(request));
   }
@@ -397,6 +434,7 @@ class GrpcMockVerifyTest extends TestBase {
     assertThat(streamRecorder.getError())
         .hasMessageStartingWith("UNIMPLEMENTED: Method not found:");
     verifyThat(calledMethod(getServerStreamingRpcMethod())
+        .withStatusCode(Code.UNIMPLEMENTED)
         .withHeader(HEADER_1, "value-1")
         .withRequest(request));
   }
@@ -419,6 +457,7 @@ class GrpcMockVerifyTest extends TestBase {
     assertThat(responseRecorder.getError())
         .hasMessageStartingWith("UNIMPLEMENTED: Method not found:");
     verifyThat(calledMethod(getClientStreamingRpcMethod())
+        .withStatusCode(Code.UNIMPLEMENTED)
         .withHeader(HEADER_1, "value-1")
         .withFirstRequest(request));
   }
@@ -441,6 +480,7 @@ class GrpcMockVerifyTest extends TestBase {
     assertThat(responseRecorder.getError())
         .hasMessageStartingWith("UNIMPLEMENTED: Method not found:");
     verifyThat(calledMethod(getBidiStreamingRpcMethod())
+        .withStatusCode(Code.UNIMPLEMENTED)
         .withHeader(HEADER_1, "value-1")
         .withFirstRequest(request));
   }

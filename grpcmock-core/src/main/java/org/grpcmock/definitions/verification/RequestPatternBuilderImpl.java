@@ -2,6 +2,7 @@ package org.grpcmock.definitions.verification;
 
 import io.grpc.Metadata;
 import io.grpc.MethodDescriptor;
+import io.grpc.Status;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
@@ -10,6 +11,8 @@ import org.grpcmock.definitions.matcher.HeadersMatcher;
 import org.grpcmock.definitions.matcher.HeadersMatcherBuilderImpl;
 import org.grpcmock.definitions.matcher.RequestMatcher;
 import org.grpcmock.definitions.matcher.RequestMatcherBuilderImpl;
+import org.grpcmock.definitions.matcher.StatusMatcher;
+import org.grpcmock.definitions.matcher.StatusMatcherBuilderImpl;
 import org.grpcmock.definitions.verification.steps.RequestPatternBuilderStep;
 import org.grpcmock.exception.GrpcMockException;
 import org.grpcmock.interceptors.CapturedRequest;
@@ -22,12 +25,19 @@ import org.grpcmock.interceptors.CapturedRequest;
 public class RequestPatternBuilderImpl<ReqT> implements RequestPatternBuilderStep<ReqT> {
 
   private final MethodDescriptor<ReqT, ?> method;
+  private final StatusMatcherBuilderImpl statusMatcherBuilder = StatusMatcher.builder();
   private final HeadersMatcherBuilderImpl headersMatcherBuilder = HeadersMatcher.builder();
   private final RequestMatcherBuilderImpl<ReqT> requestMatcherBuilder = RequestMatcher.builder();
 
   public RequestPatternBuilderImpl(@Nonnull MethodDescriptor<ReqT, ?> method) {
     Objects.requireNonNull(method);
     this.method = method;
+  }
+
+  @Override
+  public RequestPatternBuilderStep<ReqT> withStatus(@Nonnull Predicate<Status> predicate) {
+    statusMatcherBuilder.withStatus(predicate);
+    return this;
   }
 
   @Override
@@ -67,6 +77,7 @@ public class RequestPatternBuilderImpl<ReqT> implements RequestPatternBuilderSte
   public RequestPattern<ReqT> build() {
     return new RequestPattern<>(
         method,
+        statusMatcherBuilder.build(),
         headersMatcherBuilder.build(),
         requestMatcherBuilder.build()
     );

@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import org.grpcmock.definitions.matcher.HeadersMatcher;
 import org.grpcmock.definitions.matcher.RequestMatcher;
+import org.grpcmock.definitions.matcher.StatusMatcher;
 import org.grpcmock.interceptors.CapturedRequest;
 
 /**
@@ -18,18 +19,22 @@ import org.grpcmock.interceptors.CapturedRequest;
 public class RequestPattern<ReqT> {
 
   private final MethodDescriptor<ReqT, ?> method;
+  private final StatusMatcher statusMatcher;
   private final HeadersMatcher headersMatcher;
   private final RequestMatcher<ReqT> requestsMatcher;
 
   RequestPattern(
       @Nonnull MethodDescriptor<ReqT, ?> method,
+      @Nonnull StatusMatcher statusMatcher,
       @Nonnull HeadersMatcher headersMatcher,
       @Nonnull RequestMatcher<ReqT> requestsMatcher
   ) {
     Objects.requireNonNull(method);
+    Objects.requireNonNull(statusMatcher);
     Objects.requireNonNull(headersMatcher);
     Objects.requireNonNull(requestsMatcher);
     this.method = method;
+    this.statusMatcher = statusMatcher;
     this.headersMatcher = headersMatcher;
     this.requestsMatcher = requestsMatcher;
   }
@@ -40,6 +45,7 @@ public class RequestPattern<ReqT> {
 
   public boolean matches(CapturedRequest<ReqT> capturedRequest) {
     return capturedRequest.method().getFullMethodName().equals(method.getFullMethodName())
+        && statusMatcher.matches(capturedRequest.closeStatus())
         && headersMatcher.matches(capturedRequest.headers())
         && requestsMatcher.matches(normalizeRequests(capturedRequest.requests()));
   }
