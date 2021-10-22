@@ -4,7 +4,7 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>org.grpcmock</groupId>
+  <groupId>org.grpcmock.ip</groupId>
   <artifactId>grpcmock</artifactId>
   <version>0.6.2-SNAPSHOT</version>
   <packaging>pom</packaging>
@@ -18,7 +18,7 @@
 
   <name>gRPC Mock</name>
   <description>Tool for testing gRPC clients.</description>
-  <url>https://github.com/Fadelis/grpcmock</url>
+  <url>https://github.com/akoylu/grpcmock</url>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -246,9 +246,9 @@
     </license>
   </licenses>
   <scm>
-    <url>https://github.com/Fadelis/grpcmock</url>
-    <connection>scm:git:git://github.com/Fadelis/grpcmock.git</connection>
-    <developerConnection>scm:git:git@github.com/Fadelis/grpcmock.git</developerConnection>
+    <url>https://github.com/akoylu/grpcmock</url>
+    <connection>scm:git:git://github.com/akoylu/grpcmock.git</connection>
+    <developerConnection>scm:git:git@github.com/akoylu/grpcmock.git</developerConnection>
     <tag>HEAD</tag>
   </scm>
   <developers>

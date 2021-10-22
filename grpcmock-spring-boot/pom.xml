@@ -3,7 +3,7 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <parent>
     <artifactId>grpcmock</artifactId>
-    <groupId>org.grpcmock</groupId>
+    <groupId>org.grpcmock.ip</groupId>
     <version>0.6.2-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
@@ -14,7 +14,7 @@
 
   <dependencies>
     <dependency>
-      <groupId>org.grpcmock</groupId>
+      <groupId>org.grpcmock.ip</groupId>
       <artifactId>grpcmock-core</artifactId>
       <version>${project.version}</version>
     </dependency>
