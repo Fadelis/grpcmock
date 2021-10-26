@@ -1,9 +1,6 @@
 package org.grpcmock;
 
-import io.grpc.ManagedChannel;
 import io.grpc.inprocess.InProcessChannelBuilder;
-import io.grpc.testing.protobuf.SimpleRequest;
-import io.grpc.testing.protobuf.SimpleResponse;
 import io.grpc.testing.protobuf.SimpleServiceGrpc;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -13,15 +10,7 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.grpcmock.GrpcMock.*;
 
-class InProcessTest {
-
-    static final String RESPONSE_MESSAGE = "message-1";
-    static final String REQUEST_MESSAGE = "request-1";
-
-    final SimpleRequest request = SimpleRequest.newBuilder().setRequestMessage(REQUEST_MESSAGE).build();
-    final SimpleResponse response = SimpleResponse.newBuilder().setResponseMessage(RESPONSE_MESSAGE).build();
-
-    private ManagedChannel serverChannel;
+class InProcessTest extends TestBase {
 
     @BeforeAll
     static void beforeAll() {
@@ -51,5 +40,36 @@ class InProcessTest {
         SimpleServiceGrpc.SimpleServiceBlockingStub serviceStub = SimpleServiceGrpc.newBlockingStub(serverChannel);
 
         assertThat(serviceStub.unaryRpc(request)).isEqualTo(response);
+    }
+
+    @Test
+    void should_return_a_unary_response_with_server_streaming() {
+        stubFor(serverStreamingMethod(SimpleServiceGrpc.getServerStreamingRpcMethod())
+                .willReturn(response));
+
+        SimpleServiceGrpc.SimpleServiceStub serviceStub = SimpleServiceGrpc.newStub(serverChannel);
+
+        assertThat(asyncStubCall(request, serviceStub::serverStreamingRpc)).containsExactly(response);
+    }
+
+    @Test
+    void should_return_a_response_with_client_streaming() {
+        stubFor(clientStreamingMethod(SimpleServiceGrpc.getClientStreamingRpcMethod())
+                .willReturn(response));
+
+        SimpleServiceGrpc.SimpleServiceStub serviceStub = SimpleServiceGrpc.newStub(serverChannel);
+
+        assertThat(asyncClientStreamingCall(serviceStub::clientStreamingRpc, request, request2)).containsExactly(response);
+    }
+
+    @Test
+    void should_return_a_response_when_first_request_satisfies_defined_matching_condition() {
+        stubFor(bidiStreamingMethod(SimpleServiceGrpc.getBidiStreamingRpcMethod())
+                .withFirstRequest(request)
+                .willProxyTo(proxyingResponse(response)));
+
+        SimpleServiceGrpc.SimpleServiceStub serviceStub = SimpleServiceGrpc.newStub(serverChannel);
+
+        assertThat(asyncClientStreamingCall(serviceStub::bidiStreamingRpc, request, request2)).containsExactly(response);
     }
 }

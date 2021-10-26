@@ -14,14 +14,13 @@ import io.grpc.testing.protobuf.SimpleServiceGrpc.SimpleServiceImplBase;
 import io.grpc.testing.protobuf.SimpleServiceGrpc.SimpleServiceStub;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Function;
 import org.grpcmock.util.FunctionalResponseObserver;
 import org.junit.jupiter.api.Test;
 
 /**
  * @author Fadelis
  */
-class GrpcMockBidiStreamingMethodTest extends TestBase {
+class GrpcMockBidiStreamingMethodPortBasedTest extends PortBasedTestBase {
 
   @Test
   void should_return_a_response_when_first_request_satisfies_defined_matching_condition() {
@@ -222,14 +221,5 @@ class GrpcMockBidiStreamingMethodTest extends TestBase {
 
     assertThat(asyncClientStreamingCall(serviceStub::bidiStreamingRpc, request, request2)).containsExactly(response);
     assertThat(receivedRequests).containsExactly(request, request2);
-  }
-
-  private <ReqT, RespT> Function<StreamObserver<RespT>, StreamObserver<ReqT>> proxyingResponse(RespT response) {
-    return responseObserver -> FunctionalResponseObserver.<ReqT>builder()
-        .onCompleted(() -> {
-          responseObserver.onNext(response);
-          responseObserver.onCompleted();
-        })
-        .build();
   }
 }

@@ -174,7 +174,7 @@ public final class GrpcMock {
   }
 
   /**
-   * Returns gRPC Mock builder with the given name.
+   * Returns an in-process gRPC Mock builder with the given name.
    */
   public static GrpcMockBuilder grpcMock(String name) {
     return new InProcessGrpcMockBuilder(name);
