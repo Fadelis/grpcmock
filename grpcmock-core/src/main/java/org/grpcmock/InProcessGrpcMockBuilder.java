@@ -9,11 +9,23 @@ import javax.annotation.Nonnull;
  */
 public class InProcessGrpcMockBuilder extends GrpcMockBuilder {
 
+  private String name;
+
+  public String getName() {
+    return name;
+  }
+
   InProcessGrpcMockBuilder(@Nonnull InProcessServerBuilder serverBuilder) {
     super(serverBuilder);
   }
 
-  public InProcessGrpcMockBuilder(String name) {
+  public InProcessGrpcMockBuilder(@Nonnull String name) {
     this(InProcessServerBuilder.forName(name));
+
+    this.name = name;
+  }
+
+  public InProcessGrpcMockBuilder() {
+    this(InProcessServerBuilder.generateName());
   }
 }

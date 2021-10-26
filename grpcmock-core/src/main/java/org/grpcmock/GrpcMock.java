@@ -176,8 +176,15 @@ public final class GrpcMock {
   /**
    * Returns an in-process gRPC Mock builder with the given name.
    */
-  public static GrpcMockBuilder grpcMock(String name) {
+  public static InProcessGrpcMockBuilder inProcessGrpcMock(@Nonnull String name) {
     return new InProcessGrpcMockBuilder(name);
+  }
+
+  /**
+   * Returns an in-process gRPC Mock builder by generating a random name.
+   */
+  public static InProcessGrpcMockBuilder inProcessGrpcMock() {
+    return new InProcessGrpcMockBuilder();
   }
 
   /**

@@ -12,9 +12,13 @@ import static org.grpcmock.GrpcMock.*;
 
 class InProcessTest extends TestBase {
 
+    private static String name;
+
     @BeforeAll
     static void beforeAll() {
-        GrpcMock.configureFor(grpcMock("server-1").build().start());
+        InProcessGrpcMockBuilder inProcessGrpcMockBuilder = inProcessGrpcMock();
+        name = inProcessGrpcMockBuilder.getName();
+        GrpcMock.configureFor(inProcessGrpcMockBuilder.build().start());
     }
 
     @AfterEach
@@ -27,7 +31,7 @@ class InProcessTest extends TestBase {
         GrpcMock.resetMappings();
 
         serverChannel = InProcessChannelBuilder
-                .forName("server-1")
+                .forName(name)
                 .directExecutor()
                 .build();
     }
