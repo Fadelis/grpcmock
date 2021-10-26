@@ -17,6 +17,8 @@ import static org.grpcmock.GrpcMock.stubFor;
 import static org.grpcmock.GrpcMock.times;
 import static org.grpcmock.GrpcMock.unaryMethod;
 import static org.grpcmock.GrpcMock.verifyThat;
+import static org.grpcmock.definitions.verification.CountMatcher.once;
+import static org.grpcmock.definitions.verification.CountMatcher.twice;
 
 import io.grpc.Status;
 import io.grpc.Status.Code;
@@ -108,13 +110,13 @@ class GrpcMockVerifyTest extends TestBase {
             .withHeader(HEADER_1, "value-1")
             .withHeader(HEADER_2, "value-2")
             .withRequest(request2),
-        times(2));
+        twice());
     verifyThat(
         calledMethod(getUnaryRpcMethod())
             .withHeader(HEADER_1, "value-3")
             .withHeader(HEADER_2, "value-4")
             .withRequest(request2),
-        times(1));
+        once());
     verifyThat(
         calledMethod(getUnaryRpcMethod())
             .withHeader(HEADER_1, "value-4")

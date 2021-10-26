@@ -37,6 +37,20 @@ public class CountMatcher implements IntPredicate {
   }
 
   /**
+   * Called exactly one time.
+   */
+  public static CountMatcher once() {
+    return times(1);
+  }
+
+  /**
+   * Called exactly two times.
+   */
+  public static CountMatcher twice() {
+    return times(2);
+  }
+
+  /**
    * Never called.
    */
   public static CountMatcher never() {

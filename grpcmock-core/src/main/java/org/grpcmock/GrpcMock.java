@@ -174,6 +174,13 @@ public final class GrpcMock {
   }
 
   /**
+   * Returns gRPC Mock builder with the given name.
+   */
+  public static GrpcMockBuilder grpcMock(String name) {
+    return new InProcessGrpcMockBuilder(name);
+  }
+
+  /**
    * Returns gRPC Mock builder using the provided gRPC {@link ServerBuilder} configuration. The user is responsible that the port
    * used in the builder is available and free.
    */

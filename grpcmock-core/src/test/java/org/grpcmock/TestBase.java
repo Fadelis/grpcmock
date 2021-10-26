@@ -45,7 +45,7 @@ public class TestBase {
 
   @BeforeAll
   static void createServer() {
-    GrpcMock.configureFor(grpcMock(0).build().start());
+    GrpcMock.configureFor(grpcMock().build().start());
   }
 
   @BeforeEach
