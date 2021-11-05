@@ -2,7 +2,6 @@ package org.grpcmock;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.api.Assertions.fail;
 import static org.grpcmock.GrpcMock.response;
 import static org.grpcmock.GrpcMock.serverStreamingMethod;
 import static org.grpcmock.GrpcMock.statusException;
@@ -21,9 +20,7 @@ import io.grpc.testing.protobuf.SimpleServiceGrpc;
 import io.grpc.testing.protobuf.SimpleServiceGrpc.SimpleServiceImplBase;
 import io.grpc.testing.protobuf.SimpleServiceGrpc.SimpleServiceStub;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.TimeUnit;
-import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;
@@ -31,7 +28,7 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Fadelis
  */
-class GrpcMockServerStreamingMethodPortBasedTest extends PortBasedTestBase {
+class GrpcMockServerStreamingMethodTest extends PortBasedTestBase {
 
   @Test
   void should_return_a_unary_response() {

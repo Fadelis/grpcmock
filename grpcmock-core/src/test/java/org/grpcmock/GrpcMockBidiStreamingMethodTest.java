@@ -20,7 +20,7 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Fadelis
  */
-class GrpcMockBidiStreamingMethodPortBasedTest extends PortBasedTestBase {
+class GrpcMockBidiStreamingMethodTest extends PortBasedTestBase {
 
   @Test
   void should_return_a_response_when_first_request_satisfies_defined_matching_condition() {

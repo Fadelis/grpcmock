@@ -20,7 +20,7 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Fadelis
  */
-class GrpcMockUnaryMethodPortBasedTest extends PortBasedTestBase {
+class GrpcMockUnaryMethodTest extends PortBasedTestBase {
 
   @Test
   void should_return_a_unary_response() {

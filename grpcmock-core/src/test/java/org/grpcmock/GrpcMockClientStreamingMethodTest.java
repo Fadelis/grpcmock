@@ -27,7 +27,7 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Fadelis
  */
-class GrpcMockClientStreamingMethodPortBasedTest extends PortBasedTestBase {
+class GrpcMockClientStreamingMethodTest extends PortBasedTestBase {
 
 
   @Test

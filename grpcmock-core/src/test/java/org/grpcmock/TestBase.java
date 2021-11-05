@@ -1,5 +1,7 @@
 package org.grpcmock;
 
+import static org.assertj.core.api.Assertions.fail;
+
 import io.grpc.ManagedChannel;
 import io.grpc.Metadata;
 import io.grpc.Status;
@@ -9,8 +11,6 @@ import io.grpc.stub.MetadataUtils;
 import io.grpc.stub.StreamObserver;
 import io.grpc.testing.protobuf.SimpleRequest;
 import io.grpc.testing.protobuf.SimpleResponse;
-import org.grpcmock.util.FunctionalResponseObserver;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,8 +19,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Stream;
-
-import static org.assertj.core.api.Assertions.fail;
+import org.grpcmock.util.FunctionalResponseObserver;
 
 /**
  * @author Fadelis
@@ -80,8 +79,8 @@ abstract class TestBase {
   }
 
   <ReqT, RespT> List<RespT> asyncStubCall(
-          ReqT request,
-          BiConsumer<ReqT, StreamObserver<RespT>> callMethod
+      ReqT request,
+      BiConsumer<ReqT, StreamObserver<RespT>> callMethod
   ) {
     StreamRecorder<RespT> streamRecorder = StreamRecorder.create();
     callMethod.accept(request, streamRecorder);
@@ -100,10 +99,10 @@ abstract class TestBase {
 
   <ReqT, RespT> Function<StreamObserver<RespT>, StreamObserver<ReqT>> proxyingResponse(RespT response) {
     return responseObserver -> FunctionalResponseObserver.<ReqT>builder()
-            .onCompleted(() -> {
-              responseObserver.onNext(response);
-              responseObserver.onCompleted();
-            })
-            .build();
+        .onCompleted(() -> {
+          responseObserver.onNext(response);
+          responseObserver.onCompleted();
+        })
+        .build();
   }
 }
