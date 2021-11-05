@@ -31,7 +31,7 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Fadelis
  */
-class GrpcMockServerStreamingMethodTest extends TestBase {
+class GrpcMockServerStreamingMethodPortBasedTest extends PortBasedTestBase {
 
   @Test
   void should_return_a_unary_response() {
@@ -521,24 +521,5 @@ class GrpcMockServerStreamingMethodTest extends TestBase {
     SimpleServiceStub serviceStub = SimpleServiceGrpc.newStub(serverChannel);
 
     assertThat(asyncStubCall(request, serviceStub::serverStreamingRpc)).containsExactly(response);
-  }
-
-  private <ReqT, RespT> List<RespT> asyncStubCall(
-      ReqT request,
-      BiConsumer<ReqT, StreamObserver<RespT>> callMethod
-  ) {
-    StreamRecorder<RespT> streamRecorder = StreamRecorder.create();
-    callMethod.accept(request, streamRecorder);
-
-    try {
-      streamRecorder.awaitCompletion(10, TimeUnit.SECONDS);
-    } catch (Exception e) {
-      fail("failed waiting for response");
-    }
-
-    if (Objects.nonNull(streamRecorder.getError())) {
-      throw Status.fromThrowable(streamRecorder.getError()).asRuntimeException();
-    }
-    return streamRecorder.getValues();
   }
 }
