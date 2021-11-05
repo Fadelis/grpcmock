@@ -9,6 +9,8 @@ import io.grpc.ServerBuilder;
 import io.grpc.ServerInterceptor;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
+import io.grpc.inprocess.InProcessServerBuilder;
+import io.grpc.inprocess.InProcessSocketAddress;
 import io.grpc.stub.StreamObserver;
 import io.grpc.util.MutableHandlerRegistry;
 import java.io.IOException;
@@ -85,6 +87,20 @@ public final class GrpcMock {
    */
   public int getPort() {
     return server.getPort();
+  }
+
+  /**
+   * Retrieve the name of {@link io.grpc.inprocess.InProcessServer} if one is used.
+   *
+   * @throws GrpcMockException if the server is not an in-process one.
+   */
+  public String getInProcessName() {
+    return server.getListenSockets().stream()
+        .filter(InProcessSocketAddress.class::isInstance)
+        .map(InProcessSocketAddress.class::cast)
+        .map(InProcessSocketAddress::getName)
+        .findFirst()
+        .orElseThrow(() -> new GrpcMockException("This gRPC Mock instance does not use in-process server"));
   }
 
   /**
@@ -184,7 +200,7 @@ public final class GrpcMock {
    * Returns an in-process gRPC Mock builder by generating a random name.
    */
   public static InProcessGrpcMockBuilder inProcessGrpcMock() {
-    return new InProcessGrpcMockBuilder();
+    return new InProcessGrpcMockBuilder(InProcessServerBuilder.generateName());
   }
 
   /**
@@ -217,6 +233,15 @@ public final class GrpcMock {
    */
   public static int getGlobalPort() {
     return INSTANCE.get().getPort();
+  }
+
+  /**
+   * Returns the name of {@link io.grpc.inprocess.InProcessServer} if one is used for the global static gRPC Mock instance.
+   *
+   * @throws GrpcMockException if the server is not an in-process one.
+   */
+  public static String getGlobalInProcessName() {
+    return INSTANCE.get().getInProcessName();
   }
 
   /**

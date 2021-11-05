@@ -3,6 +3,7 @@ package org.grpcmock;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.grpcmock.GrpcMock.bidiStreamingMethod;
 import static org.grpcmock.GrpcMock.clientStreamingMethod;
+import static org.grpcmock.GrpcMock.getGlobalInProcessName;
 import static org.grpcmock.GrpcMock.inProcessGrpcMock;
 import static org.grpcmock.GrpcMock.response;
 import static org.grpcmock.GrpcMock.serverStreamingMethod;
@@ -10,7 +11,6 @@ import static org.grpcmock.GrpcMock.stubFor;
 import static org.grpcmock.GrpcMock.unaryMethod;
 
 import io.grpc.inprocess.InProcessChannelBuilder;
-import io.grpc.inprocess.InProcessServerBuilder;
 import io.grpc.testing.protobuf.SimpleServiceGrpc;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -19,11 +19,9 @@ import org.junit.jupiter.api.Test;
 
 class InProcessTest extends TestBase {
 
-  private static final String SERVER_NAME = InProcessServerBuilder.generateName();
-
   @BeforeAll
   static void beforeAll() {
-    GrpcMock.configureFor(inProcessGrpcMock(SERVER_NAME).build().start());
+    GrpcMock.configureFor(inProcessGrpcMock().build().start());
   }
 
   @AfterEach
@@ -35,7 +33,7 @@ class InProcessTest extends TestBase {
   void setUp() {
     GrpcMock.resetMappings();
 
-    serverChannel = InProcessChannelBuilder.forName(SERVER_NAME)
+    serverChannel = InProcessChannelBuilder.forName(getGlobalInProcessName())
         .usePlaintext()
         .build();
   }
