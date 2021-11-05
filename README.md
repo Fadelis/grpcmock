@@ -204,7 +204,29 @@ class TestClass {
 }
 ```
 
-Or alternatively, you can configure gRPC Mock programmatically using `@RegisterExtension` annotation:
+For quicker test execution you can integrate gRPC Mock using an in-process server via `@ExtendWith` annotation:
+
+```java
+@ExtendWith(InProcessGrpcMockExtension.class)
+class TestClass {
+
+  private ManagedChannel channel;
+
+  @BeforeEach
+  void setupChannel() {
+    channel = InProcessChannelBuilder.forName(GrpcMock.getGlobalInProcessName())
+        .usePlaintext()
+        .build();
+  }
+  
+  @AfterEach
+  void shutdownChannel() {
+    Optional.ofNullable(channel).ifPresent(ManagedChannel::shutdownNow);
+  }
+}
+```
+
+Alternatively, you can configure gRPC Mock programmatically using `@RegisterExtension` annotation:
 
 ```java
 class TestClass {

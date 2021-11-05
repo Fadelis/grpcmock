@@ -21,7 +21,7 @@ import org.junit.jupiter.api.BeforeEach;
  */
 abstract class TestBase {
 
-  private ManagedChannel serverChannel;
+  protected ManagedChannel serverChannel;
 
   @BeforeEach
   void setupChannel() {

@@ -22,8 +22,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * gRPC Mock extension for JUnit5. All stub mappings are reset after each test method. After all
- * tests in the test class are done the server will be shutdown.
+ * gRPC Mock extension for JUnit5. All stub mappings are reset after each test method. After all tests in the test class are done
+ * the server will be shutdown.
  *
  * @author Fadelis
  */
@@ -31,13 +31,13 @@ public class GrpcMockExtension implements BeforeAllCallback, AfterAllCallback, A
 
   private static final Logger log = LoggerFactory.getLogger(GrpcMockExtension.class);
 
-  private final GrpcMock server;
+  protected final GrpcMock server;
 
   public GrpcMockExtension() {
-    this(GrpcMock.grpcMock(0).build());
+    this(GrpcMock.grpcMock().build());
   }
 
-  private GrpcMockExtension(@Nonnull GrpcMock server) {
+  GrpcMockExtension(@Nonnull GrpcMock server) {
     Objects.requireNonNull(server);
     this.server = server;
     init();
@@ -47,10 +47,10 @@ public class GrpcMockExtension implements BeforeAllCallback, AfterAllCallback, A
     return new Builder();
   }
 
-  private void init() {
+  protected void init() {
     this.server.start();
     GrpcMock.configureFor(this.server);
-    log.debug("Started gRPC Mock server at port: " + this.server.getPort());
+    log.debug("Started gRPC Mock server at port: {}", getPort());
   }
 
   public int getPort() {
@@ -92,8 +92,7 @@ public class GrpcMockExtension implements BeforeAllCallback, AfterAllCallback, A
     }
 
     /**
-     * Defines the port value for the gRPC Mock server. If set to <code>0</code> a random free port
-     * will be picked.
+     * Defines the port value for the gRPC Mock server. If set to <code>0</code> a random free port will be picked.
      */
     public Builder withPort(int port) {
       this.port = port;
