@@ -37,7 +37,7 @@ public class GrpcMockExtension implements BeforeAllCallback, AfterAllCallback, A
     this(GrpcMock.grpcMock().build());
   }
 
-  GrpcMockExtension(@Nonnull GrpcMock server) {
+  public GrpcMockExtension(@Nonnull GrpcMock server) {
     Objects.requireNonNull(server);
     this.server = server;
     init();

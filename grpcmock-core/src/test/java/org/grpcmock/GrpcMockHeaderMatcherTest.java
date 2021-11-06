@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Fadelis
  */
-class GrpcMockHeaderMatcherTest extends PortBasedTestBase {
+class GrpcMockHeaderMatcherTest extends TestBase {
 
   private static final AsciiMarshaller<String> MARSHALLER = Metadata.ASCII_STRING_MARSHALLER;
   private static final Metadata.Key<String> STRING_KEY = Metadata.Key.of("key-1", MARSHALLER);

@@ -37,7 +37,7 @@ import org.junit.jupiter.api.Test;
 /**
  * @author Fadelis
  */
-class GrpcMockVerifyTest extends PortBasedTestBase {
+class GrpcMockVerifyTest extends TestBase {
 
   @Test
   void should_correctly_verify_call_count_for_unary_method() {

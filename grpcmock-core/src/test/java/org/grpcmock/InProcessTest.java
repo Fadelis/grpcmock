@@ -12,7 +12,6 @@ import static org.grpcmock.GrpcMock.unaryMethod;
 
 import io.grpc.inprocess.InProcessChannelBuilder;
 import io.grpc.testing.protobuf.SimpleServiceGrpc;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -20,17 +19,13 @@ import org.junit.jupiter.api.Test;
 class InProcessTest extends TestBase {
 
   @BeforeAll
-  static void beforeAll() {
+  static void createServer() {
     GrpcMock.configureFor(inProcessGrpcMock().build().start());
   }
 
-  @AfterEach
-  void cleanup() {
-    serverChannel.shutdownNow();
-  }
-
+  @Override
   @BeforeEach
-  void setUp() {
+  void setup() {
     GrpcMock.resetMappings();
 
     serverChannel = InProcessChannelBuilder.forName(getGlobalInProcessName())

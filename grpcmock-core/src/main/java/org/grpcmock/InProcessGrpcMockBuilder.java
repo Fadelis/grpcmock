@@ -8,11 +8,7 @@ import javax.annotation.Nonnull;
  */
 public class InProcessGrpcMockBuilder extends GrpcMockBuilder {
 
-  InProcessGrpcMockBuilder(@Nonnull InProcessServerBuilder serverBuilder) {
-    super(serverBuilder);
-  }
-
   public InProcessGrpcMockBuilder(@Nonnull String name) {
-    this(InProcessServerBuilder.forName(name));
+    super(InProcessServerBuilder.forName(name));
   }
 }

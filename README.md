@@ -204,7 +204,7 @@ class TestClass {
 }
 ```
 
-For quicker test execution you can integrate gRPC Mock using an in-process server via `@ExtendWith` annotation:
+For quicker unit test execution you can integrate gRPC Mock using an in-process server via `InProcessGrpcMockExtension` extension:
 
 ```java
 @ExtendWith(InProcessGrpcMockExtension.class)
