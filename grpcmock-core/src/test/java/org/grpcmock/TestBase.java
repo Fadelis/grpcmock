@@ -79,7 +79,7 @@ abstract class TestBase {
     Metadata metadata = new Metadata();
     headers.forEach((key, value) -> metadata.put(Metadata.Key.of(key, Metadata.ASCII_STRING_MARSHALLER), value));
 
-    return MetadataUtils.attachHeaders(baseStub, metadata);
+    return baseStub.withInterceptors(MetadataUtils.newAttachHeadersInterceptor(metadata));
   }
 
   <ReqT, RespT> List<RespT> asyncClientStreamingCall(

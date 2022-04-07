@@ -47,9 +47,13 @@ public class GrpcMockExtension implements BeforeAllCallback, AfterAllCallback, A
     return new Builder();
   }
 
-  protected void init() {
+  private void init() {
     this.server.start();
     GrpcMock.configureFor(this.server);
+    logServerStarted();
+  }
+
+  protected void logServerStarted() {
     log.debug("Started gRPC Mock server at port: {}", getPort());
   }
 

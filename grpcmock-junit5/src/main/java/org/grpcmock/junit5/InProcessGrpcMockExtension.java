@@ -18,10 +18,7 @@ public class InProcessGrpcMockExtension extends GrpcMockExtension {
     super(GrpcMock.inProcessGrpcMock().build());
   }
 
-  @Override
-  protected void init() {
-    this.server.start();
-    GrpcMock.configureFor(this.server);
+  protected void logServerStarted() {
     log.debug("Started in-process gRPC Mock server with name: {}", getInProcessName());
   }
 

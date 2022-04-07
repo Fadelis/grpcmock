@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>org.grpcmock</groupId>
@@ -25,14 +24,14 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <java.version>1.8</java.version>
 
-    <grpc.version>1.45.0</grpc.version>
-    <spring-boot.version>2.6.3</spring-boot.version>
+    <grpc.version>1.45.1</grpc.version>
+    <spring-boot.version>2.6.6</spring-boot.version>
     <slf4j.version>1.7.30</slf4j.version>
     <junit-jupiter.version>5.8.2</junit-jupiter.version>
-    <assertj.version>3.19.0</assertj.version>
-    <mockito.version>3.7.0</mockito.version>
-    <pmd.version>3.14.0</pmd.version>
-    <spotbugs.version>4.2.0</spotbugs.version>
+    <assertj.version>3.22.0</assertj.version>
+    <mockito.version>4.4.0</mockito.version>
+    <pmd.version>3.16.0</pmd.version>
+    <spotbugs.version>4.6.0.0</spotbugs.version>
     <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
     <maven-surefire-plugin.version>2.22.2</maven-surefire-plugin.version>
     <build-helper-maven-plugin.version>3.0.0</build-helper-maven-plugin.version>
@@ -133,6 +132,7 @@
           <effort>Max</effort>
           <threshold>Low</threshold>
           <failOnError>true</failOnError>
+          <omitVisitors>FindReturnRef</omitVisitors>
         </configuration>
         <executions>
           <execution>
