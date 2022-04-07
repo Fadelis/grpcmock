@@ -69,7 +69,9 @@ public final class RequestCaptureInterceptor implements ServerInterceptor {
       @Override
       public void onMessage(ReqT message) {
         requests.add(message);
-        log.info("\n{}\nReceived request:\n{}\n{}", SEPARATOR, capturedRequest, SEPARATOR);
+        if (log.isInfoEnabled()) {
+          log.info("\n{}\nReceived request:\n{}\n{}", SEPARATOR, capturedRequest, SEPARATOR);
+        }
         super.onMessage(message);
       }
     };
