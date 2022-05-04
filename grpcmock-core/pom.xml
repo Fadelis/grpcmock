@@ -4,7 +4,7 @@
   <parent>
     <artifactId>grpcmock</artifactId>
     <groupId>org.grpcmock</groupId>
-    <version>0.7.7-SNAPSHOT</version>
+    <version>0.7.8-SNAPSHOT</version>
   </parent>
   <modelVersion>4.0.0</modelVersion>
   <artifactId>grpcmock-core</artifactId>
