@@ -1,14 +1,14 @@
 package org.grpcmock.examples.spring.controller;
 
-import static com.jayway.restassured.RestAssured.when;
+import static io.restassured.RestAssured.when;
 import static org.grpcmock.GrpcMock.calledMethod;
 import static org.grpcmock.GrpcMock.stubFor;
 import static org.grpcmock.GrpcMock.unaryMethod;
 import static org.grpcmock.GrpcMock.verifyThat;
 import static org.hamcrest.CoreMatchers.is;
 
-import com.jayway.restassured.RestAssured;
 import io.grpc.Status;
+import io.restassured.RestAssured;
 import org.grpcmock.examples.spring.Application;
 import org.grpcmock.examples.v1.DownstreamServiceGrpc;
 import org.grpcmock.examples.v1.GetDownstreamMessageRequest;
