@@ -18,6 +18,7 @@ import org.junit.jupiter.api.extension.AfterAllCallback;
 import org.junit.jupiter.api.extension.AfterEachCallback;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
+import org.junit.platform.commons.support.ModifierSupport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -73,6 +74,9 @@ public class GrpcMockExtension implements BeforeAllCallback, AfterAllCallback, A
 
   @Override
   public void afterAll(ExtensionContext extensionContext) {
+    if (extensionContext.getTestClass().map(this::isNestedClass).orElse(Boolean.FALSE)) {
+      return;
+    }
     server.resetAll();
     server.stop();
     log.debug("Stopping gRPC Mock server.");
@@ -82,6 +86,10 @@ public class GrpcMockExtension implements BeforeAllCallback, AfterAllCallback, A
   public void afterEach(ExtensionContext extensionContext) {
     server.resetAll();
     log.debug("Resetting all stub mappings after a test");
+  }
+
+  private boolean isNestedClass(Class<?> currentClass) {
+    return !ModifierSupport.isStatic(currentClass) && currentClass.isMemberClass();
   }
 
   public static class Builder {
@@ -122,8 +130,8 @@ public class GrpcMockExtension implements BeforeAllCallback, AfterAllCallback, A
     }
 
     /**
-     * Defines certChain and privateKey files in order to configure server security via {@link
-     * ServerBuilder#useTransportSecurity(File, File)}.
+     * Defines certChain and privateKey files in order to configure server security via
+     * {@link ServerBuilder#useTransportSecurity(File, File)}.
      */
     public Builder withTransportSecurity(@Nonnull File certChain, @Nonnull File privateKey) {
       Objects.requireNonNull(certChain);
@@ -134,8 +142,8 @@ public class GrpcMockExtension implements BeforeAllCallback, AfterAllCallback, A
     }
 
     /**
-     * Defines certChain and privateKey files in order to configure server security via {@link
-     * ServerBuilder#useTransportSecurity(File, File)}.
+     * Defines certChain and privateKey files in order to configure server security via
+     * {@link ServerBuilder#useTransportSecurity(File, File)}.
      */
     public Builder withTransportSecurity(@Nonnull String certChain, @Nonnull String privateKey) {
       Objects.requireNonNull(certChain);

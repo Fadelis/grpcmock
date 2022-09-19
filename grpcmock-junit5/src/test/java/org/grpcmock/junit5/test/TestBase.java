@@ -38,7 +38,7 @@ abstract class TestBase {
   void runAndAssertHealthCheckRequest(HealthCheckRequest request, HealthCheckResponse response) {
     HealthBlockingStub serviceStub = HealthGrpc.newBlockingStub(serverChannel);
 
-    assertThat(serviceStub.check(HealthCheckRequest.getDefaultInstance())).isEqualTo(response);
+    assertThat(serviceStub.check(request)).isEqualTo(response);
   }
 
   void runAndAssertSimpleHealthCheckRequest() {
