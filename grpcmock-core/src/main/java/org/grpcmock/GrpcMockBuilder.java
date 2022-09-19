@@ -52,7 +52,6 @@ public class GrpcMockBuilder {
 
   private static int findFreePort() {
     try (ServerSocket socket = new ServerSocket(0)) {
-      socket.setReuseAddress(true);
       return socket.getLocalPort();
     } catch (IOException e) {
       throw new GrpcMockException("Failed finding a free port", e);
