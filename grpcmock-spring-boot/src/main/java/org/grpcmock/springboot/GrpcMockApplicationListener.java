@@ -2,12 +2,14 @@ package org.grpcmock.springboot;
 
 import static java.util.Optional.ofNullable;
 
+import io.grpc.inprocess.InProcessServerBuilder;
 import java.util.HashMap;
 import org.springframework.boot.context.event.ApplicationPreparedEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.util.SocketUtils;
+import org.springframework.util.StringUtils;
 
 /**
  * Prepares environment for gRPC Mock and finds a free port if needed.
@@ -36,6 +38,14 @@ public class GrpcMockApplicationListener implements ApplicationListener<Applicat
       environment.getPropertySources().addFirst(properties);
       properties.getSource().put("grpcmock.server.port", availablePort);
       properties.getSource().put("grpcmock.server.port-dynamic", true);
+    } else if (httpPort.equals(-1)) {
+      MapPropertySource properties = ofNullable(environment.getPropertySources().remove("grpcmock"))
+          .map(MapPropertySource.class::cast)
+          .orElseGet(() -> new MapPropertySource("grpcmock", new HashMap<>()));
+      environment.getPropertySources().addFirst(properties);
+      if (!StringUtils.hasText(environment.getProperty("grpcmock.server.name"))) {
+        properties.getSource().put("grpcmock.server.name", InProcessServerBuilder.generateName());
+      }
     }
   }
 }

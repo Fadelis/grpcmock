@@ -17,12 +17,10 @@ import org.grpcmock.springboot.GrpcMockTestInterceptorInsertTest.MyServerInterce
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Fadelis
  */
-@SpringJUnitConfig
 @SpringBootTest(classes = TestApplication.class, webEnvironment = WebEnvironment.NONE)
 @AutoConfigureGrpcMock(interceptors = MyServerInterceptor.class)
 class GrpcMockTestInterceptorInsertTest extends TestBase {

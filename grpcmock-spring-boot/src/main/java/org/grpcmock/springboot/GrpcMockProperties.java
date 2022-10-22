@@ -29,6 +29,7 @@ public class GrpcMockProperties {
     private String certChainFile;
     private String privateKeyFile;
     private boolean portDynamic = false;
+    private String name;
 
     public int getPort() {
       return port;
@@ -84,6 +85,14 @@ public class GrpcMockProperties {
 
     public void setPortDynamic(boolean portDynamic) {
       this.portDynamic = portDynamic;
+    }
+
+    public String getName() {
+      return name;
+    }
+
+    public void setName(String name) {
+      this.name = name;
     }
   }
 }

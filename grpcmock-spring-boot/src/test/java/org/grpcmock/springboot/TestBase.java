@@ -12,6 +12,7 @@ import io.grpc.health.v1.HealthCheckResponse;
 import io.grpc.health.v1.HealthCheckResponse.ServingStatus;
 import io.grpc.health.v1.HealthGrpc;
 import io.grpc.health.v1.HealthGrpc.HealthBlockingStub;
+import io.grpc.inprocess.InProcessChannelBuilder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,13 +24,21 @@ abstract class TestBase {
 
   @Value("${grpcmock.server.port}")
   protected int grpcMockPort;
+
+  @Value("${grpcmock.server.name}")
+  private String inProcessName;
+
   private ManagedChannel serverChannel;
 
   @BeforeEach
   void setupChannel() {
-    serverChannel = ManagedChannelBuilder.forAddress("localhost", grpcMockPort)
-        .usePlaintext()
-        .build();
+    if (grpcMockPort == -1) {
+      serverChannel = InProcessChannelBuilder.forName(inProcessName).build();
+    } else {
+      serverChannel = ManagedChannelBuilder.forAddress("localhost", grpcMockPort)
+          .usePlaintext()
+          .build();
+    }
   }
 
   @AfterEach

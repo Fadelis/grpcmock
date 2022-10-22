@@ -60,7 +60,12 @@ public class GrpcMockConfiguration implements SmartLifecycle {
       return; // no need to reinitialise
     }
     // Create server builder with the configured port
-    GrpcMockBuilder serverBuilder = GrpcMock.grpcMock(properties.getServer().getPort());
+    GrpcMockBuilder serverBuilder;
+    if (properties.getServer().getPort() == -1) {
+      serverBuilder = GrpcMock.inProcessGrpcMock(properties.getServer().getName());
+    } else {
+      serverBuilder = GrpcMock.grpcMock(properties.getServer().getPort());
+    }
     // Register server interceptors
     ofNullable(properties.getServer().getInterceptors())
         .ifPresent(interceptors -> Stream.of(interceptors)
@@ -86,8 +91,8 @@ public class GrpcMockConfiguration implements SmartLifecycle {
     }
     // build the gRPC Mock server
     log.debug(String.format(
-        "Creating a new GrpcMock server at http port [%d]",
-        properties.getServer().getPort()));
+        "Creating a new GrpcMock server at http port [%d], name [%s]",
+        properties.getServer().getPort(), properties.getServer().getName()));
     server = serverBuilder.build();
   }
 

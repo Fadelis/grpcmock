@@ -14,12 +14,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
 
 /**
  * @author Fadelis
  */
-@SpringJUnitConfig
 @SpringBootTest(classes = TestApplication.class, webEnvironment = WebEnvironment.NONE)
 @AutoConfigureGrpcMock(port = 10001)
 class GrpcMockTestFixedPortResetFirst extends TestBase {
