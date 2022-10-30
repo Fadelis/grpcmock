@@ -29,8 +29,17 @@ public class GrpcMockApplicationListener implements ApplicationListener<Applicat
     if (httpPort == null) {
       return;
     }
-
-    if (httpPort.equals(0)) {
+    boolean useInProcessServer = environment.getProperty("grpcmock.server.use-in-process-server", Boolean.class, false);
+    if (useInProcessServer) {
+      MapPropertySource properties = ofNullable(environment.getPropertySources().remove("grpcmock"))
+          .map(MapPropertySource.class::cast)
+          .orElseGet(() -> new MapPropertySource("grpcmock", new HashMap<>()));
+      environment.getPropertySources().addFirst(properties);
+      if (!StringUtils.hasText(environment.getProperty("grpcmock.server.name"))) {
+        properties.getSource().put("grpcmock.server.name", InProcessServerBuilder.generateName());
+        properties.getSource().put("grpcmock.server.port-dynamic", true);
+      }
+    } else if (httpPort.equals(0)) {
       int availablePort = SocketUtils.findAvailableTcpPort();
       MapPropertySource properties = ofNullable(environment.getPropertySources().remove("grpcmock"))
           .map(MapPropertySource.class::cast)
@@ -38,14 +47,6 @@ public class GrpcMockApplicationListener implements ApplicationListener<Applicat
       environment.getPropertySources().addFirst(properties);
       properties.getSource().put("grpcmock.server.port", availablePort);
       properties.getSource().put("grpcmock.server.port-dynamic", true);
-    } else if (httpPort.equals(-1)) {
-      MapPropertySource properties = ofNullable(environment.getPropertySources().remove("grpcmock"))
-          .map(MapPropertySource.class::cast)
-          .orElseGet(() -> new MapPropertySource("grpcmock", new HashMap<>()));
-      environment.getPropertySources().addFirst(properties);
-      if (!StringUtils.hasText(environment.getProperty("grpcmock.server.name"))) {
-        properties.getSource().put("grpcmock.server.name", InProcessServerBuilder.generateName());
-      }
     }
   }
 }

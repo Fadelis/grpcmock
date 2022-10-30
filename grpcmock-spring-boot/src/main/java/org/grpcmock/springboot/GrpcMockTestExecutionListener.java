@@ -21,7 +21,7 @@ public final class GrpcMockTestExecutionListener extends AbstractTestExecutionLi
     if (isInvalidContext(testContext)) {
       return;
     }
-    if (!portIsFixed(testContext)) {
+    if (!portOrNameIsFixed(testContext)) {
       grpcMockConfig(testContext).init();
     }
   }
@@ -31,9 +31,9 @@ public final class GrpcMockTestExecutionListener extends AbstractTestExecutionLi
     if (isInvalidContext(testContext)) {
       return;
     }
-    if (portIsFixed(testContext)) {
-      log.warn("You've used fixed ports for GrpcMock setup - "
-          + "will mark context as dirty. Please use random ports, as much "
+    if (portOrNameIsFixed(testContext)) {
+      log.warn("You've used fixed ports or InProcess server names for GrpcMock setup - "
+          + "will mark context as dirty. Please use random ports or names, as much "
           + "as possible. Your tests will be faster and more reliable and this "
           + "warning will go away");
       testContext.markApplicationContextDirty(DirtiesContext.HierarchyMode.EXHAUSTIVE);
@@ -95,7 +95,7 @@ public final class GrpcMockTestExecutionListener extends AbstractTestExecutionLi
     return testContext(testContext).getBean(GrpcMockProperties.class);
   }
 
-  private boolean portIsFixed(TestContext testContext) {
+  private boolean portOrNameIsFixed(TestContext testContext) {
     return !grpcMockProperties(testContext).getServer().isPortDynamic();
   }
 }

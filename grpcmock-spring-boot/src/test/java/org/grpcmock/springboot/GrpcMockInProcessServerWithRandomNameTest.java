@@ -20,7 +20,7 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
  * @author Fadelis
  */
 @SpringBootTest(classes = TestApplication.class, webEnvironment = WebEnvironment.NONE)
-@AutoConfigureGrpcMock(port = -1)
+@AutoConfigureGrpcMock(useInProcessServer = true)
 class GrpcMockInProcessServerWithRandomNameTest extends TestBase {
 
   @Autowired
@@ -42,7 +42,6 @@ class GrpcMockInProcessServerWithRandomNameTest extends TestBase {
   @Test
   void should_create_a_correct_bean() {
     assertThat(grpcMock).isNotNull();
-    assertThat(grpcMock.getPort()).isEqualTo(-1);
     assertThat(grpcMock.getInProcessName()).satisfies(UUID::fromString);
   }
 }

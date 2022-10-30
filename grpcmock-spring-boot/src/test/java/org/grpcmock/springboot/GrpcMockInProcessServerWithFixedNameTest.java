@@ -19,7 +19,7 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
  * @author Fadelis
  */
 @SpringBootTest(classes = TestApplication.class, webEnvironment = WebEnvironment.NONE)
-@AutoConfigureGrpcMock(port = -1, name = "test-server")
+@AutoConfigureGrpcMock(useInProcessServer = true, name = "test-server")
 class GrpcMockInProcessServerWithFixedNameTest extends TestBase {
 
   @Autowired

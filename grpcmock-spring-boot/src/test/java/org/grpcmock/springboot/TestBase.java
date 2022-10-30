@@ -29,11 +29,14 @@ abstract class TestBase {
   @Value("${grpcmock.server.name}")
   private String inProcessName;
 
+  @Value("${grpcmock.server.use-in-process-server}")
+  private boolean useInProcessServer;
+
   private ManagedChannel serverChannel;
 
   @BeforeEach
   void setupChannel() {
-    if (StringUtils.hasText(inProcessName)) {
+    if (useInProcessServer) {
       serverChannel = InProcessChannelBuilder.forName(inProcessName).build();
     } else {
       serverChannel = ManagedChannelBuilder.forAddress("localhost", grpcMockPort)

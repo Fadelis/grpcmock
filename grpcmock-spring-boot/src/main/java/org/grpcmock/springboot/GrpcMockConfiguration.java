@@ -61,7 +61,7 @@ public class GrpcMockConfiguration implements SmartLifecycle {
     }
     // Create server builder with the configured port
     GrpcMockBuilder serverBuilder;
-    if (properties.getServer().getPort() == -1) {
+    if (properties.getServer().isUseInProcessServer()) {
       serverBuilder = GrpcMock.inProcessGrpcMock(properties.getServer().getName());
     } else {
       serverBuilder = GrpcMock.grpcMock(properties.getServer().getPort());
