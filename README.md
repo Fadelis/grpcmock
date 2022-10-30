@@ -172,7 +172,7 @@ It's also possible to use InProcess server with Spring-Boot
 ```java
 @SpringJUnitConfig
 @SpringBootTest(classes = Application.class, webEnvironment = WebEnvironment.NONE)
-@AutoConfigureGrpcMock(port = -1)
+@AutoConfigureGrpcMock(useInProcessServer = true)
 class TestClass {
 
    @Value("${grpcmock.server.name}")
