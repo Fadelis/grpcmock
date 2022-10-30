@@ -16,6 +16,7 @@ import io.grpc.inprocess.InProcessChannelBuilder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.util.StringUtils;
 
 /**
  * @author Fadelis
@@ -32,7 +33,7 @@ abstract class TestBase {
 
   @BeforeEach
   void setupChannel() {
-    if (grpcMockPort == -1) {
+    if (StringUtils.hasText(inProcessName)) {
       serverChannel = InProcessChannelBuilder.forName(inProcessName).build();
     } else {
       serverChannel = ManagedChannelBuilder.forAddress("localhost", grpcMockPort)
