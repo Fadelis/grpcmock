@@ -165,7 +165,37 @@ class TestClass {
 
 If the gRPC Mock port is set to 0, then a random port will be selected for the server.
 It is the recommended approach to improve test run times.
-Once a random port is selected it can be access via `${grpcmock.server.port}` property and used in gRPC `Channel` creation.
+Once a random port is selected it can be accessed via `${grpcmock.server.port}` property and used in gRPC `Channel` creation.
+
+It's also possible to use InProcess server with Spring-Boot
+
+```java
+@SpringJUnitConfig
+@SpringBootTest(classes = Application.class, webEnvironment = WebEnvironment.NONE)
+@AutoConfigureGrpcMock(useInProcessServer = true)
+class TestClass {
+
+   @Value("${grpcmock.server.name}")
+   private String inProcessName;
+
+   private ManagedChannel channel;
+
+   @BeforeEach
+   void setupChannel() {
+      channel = InProcessChannelBuilder.forName(inProcessName).build();
+   }
+
+   @AfterEach
+   void shutdownChannel() {
+      Optional.ofNullable(channel).ifPresent(ManagedChannel::shutdownNow);
+   }
+}
+```
+
+If you don't set `name()` in `@AutoConfigureGrpcMock` then it will be generated randomly.
+Beware that it's not possible to create two InProcess servers at once so in case of fixed names
+you will have to configure a unique name for each spring context. If a random name is used
+it can be accessed via `${grpcmock.server.name}` property and used in gRPC `Channel` creation.
 
 To remove logging of incoming requests, logging level for GrpcMock should be changed in `application-test.yml`:
 

@@ -40,6 +40,16 @@ public @interface AutoConfigureGrpcMock {
   int port() default 0;
 
   /**
+   * Set this to true to use InProcessServer instead of netty based one.
+   */
+  boolean useInProcessServer() default false;
+
+  /**
+   * Defines the name of in-process server configured. If empty, a random name will be generated
+   */
+  String name() default "";
+
+  /**
    * Defines {@link ServerInterceptor} for the gRPC Mock server. Interceptors defined here must have
    * a default constructor without any arguments.
    */
