@@ -8,7 +8,7 @@ import org.springframework.boot.context.event.ApplicationPreparedEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
-import org.springframework.util.SocketUtils;
+import org.springframework.test.util.TestSocketUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -40,7 +40,7 @@ public class GrpcMockApplicationListener implements ApplicationListener<Applicat
         properties.getSource().put("grpcmock.server.port-dynamic", true);
       }
     } else if (httpPort.equals(0)) {
-      int availablePort = SocketUtils.findAvailableTcpPort();
+      int availablePort = TestSocketUtils.findAvailableTcpPort();
       MapPropertySource properties = ofNullable(environment.getPropertySources().remove("grpcmock"))
           .map(MapPropertySource.class::cast)
           .orElseGet(() -> new MapPropertySource("grpcmock", new HashMap<>()));
