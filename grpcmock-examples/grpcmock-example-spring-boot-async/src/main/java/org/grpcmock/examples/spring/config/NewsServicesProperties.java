@@ -7,7 +7,6 @@ import org.springframework.boot.context.properties.ConstructorBinding;
 /**
  * @author Fadelis
  */
-@ConstructorBinding
 @ConfigurationProperties("news-services")
 public class NewsServicesProperties {
 

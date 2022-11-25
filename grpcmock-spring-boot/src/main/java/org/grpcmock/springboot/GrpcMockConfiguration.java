@@ -9,7 +9,7 @@ import java.util.Objects;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.stream.Stream;
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import org.grpcmock.GrpcMock;
 import org.grpcmock.GrpcMockBuilder;
 import org.grpcmock.exception.GrpcMockException;
