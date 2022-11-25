@@ -23,6 +23,12 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>
       <version>${spring-boot.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>ch.qos.logback</groupId>
+          <artifactId>logback-classic</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>
@@ -69,6 +75,13 @@
       <artifactId>grpc-testing</artifactId>
       <version>${grpc.version}</version>
       <scope>test</scope>
+    </dependency>
+    <dependency>
+      <!-- Until gRPC generator library moves to generated jakarta instead of javax -->
+      <!-- https://github.com/grpc/grpc-java/issues/9179 -->
+      <groupId>javax.annotation</groupId>
+      <artifactId>javax.annotation-api</artifactId>
+      <version>${javax.annotation.api.version}</version>
     </dependency>
   </dependencies>
 
