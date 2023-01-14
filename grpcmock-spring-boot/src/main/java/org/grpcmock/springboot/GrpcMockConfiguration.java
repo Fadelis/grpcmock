@@ -18,7 +18,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.StringUtils;
@@ -34,7 +33,6 @@ public class GrpcMockConfiguration implements SmartLifecycle {
   private static final String GRPCMOCK_BEAN_NAME = "grpcMock";
 
   private final GrpcMockProperties properties;
-  private final ApplicationContext context;
   private final DefaultListableBeanFactory beanFactory;
 
   private volatile boolean running;
@@ -42,13 +40,8 @@ public class GrpcMockConfiguration implements SmartLifecycle {
   private GrpcMock server;
 
   @Autowired
-  GrpcMockConfiguration(
-      GrpcMockProperties properties,
-      ApplicationContext context,
-      DefaultListableBeanFactory beanFactory
-  ) {
+  GrpcMockConfiguration(GrpcMockProperties properties, DefaultListableBeanFactory beanFactory) {
     this.properties = properties;
-    this.context = context;
     this.beanFactory = beanFactory;
   }
 
@@ -75,7 +68,7 @@ public class GrpcMockConfiguration implements SmartLifecycle {
     // Register executor if present
     Executor executor = ofNullable(properties.getServer().getExecutorBeanName())
         .filter(StringUtils::hasText)
-        .map(name -> context.getBean(name, Executor.class))
+        .map(name -> beanFactory.getBean(name, Executor.class))
         .orElseGet(() -> of(properties.getServer().getExecutorThreadCount())
             .filter(threads -> threads > 0)
             .map(Executors::newFixedThreadPool)
