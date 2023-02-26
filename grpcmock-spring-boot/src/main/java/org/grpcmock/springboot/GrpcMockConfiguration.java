@@ -9,12 +9,12 @@ import java.util.Objects;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.stream.Stream;
-import javax.annotation.PostConstruct;
 import org.grpcmock.GrpcMock;
 import org.grpcmock.GrpcMockBuilder;
 import org.grpcmock.exception.GrpcMockException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -28,7 +28,7 @@ import org.springframework.util.StringUtils;
  */
 @Configuration
 @EnableConfigurationProperties(GrpcMockProperties.class)
-public class GrpcMockConfiguration implements SmartLifecycle {
+public class GrpcMockConfiguration implements SmartLifecycle, InitializingBean {
 
   private static final Logger log = LoggerFactory.getLogger(GrpcMockConfiguration.class);
   private static final String GRPCMOCK_BEAN_NAME = "grpcMock";
@@ -52,8 +52,8 @@ public class GrpcMockConfiguration implements SmartLifecycle {
     this.beanFactory = beanFactory;
   }
 
-  @PostConstruct
-  public void init() {
+  @Override
+  public void afterPropertiesSet() {
     if (isRunning()) {
       resetAll();
       updateGlobalServer();

@@ -38,7 +38,7 @@ class GrpcMockConfigurationTest {
     when(properties.getServer().getInterceptors())
         .thenReturn(new Class[]{MyServerInterceptor.class});
 
-    Assertions.assertThatThrownBy(configuration::init)
+    Assertions.assertThatThrownBy(configuration::afterPropertiesSet)
         .isInstanceOf(GrpcMockException.class)
         .hasMessageContaining("missing no-args constructor");
   }
@@ -47,7 +47,7 @@ class GrpcMockConfigurationTest {
   void should_throw_error_when_cert_chain_is_present_but_private_key_is_missing() {
     when(properties.getServer().getCertChainFile()).thenReturn("my-cert-chain");
 
-    Assertions.assertThatThrownBy(configuration::init)
+    Assertions.assertThatThrownBy(configuration::afterPropertiesSet)
         .isInstanceOf(GrpcMockException.class)
         .hasMessage("Both certChain and privateKey have to be defined");
   }
@@ -56,7 +56,7 @@ class GrpcMockConfigurationTest {
   void should_throw_error_when_private_key_is_present_but_cert_chain_is_missing() {
     when(properties.getServer().getPrivateKeyFile()).thenReturn("my-cert-chain");
 
-    Assertions.assertThatThrownBy(configuration::init)
+    Assertions.assertThatThrownBy(configuration::afterPropertiesSet)
         .isInstanceOf(GrpcMockException.class)
         .hasMessage("Both certChain and privateKey have to be defined");
   }

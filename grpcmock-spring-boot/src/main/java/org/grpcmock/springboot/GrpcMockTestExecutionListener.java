@@ -22,7 +22,7 @@ public final class GrpcMockTestExecutionListener extends AbstractTestExecutionLi
       return;
     }
     if (!portOrNameIsFixed(testContext)) {
-      grpcMockConfig(testContext).init();
+      grpcMockConfig(testContext).afterPropertiesSet();
     }
   }
 
