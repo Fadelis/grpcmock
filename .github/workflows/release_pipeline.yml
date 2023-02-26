@@ -49,7 +49,7 @@ jobs:
       - name: Commit snapshot version bump
         uses: EndBug/add-and-commit@v9
         with:
-          branch: 'master'
+          push: 'origin HEAD:master'
           message: 'bump snapshot version'
           author_name: github-actions
           author_email: 41898282+github-actions[bot]@users.noreply.github.com
