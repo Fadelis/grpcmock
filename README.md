@@ -132,7 +132,7 @@ gRPC Mock integrates with Spring-Boot via `grpcmock-spring-boot` module.
 <dependency>
   <groupId>org.grpcmock</groupId>
   <artifactId>grpcmock-spring-boot</artifactId>
-  <version>0.9.4</version>
+  <version>0.9.5</version>
 </dependency>
 ```
 
@@ -211,7 +211,7 @@ gRPC Mock integrates with JUnit5 via `grpcmock-junit5` module.
 <dependency>
   <groupId>org.grpcmock</groupId>
   <artifactId>grpcmock-junit5</artifactId>
-  <version>0.9.4</version>
+  <version>0.9.5</version>
 </dependency>
 ```
 
