@@ -37,10 +37,11 @@ public final class RequestCaptureInterceptor implements ServerInterceptor {
   public <ReqT> List<CapturedRequest<ReqT>> requestsFor(@Nonnull RequestPattern<ReqT> requestPattern) {
     Objects.requireNonNull(requestPattern);
     List<CapturedRequest<ReqT>> matchedRequests = new ArrayList<>();
-    capturedRequests.stream()
-        .filter(requestPattern::matches)
-        .map(requestPattern::normalizedCapturedRequest)
-        .forEach(matchedRequests::add);
+    for (CapturedRequest capturedRequest : capturedRequests) {
+      if (requestPattern.matches(capturedRequest)) {
+        matchedRequests.add(requestPattern.normalizedCapturedRequest(capturedRequest));
+      }
+    }
     return matchedRequests;
   }
 
