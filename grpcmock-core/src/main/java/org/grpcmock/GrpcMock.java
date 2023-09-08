@@ -47,6 +47,7 @@ import org.grpcmock.definitions.verification.RequestPatternBuilderImpl;
 import org.grpcmock.definitions.verification.steps.RequestPatternBuilderStep;
 import org.grpcmock.exception.GrpcMockException;
 import org.grpcmock.exception.GrpcMockVerificationError;
+import org.grpcmock.interceptors.CapturedRequest;
 import org.grpcmock.interceptors.RequestCaptureInterceptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -164,6 +165,14 @@ public final class GrpcMock {
           "Expected %s method to be called %s, but actual call count was %d",
           requestPattern.fullMethodName(), countMatcher, callCount));
     }
+  }
+
+  /**
+   * Return all {@link CapturedRequest} that match the provided request pattern.
+   */
+  public <ReqT> List<CapturedRequest<ReqT>> capturedRequestsFor(@Nonnull RequestPattern<ReqT> requestPattern) {
+    Objects.requireNonNull(requestPattern);
+    return requestCaptureInterceptor.requestsFor(requestPattern);
   }
 
   /**
@@ -311,9 +320,9 @@ public final class GrpcMock {
    * <p>Returns a response action, which will send out
    * the given exception via {@link StreamObserver#onError}.
    * <p>It not recommended to use this methods, because without
-   * a proper {@link ServerInterceptor} translating non-gRPC exceptions to gRPC ones It will be translated to {@link
-   * Status#UNKNOWN} type of exception without any message. The {@link #statusException(Status)} should be used to define concrete
-   * gRPC errors.
+   * a proper {@link ServerInterceptor} translating non-gRPC exceptions to gRPC ones It will be translated to
+   * {@link Status#UNKNOWN} type of exception without any message. The {@link #statusException(Status)} should be used to define
+   * concrete gRPC errors.
    */
   public static ExceptionResponseActionBuilder exception(@Nonnull Throwable exception) {
     return new ExceptionResponseActionBuilderImpl(exception);
@@ -423,8 +432,16 @@ public final class GrpcMock {
   }
 
   /**
-   * Returns request pattern builder instance, used for verifying call count using {@link #verifyThat(RequestPatternBuilderStep,
-   * CountMatcher)}.
+   * Return all {@link CapturedRequest} that match the provided request pattern.
+   */
+  public static <ReqT> List<CapturedRequest<ReqT>> capturedRequestsFor(@Nonnull RequestPatternBuilderStep<ReqT> requestPattern) {
+    Objects.requireNonNull(requestPattern);
+    return INSTANCE.get().capturedRequestsFor(requestPattern.build());
+  }
+
+  /**
+   * Returns request pattern builder instance, used for verifying call count using
+   * {@link #verifyThat(RequestPatternBuilderStep, CountMatcher)}.
    */
   public static <ReqT> RequestPatternBuilderStep<ReqT> calledMethod(
       @Nonnull MethodDescriptor<ReqT, ?> method

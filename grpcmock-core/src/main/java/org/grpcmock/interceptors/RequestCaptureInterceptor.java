@@ -11,6 +11,7 @@ import io.grpc.ServerCall.Listener;
 import io.grpc.ServerCallHandler;
 import io.grpc.ServerInterceptor;
 import io.grpc.Status;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Queue;
@@ -33,11 +34,18 @@ public final class RequestCaptureInterceptor implements ServerInterceptor {
 
   private final Queue<CapturedRequest> capturedRequests = new ConcurrentLinkedQueue<>();
 
-  public int callCountFor(@Nonnull RequestPattern<?> requestPattern) {
+  public <ReqT> List<CapturedRequest<ReqT>> requestsFor(@Nonnull RequestPattern<ReqT> requestPattern) {
     Objects.requireNonNull(requestPattern);
-    return Math.toIntExact(capturedRequests.stream()
+    List<CapturedRequest<ReqT>> matchedRequests = new ArrayList<>();
+    capturedRequests.stream()
         .filter(requestPattern::matches)
-        .count());
+        .map(requestPattern::normalizedCapturedRequest)
+        .forEach(matchedRequests::add);
+    return matchedRequests;
+  }
+
+  public int callCountFor(@Nonnull RequestPattern<?> requestPattern) {
+    return requestsFor(requestPattern).size();
   }
 
   public void clear() {

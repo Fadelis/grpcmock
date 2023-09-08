@@ -50,6 +50,10 @@ public class RequestPattern<ReqT> {
         && requestsMatcher.matches(normalizeRequests(capturedRequest.requests()));
   }
 
+  public CapturedRequest<ReqT> normalizedCapturedRequest(CapturedRequest<ReqT> captured) {
+    return new CapturedRequest<>(method, captured.headers(), normalizeRequests(captured.requests()));
+  }
+
   private List<ReqT> normalizeRequests(List<ReqT> requests) {
     return requests.stream()
         .map(this::normalizeRequest)

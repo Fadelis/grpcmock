@@ -18,7 +18,7 @@ public final class CapturedRequest<ReqT> {
   private final List<ReqT> requests;
   private Status closeStatus;
 
-  CapturedRequest(
+  public CapturedRequest(
       @Nonnull MethodDescriptor<ReqT, ?> method,
       @Nonnull Metadata headers,
       @Nonnull List<ReqT> requests

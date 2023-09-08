@@ -9,6 +9,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.grpcmock.GrpcMock.atLeast;
 import static org.grpcmock.GrpcMock.atMost;
 import static org.grpcmock.GrpcMock.calledMethod;
+import static org.grpcmock.GrpcMock.capturedRequestsFor;
 import static org.grpcmock.GrpcMock.clientStreamingMethod;
 import static org.grpcmock.GrpcMock.exception;
 import static org.grpcmock.GrpcMock.never;
@@ -32,6 +33,7 @@ import io.grpc.testing.protobuf.SimpleServiceGrpc.SimpleServiceStub;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import org.grpcmock.interceptors.CapturedRequest;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -505,6 +507,18 @@ class GrpcMockVerifyTest extends TestBase {
         .hasMessageStartingWith("UNIMPLEMENTED: Method not found:");
     verifyThat(getServerStreamingRpcMethod());
     verifyThat(getUnaryRpcMethod(), never());
+  }
+
+  @Test
+  void should_correctly_return_captured_requests() {
+    performUnaryMultipleUnaryCalls();
+
+    List<CapturedRequest<SimpleRequest>> capturedRequests = capturedRequestsFor(calledMethod(getUnaryRpcMethod()));
+
+    assertThat(capturedRequests)
+        .hasSize(8)
+        .flatExtracting(CapturedRequest::requests)
+        .containsExactly(request, request2, request, request, request2, request2, request, request);
   }
 
   private void performUnaryMultipleUnaryCalls() {
