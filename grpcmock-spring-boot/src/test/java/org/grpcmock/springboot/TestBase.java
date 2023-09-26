@@ -16,7 +16,6 @@ import io.grpc.inprocess.InProcessChannelBuilder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.util.StringUtils;
 
 /**
  * @author Fadelis
@@ -50,7 +49,7 @@ abstract class TestBase {
     serverChannel.shutdownNow();
   }
 
-  void runAndAssertHealthCheckRequest(HealthCheckRequest request, HealthCheckResponse response) {
+  void runAndAssertHealthCheckRequest(HealthCheckResponse response) {
     HealthBlockingStub serviceStub = HealthGrpc.newBlockingStub(serverChannel);
 
     assertThat(serviceStub.check(HealthCheckRequest.getDefaultInstance())).isEqualTo(response);
@@ -60,11 +59,10 @@ abstract class TestBase {
     HealthCheckResponse response = HealthCheckResponse.newBuilder()
         .setStatus(ServingStatus.SERVING)
         .build();
-    HealthCheckRequest request = HealthCheckRequest.getDefaultInstance();
 
     stubFor(unaryMethod(HealthGrpc.getCheckMethod())
         .willReturn(response(response)));
 
-    runAndAssertHealthCheckRequest(request, response);
+    runAndAssertHealthCheckRequest(response);
   }
 }

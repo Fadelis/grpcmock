@@ -5,7 +5,6 @@ import static org.grpcmock.GrpcMock.response;
 import static org.grpcmock.GrpcMock.stubFor;
 import static org.grpcmock.GrpcMock.unaryMethod;
 
-import io.grpc.health.v1.HealthCheckRequest;
 import io.grpc.health.v1.HealthCheckResponse;
 import io.grpc.health.v1.HealthCheckResponse.ServingStatus;
 import io.grpc.health.v1.HealthGrpc;
@@ -30,12 +29,11 @@ class GrpcMockTestFixedPortResetFirst extends TestBase {
     HealthCheckResponse response = HealthCheckResponse.newBuilder()
         .setStatus(ServingStatus.NOT_SERVING)
         .build();
-    HealthCheckRequest request = HealthCheckRequest.getDefaultInstance();
 
     stubFor(unaryMethod(HealthGrpc.getCheckMethod())
         .willReturn(response(response)));
 
-    runAndAssertHealthCheckRequest(request, response);
+    runAndAssertHealthCheckRequest(response);
   }
 
   @Test

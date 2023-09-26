@@ -9,7 +9,6 @@ import io.grpc.ServerCall;
 import io.grpc.ServerCall.Listener;
 import io.grpc.ServerCallHandler;
 import io.grpc.ServerInterceptor;
-import io.grpc.health.v1.HealthCheckRequest;
 import io.grpc.health.v1.HealthCheckResponse;
 import io.grpc.health.v1.HealthCheckResponse.ServingStatus;
 import io.grpc.health.v1.HealthGrpc;
@@ -33,13 +32,12 @@ class GrpcMockTestInterceptorInsertTest extends TestBase {
     HealthCheckResponse response = HealthCheckResponse.newBuilder()
         .setStatus(ServingStatus.SERVING)
         .build();
-    HealthCheckRequest request = HealthCheckRequest.getDefaultInstance();
 
     stubFor(unaryMethod(HealthGrpc.getCheckMethod())
         .withHeader(MY_HEADER, HEADER_VALUE)
         .willReturn(response(response)));
 
-    runAndAssertHealthCheckRequest(request, response);
+    runAndAssertHealthCheckRequest(response);
   }
 
   public static class MyServerInterceptor implements ServerInterceptor {

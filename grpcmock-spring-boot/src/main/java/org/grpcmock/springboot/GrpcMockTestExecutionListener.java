@@ -17,7 +17,7 @@ public final class GrpcMockTestExecutionListener extends AbstractTestExecutionLi
   private static final Logger log = LoggerFactory.getLogger(GrpcMockTestExecutionListener.class);
 
   @Override
-  public void beforeTestClass(TestContext testContext) {
+  public void prepareTestInstance(TestContext testContext) {
     if (isInvalidContext(testContext)) {
       return;
     }
@@ -52,9 +52,9 @@ public final class GrpcMockTestExecutionListener extends AbstractTestExecutionLi
   }
 
   private boolean isInvalidContext(TestContext testContext) {
-    return annotationMissing(testContext)
-        || wireMockConfigurationMissing(testContext)
-        || applicationContextBroken(testContext);
+    return applicationContextBroken(testContext)
+        || annotationMissing(testContext)
+        || grpcMockConfigurationMissing(testContext);
   }
 
   private boolean annotationMissing(TestContext testContext) {
@@ -66,7 +66,7 @@ public final class GrpcMockTestExecutionListener extends AbstractTestExecutionLi
     return false;
   }
 
-  private boolean wireMockConfigurationMissing(TestContext testContext) {
+  private boolean grpcMockConfigurationMissing(TestContext testContext) {
     boolean missing = !testContext(testContext).containsBean(GrpcMockConfiguration.class.getName());
     log.debug("GrpcMockConfiguration is missing [{}]", missing);
     return missing;
