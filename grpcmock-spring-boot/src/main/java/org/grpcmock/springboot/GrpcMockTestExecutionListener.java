@@ -52,16 +52,15 @@ public final class GrpcMockTestExecutionListener extends AbstractTestExecutionLi
   }
 
   private boolean isInvalidContext(TestContext testContext) {
-    return applicationContextBroken(testContext)
+    return annotationMissing(testContext)
         || wireMockConfigurationMissing(testContext)
-        || annotationMissing(testContext);
+        || applicationContextBroken(testContext);
   }
 
   private boolean annotationMissing(TestContext testContext) {
     if (testContext.getTestClass().getAnnotationsByType(AutoConfigureGrpcMock.class).length == 0) {
-      log.debug(String.format(
-          "No @AutoConfigureGrpcMock annotation found on [%s]. Skipping",
-          testContext.getTestClass()));
+      log.debug("No @AutoConfigureGrpcMock annotation found on [{}]. Skipping",
+          testContext.getTestClass());
       return true;
     }
     return false;
@@ -69,7 +68,7 @@ public final class GrpcMockTestExecutionListener extends AbstractTestExecutionLi
 
   private boolean wireMockConfigurationMissing(TestContext testContext) {
     boolean missing = !testContext(testContext).containsBean(GrpcMockConfiguration.class.getName());
-    log.debug("GrpcMockConfiguration is missing [" + missing + "]");
+    log.debug("GrpcMockConfiguration is missing [{}]", missing);
     return missing;
   }
 
@@ -79,7 +78,9 @@ public final class GrpcMockTestExecutionListener extends AbstractTestExecutionLi
 
   private boolean applicationContextBroken(TestContext testContext) {
     try {
-      testContext.getApplicationContext();
+      if (testContext.hasApplicationContext()) {
+        testContext.getApplicationContext();
+      }
       return false;
     } catch (Exception ex) {
       log.debug("Application context is broken due to", ex);
