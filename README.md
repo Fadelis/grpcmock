@@ -294,3 +294,66 @@ when using `slf4j-simple` backend a file `simplelogger.properties` needs to be c
 ```yaml
 org.slf4j.simpleLogger.log.org.grpcmock.GrpcMock=warn
 ```
+
+### Working in multithreaded test setup
+
+When working in multithreaded test setup, where the test class is initiated on one thread and test methods are called on a
+different one, you will encounter `UNIMPLEMENTED` errors when trying to use the static configuration methods. GrpcMock uses a 
+`ThreadLocal` instance of `GrpcMock` when using all the static methods, so it will be a different instance on different threads.
+
+To work with `GrpcMock` in such cases you'll need to have access to the `grpcMock` instance object in your test class.
+
+In Spring-Boot setup:
+```java
+@SpringJUnitConfig
+@SpringBootTest(classes = Application.class, webEnvironment = WebEnvironment.NONE)
+@AutoConfigureGrpcMock
+class TestClass {
+  
+  @Autowire
+  private GrpcMock grpcMock;
+}
+```
+
+In other setups:
+```java
+class TestClass {
+  
+  private GrpcMock grpcMock = GrpcMock.grpcMock().build().start();
+}
+```
+
+Then when configuring your stubs you can either call the non-static methods directly on the instance in your test methods:
+```java
+@Test
+void should_test_something() {
+  grpcMock.register(unaryMethod(SimpleServiceGrpc.getUnaryRpcMethod())
+        .willReturn(response));
+  
+  ... test code
+        
+  grpcMock.verifyThat(calledMethod(SimpleServiceGrpc.getUnaryRpcMethod()).build(), CountMatcher.once());
+}
+```
+
+Alternatively you could call `GrpcMock.configureFor` method with the grpcMock instance in the test class at the beginning 
+of each test:
+```java
+@Test
+void should_test_something() {
+  configureFor(grpMock);
+  stubFor(unaryMethod(SimpleServiceGrpc.getUnaryRpcMethod())
+        .willReturn(response));
+  
+  ... test code
+        
+  verifyThat(calledMethod(SimpleServiceGrpc.getUnaryRpcMethod()));
+}
+```
+Or depending whether `BeforeEach` method is called on the same thread as the test method that could be done in `BeforeEach` method:
+```java
+@BeforeEach
+void setup() {
+  configureFor(grpcMock);
+}
+```
