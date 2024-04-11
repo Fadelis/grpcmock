@@ -91,13 +91,15 @@ public class GrpcMockConfiguration implements SmartLifecycle, InitializingBean {
 
   @Override
   public void start() {
-    this.server.start();
-    updateGlobalServer();
+    if (this.server != null) {
+      this.server.start();
+      updateGlobalServer();
+    }
   }
 
   @Override
   public void stop() {
-    if (isRunning()) {
+    if (isRunning() && this.server != null) {
       this.server.stop();
       this.server = null;
       this.running = false;
@@ -113,7 +115,9 @@ public class GrpcMockConfiguration implements SmartLifecycle, InitializingBean {
   }
 
   public void resetAll() {
-    this.server.resetAll();
+    if (this.server != null) {
+      this.server.resetAll();
+    }
   }
 
   private void updateGlobalServer() {

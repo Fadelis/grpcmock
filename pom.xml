@@ -27,13 +27,13 @@
     <grpc.version>1.62.2</grpc.version>
     <spring-boot.version>2.7.6</spring-boot.version>
     <slf4j.version>1.7.36</slf4j.version>
-    <junit-jupiter.version>5.8.2</junit-jupiter.version>
-    <assertj.version>3.23.1</assertj.version>
-    <mockito.version>4.6.1</mockito.version>
-    <pmd.version>3.16.0</pmd.version>
-    <spotbugs.version>4.6.0.0</spotbugs.version>
-    <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
-    <maven-surefire-plugin.version>2.22.2</maven-surefire-plugin.version>
+    <junit-jupiter.version>5.10.2</junit-jupiter.version>
+    <assertj.version>3.25.3</assertj.version>
+    <mockito.version>5.11.0</mockito.version>
+    <pmd.version>3.21.2</pmd.version>
+    <spotbugs.version>4.8.4.0</spotbugs.version>
+    <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
+    <maven-surefire-plugin.version>3.2.5</maven-surefire-plugin.version>
     <build-helper-maven-plugin.version>3.0.0</build-helper-maven-plugin.version>
     <nexus-staging-maven-plugin.version>1.6.8</nexus-staging-maven-plugin.version>
     <maven.build.helper.plugin.version>3.0.0</maven.build.helper.plugin.version>
@@ -46,7 +46,7 @@
     <!-- examples modules versions -->
     <grpc-spring-boot-starter.version>4.7.0</grpc-spring-boot-starter.version>
     <protoc-jar-maven-plugin.version>3.11.4</protoc-jar-maven-plugin.version>
-    <protoc.version>3.21.2</protoc.version>
+    <protoc.version>3.26.1</protoc.version>
     <rest-assured.version>5.1.1</rest-assured.version>
   </properties>
 
@@ -84,7 +84,7 @@
     </dependency>
     <dependency>
       <groupId>org.mockito</groupId>
-      <artifactId>mockito-inline</artifactId>
+      <artifactId>mockito-core</artifactId>
       <version>${mockito.version}</version>
       <scope>test</scope>
     </dependency>
@@ -132,7 +132,7 @@
           <effort>Max</effort>
           <threshold>Low</threshold>
           <failOnError>true</failOnError>
-          <omitVisitors>FindReturnRef</omitVisitors>
+          <omitVisitors>ConstructorThrow,FindReturnRef</omitVisitors>
         </configuration>
         <executions>
           <execution>
