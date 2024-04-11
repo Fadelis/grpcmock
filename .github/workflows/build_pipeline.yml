@@ -22,6 +22,4 @@ jobs:
           cache: maven
 
       - name: mvn verify
-        run: |
-          ls -la -R $JAVA_HOME
-          mvn --batch-mode -T1C verify
+        run: mvn --batch-mode -T1C verify

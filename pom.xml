@@ -46,7 +46,7 @@
     <!-- examples modules versions -->
     <grpc-spring-boot-starter.version>4.7.0</grpc-spring-boot-starter.version>
     <protoc-jar-maven-plugin.version>3.11.4</protoc-jar-maven-plugin.version>
-    <protoc.version>3.26.1</protoc.version>
+    <protoc.version>3.25.1</protoc.version>
     <rest-assured.version>5.1.1</rest-assured.version>
   </properties>
 
