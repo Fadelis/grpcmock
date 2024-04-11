@@ -25,8 +25,8 @@
     <java.version>1.8</java.version>
 
     <grpc.version>1.63.0</grpc.version>
-    <spring-boot.version>2.7.6</spring-boot.version>
-    <slf4j.version>1.7.36</slf4j.version>
+    <spring-boot.version>3.2.4</spring-boot.version>
+    <slf4j.version>2.0.12</slf4j.version>
     <junit-jupiter.version>5.10.2</junit-jupiter.version>
     <assertj.version>3.25.3</assertj.version>
     <mockito.version>4.11.0</mockito.version>
@@ -44,10 +44,13 @@
     <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
 
     <!-- examples modules versions -->
-    <grpc-spring-boot-starter.version>4.7.0</grpc-spring-boot-starter.version>
+    <grpc-spring-boot-starter.version>5.1.5</grpc-spring-boot-starter.version>
     <protoc-jar-maven-plugin.version>3.11.4</protoc-jar-maven-plugin.version>
     <protoc.version>3.25.1</protoc.version>
-    <rest-assured.version>5.1.1</rest-assured.version>
+    <rest-assured.version>5.4.0</rest-assured.version>
+    <!-- Until gRPC generator library moves to generated jakarta instead of javax -->
+    <!-- https://github.com/grpc/grpc-java/issues/9179 -->
+    <javax.annotation.api.version>1.3.2</javax.annotation.api.version>
   </properties>
 
   <dependencies>
@@ -101,6 +104,7 @@
           <compilerVersion>${java.version}</compilerVersion>
           <source>${java.version}</source>
           <target>${java.version}</target>
+          <compilerArgument>-parameters</compilerArgument>
         </configuration>
       </plugin>
 

@@ -2,12 +2,11 @@ package org.grpcmock.examples.spring.config;
 
 import java.util.List;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.ConstructorBinding;
 
 /**
  * @author Fadelis
  */
-@ConstructorBinding
+
 @ConfigurationProperties("news-services")
 public class NewsServicesProperties {
 

@@ -38,6 +38,10 @@
           <groupId>io.grpc</groupId>
           <artifactId>grpc-services</artifactId>
         </exclusion>
+        <exclusion>
+          <groupId>io.grpc</groupId>
+          <artifactId>grpc-inprocess</artifactId>
+        </exclusion>
       </exclusions>
     </dependency>
     <dependency>
@@ -54,6 +58,11 @@
       <groupId>io.grpc</groupId>
       <artifactId>grpc-protobuf</artifactId>
       <version>${grpc.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>javax.annotation</groupId>
+      <artifactId>javax.annotation-api</artifactId>
+      <version>${javax.annotation.api.version}</version>
     </dependency>
 
     <dependency>
