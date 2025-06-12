@@ -26,26 +26,26 @@
 
     <grpc.version>1.73.0</grpc.version>
     <spring-boot.version>3.2.4</spring-boot.version>
-    <slf4j.version>2.0.12</slf4j.version>
-    <junit-jupiter.version>5.10.2</junit-jupiter.version>
-    <assertj.version>3.25.3</assertj.version>
+    <slf4j.version>2.0.17</slf4j.version>
+    <junit-jupiter.version>5.13.1</junit-jupiter.version>
+    <assertj.version>3.27.3</assertj.version>
     <mockito.version>4.11.0</mockito.version>
-    <pmd.version>3.21.2</pmd.version>
-    <spotbugs.version>4.8.4.0</spotbugs.version>
-    <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
-    <maven-surefire-plugin.version>3.2.5</maven-surefire-plugin.version>
-    <nexus-staging-maven-plugin.version>1.6.13</nexus-staging-maven-plugin.version>
-    <maven-deploy-plugin.version>3.1.1</maven-deploy-plugin.version>
-    <maven-release-plugin.version>3.0.1</maven-release-plugin.version>
-    <maven-javadoc-plugin.version>3.6.3</maven-javadoc-plugin.version>
+    <pmd.version>3.26.0</pmd.version>
+    <spotbugs.version>4.9.3.0</spotbugs.version>
+    <maven-compiler-plugin.version>3.14.0</maven-compiler-plugin.version>
+    <maven-surefire-plugin.version>3.5.3</maven-surefire-plugin.version>
+    <nexus-staging-maven-plugin.version>1.7.0</nexus-staging-maven-plugin.version>
+    <maven-deploy-plugin.version>3.1.4</maven-deploy-plugin.version>
+    <maven-release-plugin.version>3.1.1</maven-release-plugin.version>
+    <maven-javadoc-plugin.version>3.11.2</maven-javadoc-plugin.version>
     <maven-source-plugin.version>3.3.1</maven-source-plugin.version>
-    <maven-gpg-plugin.version>3.2.2</maven-gpg-plugin.version>
+    <maven-gpg-plugin.version>3.2.7</maven-gpg-plugin.version>
 
     <!-- examples modules versions -->
-    <grpc-spring-boot-starter.version>5.1.5</grpc-spring-boot-starter.version>
+    <grpc-spring-boot-starter.version>5.2.0</grpc-spring-boot-starter.version>
     <protoc-jar-maven-plugin.version>3.11.4</protoc-jar-maven-plugin.version>
-    <protoc.version>3.25.1</protoc.version>
-    <rest-assured.version>5.4.0</rest-assured.version>
+    <protoc.version>3.25.5</protoc.version>
+    <rest-assured.version>5.5.5</rest-assured.version>
     <!-- Until gRPC generator library moves to generated jakarta instead of javax -->
     <!-- https://github.com/grpc/grpc-java/issues/9179 -->
     <javax.annotation.api.version>1.3.2</javax.annotation.api.version>
