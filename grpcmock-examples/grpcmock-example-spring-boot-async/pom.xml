@@ -23,27 +23,18 @@
       <artifactId>spring-boot-starter-web</artifactId>
       <version>${spring-boot.version}</version>
     </dependency>
-
     <dependency>
-      <groupId>io.github.lognet</groupId>
-      <artifactId>grpc-spring-boot-starter</artifactId>
-      <version>${grpc-spring-boot-starter.version}</version>
-      <!-- allows to bump gRPC version independently -->
+      <groupId>org.springframework.grpc</groupId>
+      <artifactId>spring-grpc-spring-boot-starter</artifactId>
+      <version>${spring-boot-grpc.version}</version>
       <exclusions>
         <exclusion>
           <groupId>io.grpc</groupId>
-          <artifactId>grpc-netty-shaded</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>io.grpc</groupId>
-          <artifactId>grpc-services</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>io.grpc</groupId>
-          <artifactId>grpc-inprocess</artifactId>
+          <artifactId>grpc-netty</artifactId>
         </exclusion>
       </exclusions>
     </dependency>
+
     <dependency>
       <groupId>io.grpc</groupId>
       <artifactId>grpc-netty-shaded</artifactId>
@@ -69,6 +60,12 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-test</artifactId>
       <version>${spring-boot.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.grpc</groupId>
+      <artifactId>spring-grpc-test</artifactId>
+      <version>${spring-boot-grpc.version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>

@@ -7,12 +7,12 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.grpcmock.examples.v1.GetNewsRequest;
 import org.grpcmock.examples.v1.GetNewsResponse;
 import org.grpcmock.examples.v1.NewsAggregatorServiceGrpc.NewsAggregatorServiceImplBase;
-import org.lognet.springboot.grpc.GRpcService;
+import org.springframework.stereotype.Service;
 
 /**
  * @author Fadelis
  */
-@GRpcService
+@Service
 public class NewsAggregatorService extends NewsAggregatorServiceImplBase {
 
   private final List<DownstreamNewsService> downstreamServices;
