@@ -14,11 +14,11 @@ import org.grpcmock.GrpcMockBuilder;
 import org.grpcmock.exception.GrpcMockException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.SmartLifecycle;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.StringUtils;
 
@@ -27,7 +27,7 @@ import org.springframework.util.StringUtils;
  */
 @Configuration
 @EnableConfigurationProperties(GrpcMockProperties.class)
-public class GrpcMockConfiguration implements SmartLifecycle, InitializingBean {
+public class GrpcMockConfiguration implements InitializingBean, DisposableBean {
 
   private static final Logger log = LoggerFactory.getLogger(GrpcMockConfiguration.class);
   private static final String GRPCMOCK_BEAN_NAME = "grpcMock";
@@ -87,18 +87,12 @@ public class GrpcMockConfiguration implements SmartLifecycle, InitializingBean {
         "Creating a new GrpcMock server at http port [%d], name [%s]",
         properties.getServer().getPort(), properties.getServer().getName()));
     server = serverBuilder.build();
+    this.server.start();
+    updateGlobalServer();
   }
 
   @Override
-  public void start() {
-    if (this.server != null) {
-      this.server.start();
-      updateGlobalServer();
-    }
-  }
-
-  @Override
-  public void stop() {
+  public void destroy() {
     if (isRunning() && this.server != null) {
       this.server.stop();
       this.server = null;
@@ -109,7 +103,6 @@ public class GrpcMockConfiguration implements SmartLifecycle, InitializingBean {
     }
   }
 
-  @Override
   public boolean isRunning() {
     return this.running;
   }
