@@ -14,9 +14,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 /**
  * @author Fadelis
@@ -26,7 +26,7 @@ import org.springframework.context.annotation.Import;
 @AutoConfigureGrpcMock(executorBeanName = "myExecutor")
 class GrpcMockTestExecutorBeanTest extends TestBase {
 
-  @MockBean
+  @MockitoBean
   private Executor myExecutor;
 
   @BeforeEach
