@@ -17,7 +17,6 @@ import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 class GrpcMockConfigurationTest {
 
   private final DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
-
   private GrpcMockConfiguration configuration;
 
   @Test
@@ -28,6 +27,7 @@ class GrpcMockConfigurationTest {
     server.setInterceptors(new Class[]{MyServerInterceptor.class});
     properties.setServer(server);
     configuration = new GrpcMockConfiguration(properties, beanFactory);
+
     Assertions.assertThatThrownBy(configuration::afterPropertiesSet)
         .isInstanceOf(GrpcMockException.class)
         .hasMessageContaining("missing no-args constructor");
@@ -41,6 +41,7 @@ class GrpcMockConfigurationTest {
     server.setCertChainFile("my-cert-chain");
     properties.setServer(server);
     configuration = new GrpcMockConfiguration(properties, beanFactory);
+
     Assertions.assertThatThrownBy(configuration::afterPropertiesSet)
         .isInstanceOf(GrpcMockException.class)
         .hasMessage("Both certChain and privateKey have to be defined");
@@ -54,6 +55,7 @@ class GrpcMockConfigurationTest {
     server.setPrivateKeyFile("my-cert-chain");
     properties.setServer(server);
     configuration = new GrpcMockConfiguration(properties, beanFactory);
+
     Assertions.assertThatThrownBy(configuration::afterPropertiesSet)
         .isInstanceOf(GrpcMockException.class)
         .hasMessage("Both certChain and privateKey have to be defined");
