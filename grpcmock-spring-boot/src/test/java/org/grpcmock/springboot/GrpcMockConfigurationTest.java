@@ -1,5 +1,6 @@
 package org.grpcmock.springboot;
 
+import static org.grpcmock.springboot.GrpcMockProperties.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -20,21 +21,18 @@ import org.springframework.beans.factory.support.DefaultListableBeanFactory;
  */
 class GrpcMockConfigurationTest {
 
-  private final GrpcMockProperties properties = mock(
-      GrpcMockProperties.class, Mockito.RETURNS_DEEP_STUBS);
-  private final DefaultListableBeanFactory beanFactory = mock(DefaultListableBeanFactory.class);
-  private final GrpcMockConfiguration configuration = new GrpcMockConfiguration(
-      properties, beanFactory);
+  private final DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
+  private GrpcMockConfiguration configuration;
 
-  @BeforeEach
-  void setup() {
-    when(properties.getServer().getPort()).thenReturn(8888);
-  }
 
   @Test
   void should_throw_error_when_interceptor_does_not_have_no_args_constructor() {
-    when(properties.getServer().getInterceptors())
-        .thenReturn(new Class[]{MyServerInterceptor.class});
+    GrpcMockProperties properties = new GrpcMockProperties();
+    Server server = new Server();
+    server.setPort(8888);
+    server.setInterceptors(new Class[]{MyServerInterceptor.class});
+    properties.setServer(server);
+    configuration = new GrpcMockConfiguration(properties, beanFactory);
 
     Assertions.assertThatThrownBy(configuration::afterPropertiesSet)
         .isInstanceOf(GrpcMockException.class)
@@ -43,7 +41,12 @@ class GrpcMockConfigurationTest {
 
   @Test
   void should_throw_error_when_cert_chain_is_present_but_private_key_is_missing() {
-    when(properties.getServer().getCertChainFile()).thenReturn("my-cert-chain");
+    GrpcMockProperties properties = new GrpcMockProperties();
+    Server server = new Server();
+    server.setPort(8888);
+    server.setCertChainFile("my-cert-chain");
+    properties.setServer(server);
+    configuration = new GrpcMockConfiguration(properties, beanFactory);
 
     Assertions.assertThatThrownBy(configuration::afterPropertiesSet)
         .isInstanceOf(GrpcMockException.class)
@@ -52,7 +55,12 @@ class GrpcMockConfigurationTest {
 
   @Test
   void should_throw_error_when_private_key_is_present_but_cert_chain_is_missing() {
-    when(properties.getServer().getPrivateKeyFile()).thenReturn("my-cert-chain");
+    GrpcMockProperties properties = new GrpcMockProperties();
+    Server server = new Server();
+    server.setPort(8888);
+    server.setPrivateKeyFile("my-cert-chain");
+    properties.setServer(server);
+    configuration = new GrpcMockConfiguration(properties, beanFactory);
 
     Assertions.assertThatThrownBy(configuration::afterPropertiesSet)
         .isInstanceOf(GrpcMockException.class)
