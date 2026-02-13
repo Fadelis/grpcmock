@@ -20,6 +20,11 @@ jobs:
           distribution: temurin
           java-version: 17
           cache: maven
+          server-id: ossrh
+          server-username: MAVEN_USERNAME
+          server-password: MAVEN_PASSWORD
+          gpg-private-key: ${{ secrets.gpg_private_key }}
+          gpg-passphrase: GPG_PASSPHRASE
 
       - name: Set version
         run: |
@@ -28,13 +33,11 @@ jobs:
           sed -i 's/<tag>HEAD<\/tag>/<tag>$GITHUB_TAG<\/tag>/' pom.xml
 
       - name: Perform release
-        uses: samuelmeuli/action-maven-publish@v1
-        with:
-          maven_args: '-DstagingProgressTimeoutMinutes=60'
-          gpg_private_key: ${{ secrets.gpg_private_key }}
-          gpg_passphrase: ${{ secrets.gpg_passphrase }}
-          nexus_username: ${{ secrets.nexus_username }}
-          nexus_password: ${{ secrets.nexus_password }}
+        run: mvn -B deploy -Pdeploy
+        env:
+          GPG_PASSPHRASE: ${{ secrets.gpg_passphrase }}
+          MAVEN_USERNAME: ${{ secrets.nexus_username }}
+          MAVEN_PASSWORD: ${{ secrets.nexus_password }}
 
       - name: Clean release changes
         run: git add . && git stash && git stash drop

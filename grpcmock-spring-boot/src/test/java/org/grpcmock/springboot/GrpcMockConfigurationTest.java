@@ -1,9 +1,5 @@
 package org.grpcmock.springboot;
 
-import static org.grpcmock.springboot.GrpcMockProperties.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 import io.grpc.Metadata;
 import io.grpc.ServerCall;
 import io.grpc.ServerCall.Listener;
@@ -11,9 +7,8 @@ import io.grpc.ServerCallHandler;
 import io.grpc.ServerInterceptor;
 import org.assertj.core.api.Assertions;
 import org.grpcmock.exception.GrpcMockException;
-import org.junit.jupiter.api.BeforeEach;
+import org.grpcmock.springboot.GrpcMockProperties.Server;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 
 /**
