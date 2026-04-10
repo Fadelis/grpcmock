@@ -8,7 +8,6 @@ import org.springframework.boot.context.event.ApplicationPreparedEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
-import org.springframework.test.util.TestSocketUtils;
 import org.springframework.util.StringUtils;
 
 /**
@@ -40,12 +39,13 @@ public class GrpcMockApplicationListener implements ApplicationListener<Applicat
         properties.getSource().put("grpcmock.server.port-dynamic", true);
       }
     } else if (httpPort.equals(0)) {
-      int availablePort = TestSocketUtils.findAvailableTcpPort();
+      // Mark as dynamic port - the actual port will be resolved after server.start()
+      // by letting the OS atomically assign a free port via ServerBuilder.forPort(0).
+      // This avoids the TOCTOU race condition of pre-allocating a port.
       MapPropertySource properties = ofNullable(environment.getPropertySources().remove("grpcmock"))
           .map(MapPropertySource.class::cast)
           .orElseGet(() -> new MapPropertySource("grpcmock", new HashMap<>()));
       environment.getPropertySources().addFirst(properties);
-      properties.getSource().put("grpcmock.server.port", availablePort);
       properties.getSource().put("grpcmock.server.port-dynamic", true);
     }
   }

@@ -10,6 +10,8 @@ import org.grpcmock.exception.GrpcMockException;
 import org.grpcmock.springboot.GrpcMockProperties.Server;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 /**
  * @author Fadelis
@@ -19,6 +21,8 @@ class GrpcMockConfigurationTest {
   private final DefaultListableBeanFactory beanFactory = new DefaultListableBeanFactory();
   private GrpcMockConfiguration configuration;
 
+  @MockitoBean
+  private ConfigurableEnvironment environment;
 
   @Test
   void should_throw_error_when_interceptor_does_not_have_no_args_constructor() {
@@ -27,7 +31,7 @@ class GrpcMockConfigurationTest {
     server.setPort(8888);
     server.setInterceptors(new Class[]{MyServerInterceptor.class});
     properties.setServer(server);
-    configuration = new GrpcMockConfiguration(properties, beanFactory);
+    configuration = new GrpcMockConfiguration(properties, beanFactory, environment);
 
     Assertions.assertThatThrownBy(configuration::afterPropertiesSet)
         .isInstanceOf(GrpcMockException.class)
@@ -41,7 +45,7 @@ class GrpcMockConfigurationTest {
     server.setPort(8888);
     server.setCertChainFile("my-cert-chain");
     properties.setServer(server);
-    configuration = new GrpcMockConfiguration(properties, beanFactory);
+    configuration = new GrpcMockConfiguration(properties, beanFactory, environment);
 
     Assertions.assertThatThrownBy(configuration::afterPropertiesSet)
         .isInstanceOf(GrpcMockException.class)
@@ -55,7 +59,7 @@ class GrpcMockConfigurationTest {
     server.setPort(8888);
     server.setPrivateKeyFile("my-cert-chain");
     properties.setServer(server);
-    configuration = new GrpcMockConfiguration(properties, beanFactory);
+    configuration = new GrpcMockConfiguration(properties, beanFactory, environment);
 
     Assertions.assertThatThrownBy(configuration::afterPropertiesSet)
         .isInstanceOf(GrpcMockException.class)
@@ -64,7 +68,7 @@ class GrpcMockConfigurationTest {
 
   public static class MyServerInterceptor implements ServerInterceptor {
 
-    public MyServerInterceptor(String arg) {
+    public MyServerInterceptor(@SuppressWarnings("unused") String arg) {
     }
 
     @Override

@@ -5,6 +5,7 @@ import static java.util.Optional.of;
 import static java.util.Optional.ofNullable;
 
 import io.grpc.ServerInterceptor;
+import java.util.HashMap;
 import java.util.Objects;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -20,6 +21,8 @@ import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.SmartLifecycle;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.core.env.MapPropertySource;
 import org.springframework.util.StringUtils;
 
 /**
@@ -34,15 +37,18 @@ public class GrpcMockConfiguration implements SmartLifecycle, InitializingBean {
 
   private final GrpcMockProperties properties;
   private final DefaultListableBeanFactory beanFactory;
+  private final ConfigurableEnvironment environment;
 
   private volatile boolean running;
 
   private GrpcMock server;
 
   @Autowired
-  GrpcMockConfiguration(GrpcMockProperties properties, DefaultListableBeanFactory beanFactory) {
+  GrpcMockConfiguration(GrpcMockProperties properties, DefaultListableBeanFactory beanFactory,
+      ConfigurableEnvironment environment) {
     this.properties = properties;
     this.beanFactory = beanFactory;
+    this.environment = environment;
   }
 
   @Override
@@ -93,6 +99,18 @@ public class GrpcMockConfiguration implements SmartLifecycle, InitializingBean {
   public void start() {
     if (this.server != null) {
       this.server.start();
+      // After start, update the port property with the actual OS-assigned port.
+      // This is critical when port=0 was used, as the real port is only known after bind.
+      if (properties.getServer().isPortDynamic() && !properties.getServer().isUseInProcessServer()) {
+        int actualPort = this.server.getPort();
+        properties.getServer().setPort(actualPort);
+        // Update the environment property source so ${grpcmock.server.port} resolves correctly
+        MapPropertySource grpcmockProperties = ofNullable(environment.getPropertySources().remove("grpcmock"))
+            .map(MapPropertySource.class::cast)
+            .orElseGet(() -> new MapPropertySource("grpcmock", new HashMap<>()));
+        grpcmockProperties.getSource().put("grpcmock.server.port", actualPort);
+        environment.getPropertySources().addFirst(grpcmockProperties);
+      }
       updateGlobalServer();
     }
   }
