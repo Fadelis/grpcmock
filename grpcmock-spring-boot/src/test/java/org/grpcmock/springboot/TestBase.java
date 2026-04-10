@@ -13,14 +13,23 @@ import io.grpc.health.v1.HealthCheckResponse.ServingStatus;
 import io.grpc.health.v1.HealthGrpc;
 import io.grpc.health.v1.HealthGrpc.HealthBlockingStub;
 import io.grpc.inprocess.InProcessChannelBuilder;
+import org.grpcmock.GrpcMock;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
 /**
  * @author Fadelis
  */
 abstract class TestBase {
+
+  private static final Logger log = LoggerFactory.getLogger(TestBase.class);
+
+  @Autowired
+  protected GrpcMock grpcMock;
 
   @Value("${grpcmock.server.port}")
   protected int grpcMockPort;
@@ -50,6 +59,7 @@ abstract class TestBase {
   }
 
   void runAndAssertHealthCheckRequest(HealthCheckResponse response) {
+    log.info("Using port: {}", grpcMockPort);
     HealthBlockingStub serviceStub = HealthGrpc.newBlockingStub(serverChannel);
 
     assertThat(serviceStub.check(HealthCheckRequest.getDefaultInstance())).isEqualTo(response);

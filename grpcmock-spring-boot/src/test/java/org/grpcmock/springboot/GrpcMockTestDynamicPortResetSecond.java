@@ -1,5 +1,6 @@
 package org.grpcmock.springboot;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.grpcmock.GrpcMock.response;
 import static org.grpcmock.GrpcMock.stubFor;
 import static org.grpcmock.GrpcMock.unaryMethod;
@@ -28,5 +29,14 @@ class GrpcMockTestDynamicPortResetSecond extends TestBase {
         .willReturn(response(response)));
 
     runAndAssertHealthCheckRequest(response);
+
+    assertThat(grpcMockPort)
+        .as("Port should be assigned by OS (should not be 0)")
+        .isGreaterThan(0)
+        .isLessThan(65536);
+
+    assertThat(grpcMock.getPort())
+        .as("Server's actual port should match injected port property")
+        .isEqualTo(grpcMockPort);
   }
 }
