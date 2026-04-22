@@ -1,5 +1,6 @@
 package org.grpcmock.springboot;
 
+import org.grpcmock.GrpcMock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
@@ -8,7 +9,7 @@ import org.springframework.test.context.TestContext;
 import org.springframework.test.context.support.AbstractTestExecutionListener;
 
 /**
- * Dirties the test context if WireMock was running on a fixed port.
+ * Resets gRPC Mock mappings between tests and dirties the context for fixed port/name configs.
  *
  * @author Fadelis
  */
@@ -22,7 +23,8 @@ public final class GrpcMockTestExecutionListener extends AbstractTestExecutionLi
       return;
     }
     if (!portOrNameIsFixed(testContext)) {
-      grpcMockConfig(testContext).afterPropertiesSet();
+      grpcMock(testContext).resetAll();
+      GrpcMock.configureFor(grpcMock(testContext));
     }
   }
 
@@ -39,7 +41,7 @@ public final class GrpcMockTestExecutionListener extends AbstractTestExecutionLi
       testContext.markApplicationContextDirty(DirtiesContext.HierarchyMode.EXHAUSTIVE);
     } else {
       log.debug("Resetting gRPC Mock mappings after test class for dynamic port server");
-      grpcMockConfig(testContext).resetAll();
+      grpcMock(testContext).resetAll();
     }
   }
 
@@ -47,14 +49,14 @@ public final class GrpcMockTestExecutionListener extends AbstractTestExecutionLi
   public void afterTestMethod(TestContext testContext) {
     if (!isInvalidContext(testContext)) {
       log.debug("Resetting gRPC Mock mappings after a test");
-      grpcMockConfig(testContext).resetAll();
+      grpcMock(testContext).resetAll();
     }
   }
 
   private boolean isInvalidContext(TestContext testContext) {
     return applicationContextBroken(testContext)
         || annotationMissing(testContext)
-        || grpcMockConfigurationMissing(testContext);
+        || grpcMockBeanMissing(testContext);
   }
 
   private boolean annotationMissing(TestContext testContext) {
@@ -66,13 +68,13 @@ public final class GrpcMockTestExecutionListener extends AbstractTestExecutionLi
     return false;
   }
 
-  private boolean grpcMockConfigurationMissing(TestContext testContext) {
-    boolean missing = !testContext(testContext).containsBean(GrpcMockConfiguration.class.getName());
-    log.debug("GrpcMockConfiguration is missing [{}]", missing);
+  private boolean grpcMockBeanMissing(TestContext testContext) {
+    boolean missing = !context(testContext).containsBean(GrpcMockContextCustomizer.GRPCMOCK_BEAN_NAME);
+    log.debug("GrpcMock bean is missing [{}]", missing);
     return missing;
   }
 
-  private ApplicationContext testContext(TestContext testContext) {
+  private ApplicationContext context(TestContext testContext) {
     return testContext.getApplicationContext();
   }
 
@@ -88,15 +90,12 @@ public final class GrpcMockTestExecutionListener extends AbstractTestExecutionLi
     }
   }
 
-  private GrpcMockConfiguration grpcMockConfig(TestContext testContext) {
-    return testContext(testContext).getBean(GrpcMockConfiguration.class);
-  }
-
-  private GrpcMockProperties grpcMockProperties(TestContext testContext) {
-    return testContext(testContext).getBean(GrpcMockProperties.class);
+  private GrpcMock grpcMock(TestContext testContext) {
+    return context(testContext).getBean(GrpcMockContextCustomizer.GRPCMOCK_BEAN_NAME, GrpcMock.class);
   }
 
   private boolean portOrNameIsFixed(TestContext testContext) {
-    return !grpcMockProperties(testContext).getServer().isPortDynamic();
+    return !Boolean.TRUE.equals(
+        context(testContext).getEnvironment().getProperty("grpcmock.server.port-dynamic", Boolean.class));
   }
 }

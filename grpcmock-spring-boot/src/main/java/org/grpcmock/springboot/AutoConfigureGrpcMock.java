@@ -11,8 +11,6 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
-import org.springframework.boot.test.context.PropertyMapping;
-import org.springframework.context.annotation.Import;
 
 /**
  * <p>Annotation for test classes that want to start a gRPC Mock server as part of the Spring
@@ -28,8 +26,6 @@ import org.springframework.context.annotation.Import;
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-@Import(GrpcMockConfiguration.class)
-@PropertyMapping("grpcmock.server")
 @Inherited
 public @interface AutoConfigureGrpcMock {
 
