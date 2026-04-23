@@ -8,7 +8,7 @@ on:
 jobs:
   grpcmock:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 60
 
     steps:
       - name: Checkout code
@@ -49,10 +49,13 @@ jobs:
           sed -i "s/<version>[0-9.]*<\/version>/<version>$GITHUB_TAG<\/version>/" README.md
           mvn versions:set -DgenerateBackupPoms=false -DnewVersion=$NEW_SNAPSHOT_VERSION
 
+      - name: Resolve source branch
+        run: echo "RELEASE_BRANCH=$(git branch -r --contains ${{ github.sha }} | grep -v HEAD | head -1 | sed 's|origin/||' | xargs)" >> $GITHUB_ENV
+
       - name: Commit snapshot version bump
         uses: EndBug/add-and-commit@v9
         with:
-          push: 'origin HEAD:master'
+          push: 'origin HEAD:${{ env.RELEASE_BRANCH }}'
           message: 'bump snapshot version'
           author_name: github-actions
           author_email: 41898282+github-actions[bot]@users.noreply.github.com
