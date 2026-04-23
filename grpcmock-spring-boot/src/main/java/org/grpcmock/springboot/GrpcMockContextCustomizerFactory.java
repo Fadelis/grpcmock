@@ -1,6 +1,6 @@
 package org.grpcmock.springboot;
 
-import static org.springframework.core.annotation.AnnotatedElementUtils.findMergedAnnotation;
+import static org.springframework.test.context.TestContextAnnotationUtils.findMergedAnnotation;
 
 import java.util.List;
 import org.springframework.test.context.ContextConfigurationAttributes;

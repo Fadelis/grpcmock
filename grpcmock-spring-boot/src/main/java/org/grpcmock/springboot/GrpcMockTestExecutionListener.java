@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.TestContext;
+import org.springframework.test.context.TestContextAnnotationUtils;
 import org.springframework.test.context.support.AbstractTestExecutionListener;
 
 /**
@@ -60,9 +61,8 @@ public final class GrpcMockTestExecutionListener extends AbstractTestExecutionLi
   }
 
   private boolean annotationMissing(TestContext testContext) {
-    if (testContext.getTestClass().getAnnotationsByType(AutoConfigureGrpcMock.class).length == 0) {
-      log.debug("No @AutoConfigureGrpcMock annotation found on [{}]. Skipping",
-          testContext.getTestClass());
+    if (!TestContextAnnotationUtils.hasAnnotation(testContext.getTestClass(), AutoConfigureGrpcMock.class)) {
+      log.debug("No @AutoConfigureGrpcMock annotation found on [{}]. Skipping", testContext.getTestClass());
       return true;
     }
     return false;
