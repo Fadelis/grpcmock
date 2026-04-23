@@ -13,6 +13,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       - name: Set up JDK 17
         uses: actions/setup-java@v3
@@ -50,7 +52,13 @@ jobs:
           mvn versions:set -DgenerateBackupPoms=false -DnewVersion=$NEW_SNAPSHOT_VERSION
 
       - name: Resolve source branch
-        run: echo "RELEASE_BRANCH=$(git branch -r --contains ${{ github.sha }} | grep -v HEAD | head -1 | sed 's|origin/||' | xargs)" >> $GITHUB_ENV
+        run: |
+          BRANCH=$(git branch -r --contains ${{ github.sha }} | grep -v HEAD | head -1 | sed 's|origin/||' | xargs)
+          if [ -z "$BRANCH" ]; then
+            echo "::error::Could not resolve source branch for tag"
+            exit 1
+          fi
+          echo "RELEASE_BRANCH=$BRANCH" >> $GITHUB_ENV
 
       - name: Commit snapshot version bump
         uses: EndBug/add-and-commit@v9
